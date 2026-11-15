@@ -9,7 +9,7 @@ A monorepo can become a tangle of cross-cutting imports if packages can import e
 ## Decision
 
 Dependency direction is layered and enforced:
-- **Server side:** `games/* -> server -> core -> shared`. Core has no Colyseus; server bridges them. A game lists the framework packages it uses (`core`, `server`, `game-kit`, `bots`, `terminal` and others) as `dependencies`; only `@partygame/cli` is off limits to it.
+- **Server side:** `games/* -> server -> core -> shared`. Core has no Colyseus; server bridges them. A game lists the framework packages it uses (`core`, `server`, `game-kit`, `bots`, `terminal` and others) as `dependencies`; only `@openparty/cli` is off limits to it.
 - **Client side:** `games/* -> game-ui -> game-client -> shared`. UI viewmodels are generic; games plug in screens and options schemas. `core` and `server` are `devDependencies` of the client-side packages (`game-client`), there for tests only.
 - **Supporting packages** (`client-utils`, `content`, `bots`, `terminal`, `launcher`, `game-kit`) each have a fixed list of allowed runtime and dev dependencies; the table is `LAYERS` in `scripts/checkBoundaries.ts`.
 - **No package imports `games/*`; no relative `../../games` paths anywhere.**

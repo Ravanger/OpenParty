@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import { createTextFilter } from "@partygame/content/filter";
-import { actionLogMiddleware, defineGame, textFilterMiddleware } from "@partygame/core";
+import { createTextFilter } from "@openparty/content/filter";
+import { actionLogMiddleware, defineGame, textFilterMiddleware } from "@openparty/core";
 import type { CategoryRepository } from "./content/CategoryRepository.js";
 import { META } from "./meta.js";
 import { type WitClashOptions, WitClashOptionsSchema } from "./options.js";

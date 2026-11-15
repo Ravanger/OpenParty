@@ -1,4 +1,4 @@
-import type { LogFields, Logger } from "@partygame/core";
+import type { LogFields, Logger } from "@openparty/core";
 
 /**
  * The default structured logger: one JSON object per line — `{ ts, level, event, ...fields }` —

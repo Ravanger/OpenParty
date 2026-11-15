@@ -1,4 +1,4 @@
-import { LobbySettingsViewModel as LobbySettingsBase } from "@partygame/game-ui";
+import { LobbySettingsViewModel as LobbySettingsBase } from "@openparty/game-ui";
 import { DEFAULT_OPTIONS, WitClashOptionsSchema } from "../../src/options.js";
 import type { WitClashState } from "../../src/state.js";
 import type { WitClashManager } from "../manager.js";

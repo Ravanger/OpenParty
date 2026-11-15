@@ -1,4 +1,4 @@
-import type { ProgressRow } from "@partygame/game-ui";
+import type { ProgressRow } from "@openparty/game-ui";
 import type { WitClashManager } from "../manager.js";
 
 /** How many answers each answering player has handed in, and who is typing right now. */

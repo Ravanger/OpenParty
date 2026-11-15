@@ -1,5 +1,5 @@
-import { addSeat, connectedClient, type SeatConfig } from "@partygame/game-client/testing";
-import { BaseGameState } from "@partygame/shared/schema";
+import { addSeat, connectedClient, type SeatConfig } from "@openparty/game-client/testing";
+import { BaseGameState } from "@openparty/shared/schema";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type LobbyPlayer, WaitingRoomViewModel } from "../src/WaitingRoomViewModel.svelte.js";
 

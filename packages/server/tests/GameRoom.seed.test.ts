@@ -1,4 +1,4 @@
-import { required, type Seed, sfc32 } from "@partygame/core";
+import { required, type Seed, sfc32 } from "@openparty/core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { TestServer } from "../src/testing/index.js";
 import { bootBuzzer, startedRoom, stateOf } from "./support.js";

@@ -1,9 +1,9 @@
 import type { Room } from "@colyseus/sdk";
-import type { BotKit } from "@partygame/bots";
-import { waitFor } from "@partygame/client-utils";
-import { startNodeServer } from "@partygame/server/node";
-import { freePort, ServerProbe } from "@partygame/server/probe";
-import { CLOSE_CODES, ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH } from "@partygame/shared";
+import type { BotKit } from "@openparty/bots";
+import { waitFor } from "@openparty/client-utils";
+import { startNodeServer } from "@openparty/server/node";
+import { freePort, ServerProbe } from "@openparty/server/probe";
+import { CLOSE_CODES, ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH } from "@openparty/shared";
 import { afterEach, describe, expect, it } from "vitest";
 import { GameClient } from "../src/GameClient.js";
 import { PlaySession, type PlaySessionOptions, type SessionPlayer } from "../src/PlaySession.js";

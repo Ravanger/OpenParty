@@ -1,4 +1,4 @@
-import { actionFactory } from "@partygame/core";
+import { actionFactory } from "@openparty/core";
 import { ACTION } from "./actionNames.js";
 import type { __PascalName__Options } from "./options.js";
 import type { __PascalName__Private } from "./private.js";

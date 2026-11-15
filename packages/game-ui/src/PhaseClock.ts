@@ -1,5 +1,5 @@
-import type { Countdown, GameConnectionManager } from "@partygame/game-client";
-import type { BaseGameState } from "@partygame/shared/schema";
+import type { Countdown, GameConnectionManager } from "@openparty/game-client";
+import type { BaseGameState } from "@openparty/shared/schema";
 import { getStrings } from "./strings.js";
 
 const ANNOUNCE_AT = [30, 10, 5];

@@ -1,5 +1,5 @@
-import type { GameContext, PhaseDefinition } from "@partygame/core";
-import { RosterLedger } from "@partygame/core";
+import type { GameContext, PhaseDefinition } from "@openparty/core";
+import { RosterLedger } from "@openparty/core";
 import type { AnswerRecord } from "./bestAnswers.js";
 import type { CategoryRepository } from "./content/CategoryRepository.js";
 import type { WitClashOptions } from "./options.js";

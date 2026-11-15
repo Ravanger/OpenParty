@@ -1,4 +1,4 @@
-import { CLIENT_MESSAGES, ErrorCode, ROOM_CODE_LENGTH } from "@partygame/shared";
+import { CLIENT_MESSAGES, ErrorCode, ROOM_CODE_LENGTH } from "@openparty/shared";
 
 /**
  * Every client-owned message the manager produces, in English. Pass a partial table to

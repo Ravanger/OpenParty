@@ -1,4 +1,4 @@
-import { CLOSE_CODES } from "@partygame/shared";
+import { CLOSE_CODES } from "@openparty/shared";
 import { afterEach, describe, expect, it } from "vitest";
 import type { TestServer } from "../src/testing/index.js";
 import { bootBuzzer, pid, stateOf } from "./support.js";

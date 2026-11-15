@@ -1,13 +1,13 @@
-# @partygame/shared
+# @openparty/shared
 
 Wire protocol (message names, error codes, zod schemas), limits and browser-safe state classes.
 
 | Import | What |
 |---|---|
-| `@partygame/shared` | `ClientMessage`, `ServerMessage`, `ErrorCode`, `ActionResult`, `ServerError`, `isActionResult`, `isServerError`, `LOBBY_PHASE`, `PROTOCOL_VERSION`, zod schemas (`PlayerIdSchema`, `RoomCodeSchema`, `JoinOptionsSchema`, ...), `NAME_MAX_LENGTH`, `MAX_SEATS`, `MAX_OPTIONS_JSON_LENGTH`, `ROOM_CODE_LENGTH`, `ROOM_CODE_ALPHABET`, `sanitizeRoomCode`, error model (`FrameworkError`, `CLOSE_CODES`, `closeCodeEntry`, `CLIENT_MESSAGES`) |
-| `@partygame/shared/schema` | `BaseGameState`, `PlayerSchema`: extend these in your game state; `assertSyncedFields(stateClass, allow)` (fail loudly when a state field is neither allow-listed nor `.view()`-tagged); `syncedJsonOf` (plain JSON of a synced state, `.view()` fields dropped) and its inverse `syncedStateFromJson` (a fresh instance filled from that JSON) |
+| `@openparty/shared` | `ClientMessage`, `ServerMessage`, `ErrorCode`, `ActionResult`, `ServerError`, `isActionResult`, `isServerError`, `LOBBY_PHASE`, `PROTOCOL_VERSION`, zod schemas (`PlayerIdSchema`, `RoomCodeSchema`, `JoinOptionsSchema`, ...), `NAME_MAX_LENGTH`, `MAX_SEATS`, `MAX_OPTIONS_JSON_LENGTH`, `ROOM_CODE_LENGTH`, `ROOM_CODE_ALPHABET`, `sanitizeRoomCode`, error model (`FrameworkError`, `CLOSE_CODES`, `closeCodeEntry`, `CLIENT_MESSAGES`) |
+| `@openparty/shared/schema` | `BaseGameState`, `PlayerSchema`: extend these in your game state; `assertSyncedFields(stateClass, allow)` (fail loudly when a state field is neither allow-listed nor `.view()`-tagged); `syncedJsonOf` (plain JSON of a synced state, `.view()` fields dropped) and its inverse `syncedStateFromJson` (a fresh instance filled from that JSON) |
 
-Client helpers (polling, room-code resolution, share links, argument parsing) live in [`@partygame/client-utils`](../client-utils/README.md).
+Client helpers (polling, room-code resolution, share links, argument parsing) live in [`@openparty/client-utils`](../client-utils/README.md).
 
 ## Define your game state
 
@@ -15,7 +15,7 @@ Client helpers (polling, room-code resolution, share links, argument parsing) li
 
 ```ts
 import { type SchemaType, t } from "@colyseus/schema";
-import { BaseGameState } from "@partygame/shared/schema";
+import { BaseGameState } from "@openparty/shared/schema";
 
 export const ButtonState = BaseGameState.extend(
   { winner: t.string().default("") },
@@ -24,14 +24,14 @@ export const ButtonState = BaseGameState.extend(
 export type ButtonState = SchemaType<typeof ButtonState>;
 ```
 
-Import from `@partygame/shared/schema` in your `state.ts` so the browser bundle never reaches `@colyseus/core`. `PlayerSchema` is one seat: `id`, `name`, `role` (`"host" | "player"`), `isReady`, `isConnected`, `isActive`.
+Import from `@openparty/shared/schema` in your `state.ts` so the browser bundle never reaches `@colyseus/core`. `PlayerSchema` is one seat: `id`, `name`, `role` (`"host" | "player"`), `isReady`, `isConnected`, `isActive`.
 
 ## Handle action results
 
 `room.request(ClientMessage.ACTION, ...)` resolves with an `ActionResult`: `{ ok: true }` or `{ ok: false, error }`. A rejection is also pushed as an `ERROR` message. `isActionResult` and `isServerError` narrow the `unknown` replies.
 
 ```ts
-import { ClientMessage, ErrorCode, isActionResult, isServerError, ServerMessage } from "@partygame/shared";
+import { ClientMessage, ErrorCode, isActionResult, isServerError, ServerMessage } from "@openparty/shared";
 
 const reply: unknown = await room.request(ClientMessage.ACTION, { type: "PRESS" });
 if (isActionResult(reply) && !reply.ok && reply.error.code === ErrorCode.NOT_ALLOWED) {

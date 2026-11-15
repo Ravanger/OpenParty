@@ -1,4 +1,4 @@
-import type { ActionLogEntry } from "@partygame/core";
+import type { ActionLogEntry } from "@openparty/core";
 import { describe, expect, it } from "vitest";
 import { fastestAnswer, formatMs, mostVotesReceived, votesDetail } from "../../src/awards.js";
 import type { AnswerRecord } from "../../src/bestAnswers.js";

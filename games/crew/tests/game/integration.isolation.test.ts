@@ -4,7 +4,7 @@ import {
   stateOf,
   type TestServer,
   waitUntil,
-} from "@partygame/server/testing";
+} from "@openparty/server/testing";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createCrewGame } from "../../src/game.js";
 import { META } from "../../src/meta.js";

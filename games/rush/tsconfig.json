@@ -1,5 +1,5 @@
 {
-  "extends": "@partygame/config/tsconfig.game.json",
+  "extends": "@openparty/config/tsconfig.game.json",
   "compilerOptions": {
     "types": []
   },

@@ -1,5 +1,5 @@
-import { getActionLog, required } from "@partygame/core";
-import { type AwardDefinition, computeAwards } from "@partygame/core/awards";
+import { getActionLog, required } from "@openparty/core";
+import { type AwardDefinition, computeAwards } from "@openparty/core/awards";
 import { ACTION } from "./actionNames.js";
 import type { WitClashContext, WitClashPrivate } from "./private.js";
 import { Award } from "./state.js";

@@ -5,8 +5,8 @@ import {
   ensureMine,
   required,
   shuffle,
-} from "@partygame/core";
-import { drawPool, entriesFor } from "@partygame/core/kits";
+} from "@openparty/core";
+import { drawPool, entriesFor } from "@openparty/core/kits";
 import { classifyMatchup } from "../drafts.js";
 import { buildMatchups } from "../matchups.js";
 import { META } from "../meta.js";

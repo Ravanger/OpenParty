@@ -1,7 +1,7 @@
 import type { Room } from "@colyseus/core";
 import type { Room as ClientRoom } from "@colyseus/sdk";
-import { defineGame } from "@partygame/core";
-import { BaseGameState } from "@partygame/shared/schema";
+import { defineGame } from "@openparty/core";
+import { BaseGameState } from "@openparty/shared/schema";
 import type { GameServerOptions } from "../src/createGameServer.js";
 import {
   bootTestServer,

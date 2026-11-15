@@ -1,4 +1,4 @@
-import { ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH } from "@partygame/shared";
+import { ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH } from "@openparty/shared";
 import { describe, expect, it } from "vitest";
 import { demoCli, type GameDeclaration } from "../src/index.js";
 import { fakeIo } from "./fixtures/fakeIo.js";

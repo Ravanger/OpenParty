@@ -1,6 +1,6 @@
 import type { Room } from "@colyseus/core";
-import { actionLogMiddleware, type GameRuntime, getActionLog, required } from "@partygame/core";
-import { CLIENT_MESSAGES, CLOSE_CODES } from "@partygame/shared";
+import { actionLogMiddleware, type GameRuntime, getActionLog, required } from "@openparty/core";
+import { CLIENT_MESSAGES, CLOSE_CODES } from "@openparty/shared";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import type { GameRoom } from "../src/rooms/GameRoom.js";
 import type { TestServer } from "../src/testing/index.js";

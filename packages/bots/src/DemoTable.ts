@@ -1,5 +1,5 @@
-import { claimName, type RoomConnector } from "@partygame/client-utils";
-import type { BaseGameState } from "@partygame/shared/schema";
+import { claimName, type RoomConnector } from "@openparty/client-utils";
+import type { BaseGameState } from "@openparty/shared/schema";
 import { BotPlayer } from "./BotPlayer.js";
 import { defaultConnector } from "./ColyseusConnector.js";
 import { type JoinBotsOptions, joinBots } from "./joinBots.js";

@@ -1,4 +1,4 @@
-import { endIfBelowMinimum } from "@partygame/core";
+import { endIfBelowMinimum } from "@openparty/core";
 import { META } from "../meta.js";
 import { PHASE } from "../phaseNames.js";
 import type { BluffPhase } from "../private.js";

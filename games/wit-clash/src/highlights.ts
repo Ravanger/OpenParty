@@ -1,4 +1,4 @@
-import { required } from "@partygame/core";
+import { required } from "@openparty/core";
 import type { AnswerRecord } from "./bestAnswers.js";
 
 type HighlightKind = "biggestMargin" | "closestMatch" | "fastestAnswer";

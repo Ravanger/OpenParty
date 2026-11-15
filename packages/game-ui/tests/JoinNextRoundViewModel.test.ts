@@ -1,5 +1,5 @@
-import { type ConnectedClient, connectedClient } from "@partygame/game-client/testing";
-import { BaseGameState } from "@partygame/shared/schema";
+import { type ConnectedClient, connectedClient } from "@openparty/game-client/testing";
+import { BaseGameState } from "@openparty/shared/schema";
 import { describe, expect, it, vi } from "vitest";
 import { JoinNextRoundViewModel } from "../src/JoinNextRoundViewModel.js";
 import { SHELL_SCREENS } from "./fixtures/shellScreens.js";

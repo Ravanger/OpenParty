@@ -1,4 +1,4 @@
-import { PROTOCOL_VERSION } from "@partygame/shared";
+import { PROTOCOL_VERSION } from "@openparty/shared";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import {

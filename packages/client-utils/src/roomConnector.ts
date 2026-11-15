@@ -1,4 +1,4 @@
-import type { BaseGameState } from "@partygame/shared/schema";
+import type { BaseGameState } from "@openparty/shared/schema";
 
 /** The part of a connected room that non-UI clients (bots, terminal) need; `Room` from `@colyseus/sdk` satisfies it. */
 export interface ConnectedRoom<TState extends BaseGameState> {

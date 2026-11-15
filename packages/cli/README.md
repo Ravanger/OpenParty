@@ -1,4 +1,4 @@
-# @partygame/cli
+# @openparty/cli
 
 Scaffolds a new game into this monorepo from the built-in template.
 
@@ -8,7 +8,7 @@ bun packages/cli/src/cli.ts create <slug>   # direct
 bun run new <slug> --headless            # rules, bots and terminal only; no browser UI
 ```
 
-The `partygame` bin in `package.json` is for publishing this package; inside the monorepo it is never linked,
+The `openparty` bin in `package.json` is for publishing this package; inside the monorepo it is never linked,
 so use one of the two forms above.
 
 ## `create`
@@ -18,10 +18,10 @@ so use one of the two forms above.
 
 - The slug must be kebab-case starting with a letter (`[a-z][a-z0-9]*(-[a-z0-9]+)*`), not a reserved name, and
   there must be no existing `games/<slug>/`.
-- The slug must not collide with the rest of the workspace: `@partygame/<slug>` may not be an existing package
+- The slug must not collide with the rest of the workspace: `@openparty/<slug>` may not be an existing package
   name, `<slug>`/`<slug>-game` may not be an existing game folder or its vitest project names (`<folder>`,
   `<folder>-game`), and `cli`/`scripts` are taken by fixed projects.
-- Every name is derived from the slug: package `@partygame/<slug>`, room `<slug>` with dashes as underscores,
+- Every name is derived from the slug: package `@openparty/<slug>`, room `<slug>` with dashes as underscores,
   PascalCase/camelCase identifiers and a spaced display name. `--name` overrides only the display name; it is
   trimmed and must not be empty. The display name may contain any characters (HTML, quotes, backslashes,
   newlines): code contexts render it as an escaped string literal, HTML placeholders as entities, and Markdown

@@ -1,5 +1,5 @@
-import type { PlayerInfo } from "@partygame/core";
-import { eligibleVoters } from "@partygame/core/kits";
+import type { PlayerInfo } from "@openparty/core";
+import { eligibleVoters } from "@openparty/core/kits";
 
 /** Who may vote on a matchup: the active players who did not write one of its answers. A forfeit has no vote. */
 export function eligibleVoterIds(

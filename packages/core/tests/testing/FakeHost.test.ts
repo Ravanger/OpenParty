@@ -1,4 +1,4 @@
-import { ServerMessage } from "@partygame/shared";
+import { ServerMessage } from "@openparty/shared";
 import { describe, expect, it } from "vitest";
 import { seedFromNumber, sfc32 } from "../../src/index.js";
 import { FakeHost } from "../../src/testing/index.js";

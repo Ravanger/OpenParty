@@ -1,4 +1,4 @@
-import { RoomCodeSchema } from "@partygame/shared";
+import { RoomCodeSchema } from "@openparty/shared";
 
 /** Optional host and ports for {@link resolveEndpoints}, e.g. from `VITE_*` env vars; unset means page host, 2567, 3001. */
 export interface EndpointOverrides {

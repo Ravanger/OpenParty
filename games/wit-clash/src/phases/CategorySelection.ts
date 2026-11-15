@@ -5,9 +5,9 @@ import {
   required,
   shuffle,
   utcDay,
-} from "@partygame/core";
-import { allHaveVoted, countVoted, tallyVotes } from "@partygame/core/kits";
-import { ErrorCode } from "@partygame/shared";
+} from "@openparty/core";
+import { allHaveVoted, countVoted, tallyVotes } from "@openparty/core/kits";
+import { ErrorCode } from "@openparty/shared";
 import { ACTION, defineAction, VoteCategorySchema } from "../actions.js";
 import { resolveCategoryVote } from "../categoryVote.js";
 import { META } from "../meta.js";

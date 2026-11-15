@@ -1,5 +1,5 @@
-import type { GameContext, PhaseDefinition } from "@partygame/core";
-import { RosterLedger } from "@partygame/core";
+import type { GameContext, PhaseDefinition } from "@openparty/core";
+import { RosterLedger } from "@openparty/core";
 import type { PromptRepository } from "./content/PromptRepository.js";
 import type { BluffOptions } from "./options.js";
 import type { BluffState } from "./state.js";

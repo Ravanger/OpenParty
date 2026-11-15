@@ -1,14 +1,14 @@
-# @partygame/server
+# @openparty/server
 
-Generic Colyseus server: host any game defined with `@partygame/core`.
+Generic Colyseus server: host any game defined with `@openparty/core`.
 
 | Import | What |
 |---|---|
-| `@partygame/server` | `createGameServer`, `jsonLineLogger`, `GameRoom`, `createApiHandler`, `RoomCodeService` |
-| `@partygame/server/bun` | `startServer`: Bun entry point (WebSocket on 2567, API on 3001); options `StartServerOptions` (the `GameServerOptions` minus `transport`, plus the listening ports) |
-| `@partygame/server/node` | `startNodeServer`, `serveApi`: in-process Node hosting (game server plus code API); options `NodeServerOptions` (`GameServerOptions` minus `transport`, plus ports and API access), `ServeApiOptions` |
-| `@partygame/server/probe` | `ServerProbe` (`isGameServer`, `canConnect`, `answers`), `freePort`, `closeHttpServer`: port probing, no Colyseus |
-| `@partygame/server/testing` | `bootTestServer`, `seatPlayers`, `joinPlayer`, `stateOf`, `waitUntil`, `waitForOwnEntry`, `testPlayerId`, `TestServer` for room tests; options `SeatPlayersOptions` (how many players to join, whether to start), `TestJoinOptions` (join as one player or spectator) |
+| `@openparty/server` | `createGameServer`, `jsonLineLogger`, `GameRoom`, `createApiHandler`, `RoomCodeService` |
+| `@openparty/server/bun` | `startServer`: Bun entry point (WebSocket on 2567, API on 3001); options `StartServerOptions` (the `GameServerOptions` minus `transport`, plus the listening ports) |
+| `@openparty/server/node` | `startNodeServer`, `serveApi`: in-process Node hosting (game server plus code API); options `NodeServerOptions` (`GameServerOptions` minus `transport`, plus ports and API access), `ServeApiOptions` |
+| `@openparty/server/probe` | `ServerProbe` (`isGameServer`, `canConnect`, `answers`), `freePort`, `closeHttpServer`: port probing, no Colyseus |
+| `@openparty/server/testing` | `bootTestServer`, `seatPlayers`, `joinPlayer`, `stateOf`, `waitUntil`, `waitForOwnEntry`, `testPlayerId`, `TestServer` for room tests; options `SeatPlayersOptions` (how many players to join, whether to start), `TestJoinOptions` (join as one player or spectator) |
 
 ## Host a game
 
@@ -18,7 +18,7 @@ fails `createGameServer` at startup, naming the class and each offending field. 
 
 ```ts
 // server.ts
-import { startServer } from "@partygame/server/bun";
+import { startServer } from "@openparty/server/bun";
 import { ButtonGame } from "./src/game.js";
 import { ButtonState } from "./src/state.js";
 
@@ -36,7 +36,7 @@ Clients join with `{ playerId, name? }`; `spectator: true` gives a TV display wi
 `createGameServer` returns the Colyseus `Server` (omit `transport` to use the bundled WebSocket one). `greet` (default `true`) prints the Colyseus banner and `gracefullyShutdown` (default `true`) registers its `SIGINT`/`SIGTERM` handlers; `bootTestServer` turns both off. `startNodeServer` runs it plus the code API in this process.
 
 ```ts
-import { startNodeServer } from "@partygame/server/node";
+import { startNodeServer } from "@openparty/server/node";
 
 const server = await startNodeServer({ games, port: 2567, apiPort: 3001 }); // free ports when omitted
 await server.stop();
@@ -44,7 +44,7 @@ await server.stop();
 
 Share one `RoomCodeService` between `createGameServer({ games, roomCodeService })` and `createApiHandler(roomCodeService, { allowedOrigins?, limiter?, resolveCode?, trustProxy? })` (a pure `(request, info?) => Response`: CORS allow headers go out only for allowed origins — in list mode every response also carries `Vary: Origin` — a `limiter` throttles per remote address with 429 + `Retry-After`, and `trustProxy` keys that throttle on the last hop of `X-Forwarded-For`) when wiring your own HTTP layer. `RoomCodeService` has `generateCode()` (an unused random code, not registered; throws after repeated collisions), `generateAndRegister(roomId)` (binds a code to a room; the server calls it, game code should not) and `resolveByRoomId(roomId)` (the bound code or `undefined`).
 
-Content-directory loading (`loadJsoncDir`) lives in [`@partygame/content`](../content/README.md).
+Content-directory loading (`loadJsoncDir`) lives in [`@openparty/content`](../content/README.md).
 
 ## Private views
 
@@ -66,7 +66,7 @@ ctx.state.secrets.delete(playerId);
 `bootTestServer` starts a real server on a free port; `seatPlayers` joins and names several players and waits until the server sees them ready.
 
 ```ts
-import { bootTestServer, seatPlayers, stateOf, waitUntil } from "@partygame/server/testing";
+import { bootTestServer, seatPlayers, stateOf, waitUntil } from "@openparty/server/testing";
 
 const t = await bootTestServer({ games });
 const room = await t.createRoom("button");
@@ -80,6 +80,6 @@ await t.shutdown();                                // t.cleanup() between tests
 
 `t.join(room, { playerId })` joins one raw client; `t.endpoint` and `await t.serveApi()` expose the URLs for real client managers.
 
-Depends on: `@partygame/client-utils`, `@partygame/content` (types only), `@partygame/core`, `@partygame/shared`, `@colyseus/core`, `@colyseus/bun-websockets`, `@colyseus/schema`, `@colyseus/sdk`, `zod`
+Depends on: `@openparty/client-utils`, `@openparty/content` (types only), `@openparty/core`, `@openparty/shared`, `@colyseus/core`, `@colyseus/bun-websockets`, `@colyseus/schema`, `@colyseus/sdk`, `zod`
 
 Guide: [docs/framework/README.md#server](../../docs/framework/README.md#server)

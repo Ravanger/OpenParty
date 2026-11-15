@@ -1,5 +1,5 @@
 <script lang="ts">
-import { PlayerSticker } from "@partygame/game-ui/components";
+import { PlayerSticker } from "@openparty/game-ui/components";
 import type { ScoreRow } from "../viewmodels/Scoreboard.js";
 
 const { rows }: { rows: ScoreRow[] } = $props();

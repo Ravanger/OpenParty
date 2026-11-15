@@ -1,1 +1,1 @@
-export { svelteConfig as default } from "@partygame/config/svelte";
+export { svelteConfig as default } from "@openparty/config/svelte";

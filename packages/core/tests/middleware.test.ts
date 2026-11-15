@@ -1,5 +1,5 @@
-import type { FilterLevel, TextFilter } from "@partygame/content/filter";
-import { CLIENT_MESSAGES, ErrorCode } from "@partygame/shared";
+import type { FilterLevel, TextFilter } from "@openparty/content/filter";
+import { CLIENT_MESSAGES, ErrorCode } from "@openparty/shared";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import {

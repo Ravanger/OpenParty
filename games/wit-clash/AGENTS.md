@@ -1,4 +1,4 @@
-# @partygame/wit-clash (reference game)
+# @openparty/wit-clash (reference game)
 
 ## Responsibility
 
@@ -12,8 +12,8 @@ The reference game: rules, UI screens, content and entry points, built only on t
 
 ## May import
 
-- Runtime: `@partygame/bots`, `@partygame/content`, `@partygame/core`, `@partygame/game-client`, `@partygame/game-kit`, `@partygame/game-ui`, `@partygame/server`, `@partygame/shared`, `@partygame/terminal`
-- Dev: `@partygame/config`
+- Runtime: `@openparty/bots`, `@openparty/content`, `@openparty/core`, `@openparty/game-client`, `@openparty/game-kit`, `@openparty/game-ui`, `@openparty/server`, `@openparty/shared`, `@openparty/terminal`
+- Dev: `@openparty/config`
 
 ## Public entry points
 

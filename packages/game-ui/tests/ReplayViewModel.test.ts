@@ -1,4 +1,4 @@
-import { BaseGameState } from "@partygame/shared/schema";
+import { BaseGameState } from "@openparty/shared/schema";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   type ReplayTimer,

@@ -1,5 +1,5 @@
-import { END_GAME } from "@partygame/shared";
-import type { TerminalStrategy, TerminalTurn } from "@partygame/terminal";
+import { END_GAME } from "@openparty/shared";
+import type { TerminalStrategy, TerminalTurn } from "@openparty/terminal";
 import { ACTION } from "../src/actionNames.js";
 import { PHASE } from "../src/phaseNames.js";
 import type { __PascalName__State } from "../src/state.js";

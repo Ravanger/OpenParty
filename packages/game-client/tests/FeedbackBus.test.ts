@@ -1,4 +1,4 @@
-import { BaseGameState } from "@partygame/shared/schema";
+import { BaseGameState } from "@openparty/shared/schema";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { FeedbackBus } from "../src/FeedbackBus.js";
 import { GameConnectionManager } from "../src/GameConnectionManager.svelte.js";

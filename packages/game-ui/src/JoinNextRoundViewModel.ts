@@ -1,6 +1,6 @@
-import type { GameConnectionManager } from "@partygame/game-client";
-import { LOBBY_PHASE } from "@partygame/shared";
-import type { BaseGameState } from "@partygame/shared/schema";
+import type { GameConnectionManager } from "@openparty/game-client";
+import { LOBBY_PHASE } from "@openparty/shared";
+import type { BaseGameState } from "@openparty/shared/schema";
 import type { RouterScreen } from "./AppRouter.js";
 import { NameField } from "./NameField.svelte.js";
 

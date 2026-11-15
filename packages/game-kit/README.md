@@ -1,4 +1,4 @@
-# @partygame/game-kit
+# @openparty/game-kit
 
 The dev-side game declaration. A game declares itself once with `defineGamePackage` — what to host, how to launch it and who plays it — and its entry files become one-line stubs that call the kit's entry functions. Dev-side only: no browser package depends on it.
 
@@ -13,7 +13,7 @@ export const META = { roomName: "word_war", minPlayers: 2, maxPlayers: 8 } as co
 
 ```ts
 // gamePackage.ts
-import { defineGamePackage } from "@partygame/game-kit";
+import { defineGamePackage } from "@openparty/game-kit";
 
 export const gamePackage = defineGamePackage({
   meta: META,
@@ -36,7 +36,7 @@ export const gamePackage = defineGamePackage({
 | `displayName?` | the launcher name; `meta.roomName` when omitted |
 | `load?(env)` | loads server-side content from disk; without it `definition` is called with `undefined` |
 | `definition(content)` | builds the `defineGame` result for the loaded content |
-| `textFilter?` | the room's `TextFilter` (`@partygame/content/filter`); `serve` hands it to the server starter, which checks player names and the game's filtered actions |
+| `textFilter?` | the room's `TextFilter` (`@openparty/content/filter`); `serve` hands it to the server starter, which checks player names and the game's filtered actions |
 | `stateClass` | the synced state class (a `BaseGameState` subclass) |
 | `publicFields?` | the state's public fields, handed to the server as `HostedGame.publicFields`; a field neither listed here nor tagged `.view()` (fields of `BaseGameState` excepted) fails the server at startup |
 | `isFinished(state)` | true once the game is over; the demo tables and the demo run watch for it |

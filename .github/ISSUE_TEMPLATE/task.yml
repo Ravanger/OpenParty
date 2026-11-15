@@ -36,7 +36,7 @@ body:
       description: Numbered steps (with test first). Use checkboxes so an agent can update the issue.
       placeholder: |
         - [ ] Write a failing test in `packages/game-ui/tests/` that expects validation to run before sending.
-        - [ ] Implement validation in the ViewModel (reference PlayerSchema from `@partygame/shared`).
+        - [ ] Implement validation in the ViewModel (reference PlayerSchema from `@openparty/shared`).
         - [ ] Verify the existing server test still passes.
     validations:
       required: true

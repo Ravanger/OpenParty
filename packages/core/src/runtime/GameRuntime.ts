@@ -7,7 +7,7 @@ import {
   LOBBY_PHASE,
   type ServerError,
   ServerMessage,
-} from "@partygame/shared";
+} from "@openparty/shared";
 import { createActor } from "xstate";
 import { deepFreeze, newId, required } from "../utils.js";
 import { DispatchPipeline } from "./DispatchPipeline.js";

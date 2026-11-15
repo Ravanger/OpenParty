@@ -1,4 +1,4 @@
-import { contentDirFrom } from "@partygame/content";
+import { contentDirFrom } from "@openparty/content";
 import { type CategoryRepository, loadCategoriesFromDir } from "./content/CategoryRepository.js";
 
 export const MIN_CATEGORIES = 3;

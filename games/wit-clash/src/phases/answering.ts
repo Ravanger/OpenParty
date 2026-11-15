@@ -1,6 +1,6 @@
-import { ensureMine } from "@partygame/core";
-import { allResponded } from "@partygame/core/kits";
-import { ErrorCode } from "@partygame/shared";
+import { ensureMine } from "@openparty/core";
+import { allResponded } from "@openparty/core/kits";
+import { ErrorCode } from "@openparty/shared";
 import { ACTION, defineAction, SetTypingSchema, SubmitAnswerSchema } from "../actions.js";
 import type { WitClashContext, WitClashPhase } from "../private.js";
 import { newPlayerPrivate } from "../round.js";

@@ -1,5 +1,5 @@
 <script lang="ts">
-import { ChoiceBoard, PhaseTimer, ScreenTitle, StatusPanel } from "@partygame/game-ui/components";
+import { ChoiceBoard, PhaseTimer, ScreenTitle, StatusPanel } from "@openparty/game-ui/components";
 import { untrack } from "svelte";
 import type { WitClashManager } from "../manager.js";
 import { TieBreakerViewModel } from "../viewmodels/TieBreakerViewModel.svelte.js";

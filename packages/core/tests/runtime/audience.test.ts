@@ -1,4 +1,4 @@
-import { CLIENT_MESSAGES, ErrorCode } from "@partygame/shared";
+import { CLIENT_MESSAGES, ErrorCode } from "@openparty/shared";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import {

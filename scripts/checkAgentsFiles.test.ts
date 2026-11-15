@@ -2,15 +2,15 @@ import { describe, expect, it } from "vitest";
 import { checkAgentsFiles, type PackageDescription } from "./checkAgentsFiles.js";
 
 const agents = (mayImport: string) =>
-  `# x\n\n## Responsibility\n\nOne.\n\n## May import\n\n${mayImport}\n\n## Tests\n\nHere \`@partygame/other\`.\n`;
+  `# x\n\n## Responsibility\n\nOne.\n\n## May import\n\n${mayImport}\n\n## Tests\n\nHere \`@openparty/other\`.\n`;
 
 const pkg = (over: Partial<PackageDescription>): PackageDescription => ({
   dir: "packages/a",
   packageJson: {
-    dependencies: { "@partygame/shared": "workspace:*", zod: "^4" },
-    devDependencies: { "@partygame/config": "workspace:*" },
+    dependencies: { "@openparty/shared": "workspace:*", zod: "^4" },
+    devDependencies: { "@openparty/config": "workspace:*" },
   },
-  agentsMd: agents("Runtime: `@partygame/shared`.\nDev: `@partygame/config`."),
+  agentsMd: agents("Runtime: `@openparty/shared`.\nDev: `@openparty/config`."),
   ...over,
 });
 
@@ -28,21 +28,21 @@ describe("checkAgentsFiles", () => {
   it("reports a dependency that May import does not list", () => {
     const extra = pkg({
       packageJson: {
-        dependencies: { "@partygame/shared": "x", "@partygame/core": "x" },
-        devDependencies: { "@partygame/config": "x" },
+        dependencies: { "@openparty/shared": "x", "@openparty/core": "x" },
+        devDependencies: { "@openparty/config": "x" },
       },
     });
     expect(checkAgentsFiles([extra])).toEqual([
-      "packages/a: AGENTS.md May import is missing @partygame/core",
+      "packages/a: AGENTS.md May import is missing @openparty/core",
     ]);
   });
 
   it("reports a listed package that is not a dependency", () => {
     const listed = pkg({
-      agentsMd: agents("`@partygame/shared` `@partygame/config` `@partygame/server`"),
+      agentsMd: agents("`@openparty/shared` `@openparty/config` `@openparty/server`"),
     });
     expect(checkAgentsFiles([listed])).toEqual([
-      "packages/a: AGENTS.md May import lists @partygame/server, which package.json does not depend on",
+      "packages/a: AGENTS.md May import lists @openparty/server, which package.json does not depend on",
     ]);
   });
 
@@ -59,7 +59,7 @@ describe("checkAgentsFiles", () => {
   });
 
   it("reads May import up to the end of the file when it is the last section", () => {
-    const last = pkg({ agentsMd: "## May import\n\n`@partygame/shared` `@partygame/config`" });
+    const last = pkg({ agentsMd: "## May import\n\n`@openparty/shared` `@openparty/config`" });
     expect(checkAgentsFiles([last])).toEqual([]);
   });
 

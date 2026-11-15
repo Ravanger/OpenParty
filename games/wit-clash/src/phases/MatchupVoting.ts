@@ -1,5 +1,5 @@
-import { endIfBelowMinimum, ensureMine } from "@partygame/core";
-import { ErrorCode } from "@partygame/shared";
+import { endIfBelowMinimum, ensureMine } from "@openparty/core";
+import { ErrorCode } from "@openparty/shared";
 import { ACTION, CastVoteSchema, defineAction } from "../actions.js";
 import { META } from "../meta.js";
 import { PHASE } from "../phaseNames.js";

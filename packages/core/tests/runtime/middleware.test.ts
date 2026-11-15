@@ -1,4 +1,4 @@
-import { ErrorCode } from "@partygame/shared";
+import { ErrorCode } from "@openparty/shared";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import {

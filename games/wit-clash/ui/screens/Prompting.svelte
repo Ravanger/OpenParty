@@ -1,5 +1,5 @@
 <script lang="ts">
-import { ActionBar, DraftBox, PhaseTimer, ProgressStrip, StatusPanel } from "@partygame/game-ui/components";
+import { ActionBar, DraftBox, PhaseTimer, ProgressStrip, StatusPanel } from "@openparty/game-ui/components";
 import { untrack } from "svelte";
 import { ANSWER_MAX_LENGTH } from "../../src/actionNames.js";
 import type { WitClashManager } from "../manager.js";

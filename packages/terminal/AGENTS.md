@@ -1,4 +1,4 @@
-# @partygame/terminal
+# @openparty/terminal
 
 ## Responsibility
 
@@ -8,12 +8,12 @@ Terminal clients for any game: `TerminalPlayer`, `PlaySession`, arg parsers and 
 
 - Game-specific prompts or narration (they live in the game).
 - Bot logic.
-- Port probing (it lives in `@partygame/server/probe`).
+- Port probing (it lives in `@openparty/server/probe`).
 
 ## May import
 
-- Runtime: `@partygame/bots`, `@partygame/client-utils`, `@partygame/server`, `@partygame/shared`
-- Dev: `@partygame/config`, `@partygame/core`
+- Runtime: `@openparty/bots`, `@openparty/client-utils`, `@openparty/server`, `@openparty/shared`
+- Dev: `@openparty/config`, `@openparty/core`
 
 ## Public entry points
 

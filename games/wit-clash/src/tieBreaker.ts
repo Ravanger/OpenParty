@@ -1,4 +1,4 @@
-import { eligibleVoters, leaders } from "@partygame/core/kits";
+import { eligibleVoters, leaders } from "@openparty/core/kits";
 import type { Category, Prompt } from "./content/CategoryRepository.js";
 
 export interface TieBreakerPlan {

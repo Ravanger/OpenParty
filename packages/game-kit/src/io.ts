@@ -1,6 +1,6 @@
 import { createInterface } from "node:readline/promises";
-import { runLauncher } from "@partygame/launcher";
-import { ReadlinePrompter } from "@partygame/terminal";
+import { runLauncher } from "@openparty/launcher";
+import { ReadlinePrompter } from "@openparty/terminal";
 import type { GameKitIo } from "./types.js";
 
 /** The real process behind a one-line entry stub; tests pass their own `GameKitIo`. */
@@ -19,6 +19,6 @@ export const defaultIo = (): GameKitIo => ({
     lines.on("close", stop);
     return new ReadlinePrompter(lines);
   },
-  startServer: async (options) => (await import("@partygame/server/bun")).startServer(options),
+  startServer: async (options) => (await import("@openparty/server/bun")).startServer(options),
   runLauncher,
 });

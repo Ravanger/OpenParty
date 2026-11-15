@@ -1,4 +1,4 @@
-import { CLOSE_CODES } from "@partygame/shared";
+import { CLOSE_CODES } from "@openparty/shared";
 import type { CanJoinInput, CanJoinResult } from "./types.js";
 
 /** The refusal code a misbehaving hook gets normalised to; the key of `CLOSE_CODES.JOIN_REFUSED`. */

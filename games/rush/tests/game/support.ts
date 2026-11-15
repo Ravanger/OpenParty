@@ -1,5 +1,5 @@
-import type { GameDefinition } from "@partygame/core";
-import { TestTable } from "@partygame/core/testing";
+import type { GameDefinition } from "@openparty/core";
+import { TestTable } from "@openparty/core/testing";
 import { createRushGame } from "../../src/game.js";
 import { type RushOptions, RushOptionsSchema } from "../../src/options.js";
 import type { RushPrivate } from "../../src/private.js";

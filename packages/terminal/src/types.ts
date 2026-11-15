@@ -1,4 +1,4 @@
-import type { BaseGameState } from "@partygame/shared/schema";
+import type { BaseGameState } from "@openparty/shared/schema";
 
 /** What a strategy sees and can do during one stage. Everything here is dropped when the stage ends. */
 export interface TerminalTurn<TState extends BaseGameState> {

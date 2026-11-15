@@ -1,6 +1,6 @@
 <script lang="ts">
-import { plural } from "@partygame/game-ui";
-import { PhaseTimer, ScreenTitle } from "@partygame/game-ui/components";
+import { plural } from "@openparty/game-ui";
+import { PhaseTimer, ScreenTitle } from "@openparty/game-ui/components";
 import { untrack } from "svelte";
 import type { WitClashManager } from "../manager.js";
 import { CategoryVoteViewModel } from "../viewmodels/CategoryVoteViewModel.js";

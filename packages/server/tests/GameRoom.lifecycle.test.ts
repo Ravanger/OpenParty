@@ -1,8 +1,8 @@
 import { matchMaker } from "@colyseus/core";
-import { createTextFilter } from "@partygame/content/filter";
-import { defineGame } from "@partygame/core";
-import { CLOSE_CODES, PROTOCOL_VERSION } from "@partygame/shared";
-import { BaseGameState } from "@partygame/shared/schema";
+import { createTextFilter } from "@openparty/content/filter";
+import { defineGame } from "@openparty/core";
+import { CLOSE_CODES, PROTOCOL_VERSION } from "@openparty/shared";
+import { BaseGameState } from "@openparty/shared/schema";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { RoomCodeService } from "../src/services/RoomCodeService.js";
 import type { TestServer } from "../src/testing/index.js";

@@ -20,7 +20,7 @@ async function readManifest(path: string): Promise<Manifest | undefined> {
 
 /**
  * Checks a validated slug against the workspaces of `root`. Returns an error message when the
- * package name `@partygame/<slug>` already exists, when `<slug>` or `<slug>-game` is (or would be)
+ * package name `@openparty/<slug>` already exists, when `<slug>` or `<slug>-game` is (or would be)
  * a vitest project name of an existing game, or when it collides with a fixed project name;
  * otherwise undefined. Folders without a valid `package.json` are skipped.
  */
@@ -42,7 +42,7 @@ export async function findCollision(root: string, slug: string): Promise<string 
     }
   }
 
-  const packageName = `@partygame/${slug}`;
+  const packageName = `@openparty/${slug}`;
   if (packageNames.has(packageName)) {
     return `"${slug}" is taken: the package "${packageName}" already exists`;
   }

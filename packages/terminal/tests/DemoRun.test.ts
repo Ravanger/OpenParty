@@ -1,6 +1,6 @@
-import type { BotOutcome, BotStrategy } from "@partygame/bots";
-import { ServerProbe } from "@partygame/server/probe";
-import { ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH } from "@partygame/shared";
+import type { BotOutcome, BotStrategy } from "@openparty/bots";
+import { ServerProbe } from "@openparty/server/probe";
+import { ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH } from "@openparty/shared";
 import { describe, expect, it } from "vitest";
 import { DemoRun, type DemoRunOptions } from "../src/DemoRun.js";
 import { TAP_PUBLIC_FIELDS, TAP_ROOM, TapGame, TapState } from "./fixtures/tapGame.js";

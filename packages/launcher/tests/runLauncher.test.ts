@@ -1,6 +1,6 @@
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { freePort, ServerProbe } from "@partygame/server/probe";
+import { freePort, ServerProbe } from "@openparty/server/probe";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { runLauncher } from "../src/runLauncher.js";
 import type { LaunchConfig, LaunchPorts } from "../src/types.js";

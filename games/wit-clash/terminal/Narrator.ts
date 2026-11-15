@@ -1,4 +1,4 @@
-import { LOBBY_PHASE } from "@partygame/shared";
+import { LOBBY_PHASE } from "@openparty/shared";
 import { PHASE } from "../src/phaseNames.js";
 import { CLASH_BONUS, POINTS_PER_VOTE, WINNER_BONUS } from "../src/scoring.js";
 import type { Matchup, WitClashState } from "../src/state.js";

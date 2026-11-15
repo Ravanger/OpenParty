@@ -1,6 +1,6 @@
 # WitClash
 
-A head-to-head answer-and-vote party game for 3 to 8 players, built on `@partygame/core` and `@partygame/server`.
+A head-to-head answer-and-vote party game for 3 to 8 players, built on `@openparty/core` and `@openparty/server`.
 Everything here is game rules; the lobby, room codes, reconnection and timers come from the framework.
 
 ```
@@ -20,10 +20,10 @@ src/
   dailySeed.ts       daily mode's date seed: `utcDay` and `dailyRng` (FNV-1a into `mulberry32`)
   content/           category files (.jsonc) loader
   loadContent.ts     loads and validates the content directory (the declaration's `load`), plus `loadCanonContent` for daily mode
-ui/                  Svelte client, built on @partygame/game-client (see below)
+ui/                  Svelte client, built on @openparty/game-client (see below)
 gamePackage.ts       WitClash declared once (`defineGamePackage`): meta, definition, state class, is-finished, bot kit, terminal strategy and demo; the entry files stub over it
-launch.ts            one-line stub: `launch(gamePackage)` from `@partygame/game-kit`; `bun run launch wit-clash` reaches it through `scripts/game.ts`
-bots/                WitClash bot strategy (`witClashBot.ts`, on `@partygame/bots`) and the `bun run bots wit-clash` entry (see "Playtesting alone")
+launch.ts            one-line stub: `launch(gamePackage)` from `@openparty/game-kit`; `bun run launch wit-clash` reaches it through `scripts/game.ts`
+bots/                WitClash bot strategy (`witClashBot.ts`, on `@openparty/bots`) and the `bun run bots wit-clash` entry (see "Playtesting alone")
 terminal/            `play.ts` and `demo.ts` — one-line stubs over `gamePackage.ts`; `Narrator.ts` narrates the demo and checks its final scores; `witClashTerminal.ts` is the `TerminalStrategy`; see "Play in the terminal"
 server.ts            one-line stub: `serve(gamePackage)` loads the content, then starts the server
 content/categories/  host-editable .jsonc categories, at least 3 needed
@@ -102,7 +102,7 @@ winner and no award.
 
 ### Awards
 
-Two end-of-game awards, computed from the session's action log (see `src/awards.ts`, built on `@partygame/core/awards`) and
+Two end-of-game awards, computed from the session's action log (see `src/awards.ts`, built on `@openparty/core/awards`) and
 published as `awards` when the final round reaches Results; `PLAY_AGAIN` clears them. An award with no data is omitted:
 
 - **Fastest answer**: the smallest time between a phase enter and one of the player's `SUBMIT_ANSWER`s, across the whole game.
@@ -219,7 +219,7 @@ The date is taken from the server clock when the first round starts and stored i
 midnight keeps the date it started with. The room seed still drives everything else (answer shuffles), so action-log replay
 of a daily game reproduces the same final state.
 
-`filterLevel` drives the room's text filter (`createTextFilter()` from `@partygame/content/filter`): answers are checked through `textFilterMiddleware` (declared as `textFields: ["answer"]` on `SUBMIT_ANSWER`, which covers tie-breakers too) and player names are checked by the server at join and on `SET_NAME`. At `moderate` slurs and profanity are refused; `strict` also refuses mild terms; `off` checks nothing. A refused answer is rejected with `CONTENT_REJECTED` and the fixed core message (`CLIENT_MESSAGES.CONTENT_REJECTED`; override it through the definition's `strings.contentRejected`), leaving the typed text in the player's box to fix or resend.
+`filterLevel` drives the room's text filter (`createTextFilter()` from `@openparty/content/filter`): answers are checked through `textFilterMiddleware` (declared as `textFields: ["answer"]` on `SUBMIT_ANSWER`, which covers tie-breakers too) and player names are checked by the server at join and on `SET_NAME`. At `moderate` slurs and profanity are refused; `strict` also refuses mild terms; `off` checks nothing. A refused answer is rejected with `CONTENT_REJECTED` and the fixed core message (`CLIENT_MESSAGES.CONTENT_REJECTED`; override it through the definition's `strings.contentRejected`), leaving the typed text in the player's box to fix or resend.
 
 ## Content and running
 
@@ -274,10 +274,10 @@ App.svelte          screen router, error toast, "reconnecting" indicator, Leave 
 screens/            one component per screen: Welcome, WaitingRoom, JoinNextRound, CategoryVote, Prompting,
                     MatchupVote, MatchupReveal, HonorVote, TieBreakerPrompting, TieBreakerVote, TieBreakerReveal, Results
 components/         WitClash-only pieces: MatchupCard, Scoreboard, AnswerBox
-viewmodels/         one viewmodel per game screen (the name field, welcome, waiting room, lobby settings come from `@partygame/game-ui`), plus Scoreboard (ranks via `rankRows`), MatchupRecap, AnswerProgress and TypingReporter helpers
+viewmodels/         one viewmodel per game screen (the name field, welcome, waiting room, lobby settings come from `@openparty/game-ui`), plus Scoreboard (ranks via `rankRows`), MatchupRecap, AnswerProgress and TypingReporter helpers
 ```
 
-- Lobby, controls and phase routing come from `@partygame/game-ui`: `AppViewModel` is an `AppRouter` that only adds the matchup banner rule. It routes to a `PHASE_SCREENS` entry in `ui/screens/index.ts` (one entry per phase: component and mid-game waiting label). A seat with `isActive === false` outside the lobby gets
+- Lobby, controls and phase routing come from `@openparty/game-ui`: `AppViewModel` is an `AppRouter` that only adds the matchup banner rule. It routes to a `PHASE_SCREENS` entry in `ui/screens/index.ts` (one entry per phase: component and mid-game waiting label). A seat with `isActive === false` outside the lobby gets
   `JoinNextRound`: the current phase and the scoreboard, read-only, plus the name input when the seat has no name yet (and "next game" wording during the last round). Any non-connected status shows `Welcome`; a kick leaves its `KICKED` error in the toast.
 - Viewmodels read `manager.state` (typed `WitClashState`) and `state.mine.get(manager.playerId)`; actions go through
   `manager.sendAction(ACTION.X, payload)` with the constants and payload types from `src/actionNames.ts` / `src/actions.ts`.
@@ -285,9 +285,9 @@ viewmodels/         one viewmodel per game screen (the name field, welcome, wait
   (`votesCast`/`votesExpected`, also in CategorySelection), eligibility (`mine.canVote`) and limits (`minPlayers`, `maxPlayers`, `options`) are published by the server.
 - Results shows a podium (top three places; tied players share a step, leavers are marked, `wonTieBreaker` gets a badge), the best-answer award (`state.bestAnswers`; several entries read "Shared best answer"), the Highlights section (`state.highlights`: biggest margin, closest match and fastest voted answer, one card per tied winner) when any highlight was picked, then the scoreboard. Prompting shows the winning category and tells a player who was dealt no prompt that they sit this round out and vote. Prompting and TieBreakerPrompting list each answering player's `n/answersPerPlayer`, a done tick and a "typing…" marker; the answer boxes send `SET_TYPING` once on the first keystroke and once after 2.5 s idle or on submit. All of it renders large in the TV layout.
 - Votes stay hidden while voting: only `votesCast`/`votesExpected` and your own highlighted vote show. Counts and authors appear in `MatchupReveal`.
-- Shared components (StatusPanel, Timer, PlayerSticker, QrCode, ActionBar, NameInput, LobbySettings, GameControls, Podium, ScreenTitle, ProgressStrip, ChoiceBoard) come from `@partygame/game-ui/components` and take their look from the CSS variables and classes in `ui/app.css`. Results passes the "Won the tie-breaker" chip to `Podium` through its `extra` snippet.
+- Shared components (StatusPanel, Timer, PlayerSticker, QrCode, ActionBar, NameInput, LobbySettings, GameControls, Podium, ScreenTitle, ProgressStrip, ChoiceBoard) come from `@openparty/game-ui/components` and take their look from the CSS variables and classes in `ui/app.css`. Results passes the "Won the tie-breaker" chip to `Podium` through its `extra` snippet.
 - Add a phase screen: a viewmodel, a screen component and one `PHASE_SCREENS` entry in `ui/screens/index.ts`.
-- Replay viewer: open the client with `?replay` in the URL to get the shared `ReplayViewer` (from `@partygame/game-ui/components`, mounted by `mountReplayIfRequested`) instead of the game — no manager is built, so no server connection is ever opened. It takes `PHASE_SCREENS`, `WitClashState` and the title "WitClash replay". Pick an exported bundle file (the JSON the host downloads from Results) and step through it with previous/next, play/pause auto-advance or the scrubber; each snapshot renders that phase's own screen read-only (`isSpectator`, no seat). The snapshot is the final state of the phase being left, so its timer counts down from at most 1s and reads 0 almost immediately. A malformed file shows the viewer's error instead of a screen, and a phase without a `PHASE_SCREENS` entry gets a fallback line.
+- Replay viewer: open the client with `?replay` in the URL to get the shared `ReplayViewer` (from `@openparty/game-ui/components`, mounted by `mountReplayIfRequested`) instead of the game — no manager is built, so no server connection is ever opened. It takes `PHASE_SCREENS`, `WitClashState` and the title "WitClash replay". Pick an exported bundle file (the JSON the host downloads from Results) and step through it with previous/next, play/pause auto-advance or the scrubber; each snapshot renders that phase's own screen read-only (`isSpectator`, no seat). The snapshot is the final state of the phase being left, so its timer counts down from at most 1s and reads 0 almost immediately. A malformed file shows the viewer's error instead of a screen, and a phase without a `PHASE_SCREENS` entry gets a fallback line.
 - On Results, the host sees an **Export replay** button (mid-round and final): it sends the host-only `EXPORT_REPLAY` request through `manager.exportReplay()` and downloads the bundle as `<game>-replay.json`. A non-host's refusal is remembered in `lastServerError` like any rejected action.
 
 ## Accessibility

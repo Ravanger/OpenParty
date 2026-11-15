@@ -1,9 +1,9 @@
 import { t as schemaField } from "@colyseus/schema";
 import { ColyseusSDK } from "@colyseus/sdk";
 import { WebSocketTransport } from "@colyseus/ws-transport";
-import { type LogFields, type Logger, noopLogger } from "@partygame/core";
-import { RoomCodeSchema } from "@partygame/shared";
-import { BaseGameState } from "@partygame/shared/schema";
+import { type LogFields, type Logger, noopLogger } from "@openparty/core";
+import { RoomCodeSchema } from "@openparty/shared";
+import { BaseGameState } from "@openparty/shared/schema";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   createGameServer,

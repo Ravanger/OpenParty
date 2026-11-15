@@ -1,4 +1,4 @@
-# @partygame/crew
+# @openparty/crew
 
 ## Responsibility
 
@@ -11,8 +11,8 @@ The asymmetric co-op party game: private roles and signals per player, rounds of
 
 ## May import
 
-- Runtime: `@partygame/core`, `@partygame/shared`
-- Dev: `@partygame/config`, `@partygame/server` (room-level isolation tests only)
+- Runtime: `@openparty/core`, `@openparty/shared`
+- Dev: `@openparty/config`, `@openparty/server` (room-level isolation tests only)
 
 ## Public entry points
 
@@ -20,4 +20,4 @@ The asymmetric co-op party game: private roles and signals per player, rounds of
 
 ## Tests
 
-`tests/game/` (rules, `Table extends TestTable`) plus a room-level view-isolation test through `@partygame/server/testing`.
+`tests/game/` (rules, `Table extends TestTable`) plus a room-level view-isolation test through `@openparty/server/testing`.

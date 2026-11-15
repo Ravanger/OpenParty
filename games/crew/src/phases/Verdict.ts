@@ -1,4 +1,4 @@
-import { endIfBelowMinimum } from "@partygame/core";
+import { endIfBelowMinimum } from "@openparty/core";
 import { ACTION, defineAction, GuessSchema } from "../actions.js";
 import { Crew, TOO_FEW_PLAYERS_NOTICE } from "../crew.js";
 import { META } from "../meta.js";

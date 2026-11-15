@@ -1,4 +1,4 @@
-import { PlayerSchema } from "@partygame/shared/schema";
+import { PlayerSchema } from "@openparty/shared/schema";
 import {
   Answer,
   CategoryOption,
@@ -11,7 +11,7 @@ import {
 
 export const ME = "me-0000001";
 
-export { freePort } from "@partygame/server/probe";
+export { freePort } from "@openparty/server/probe";
 
 export const tick = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
 

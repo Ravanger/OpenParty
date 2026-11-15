@@ -1,4 +1,4 @@
-import { BaseGameState } from "@partygame/shared/schema";
+import { BaseGameState } from "@openparty/shared/schema";
 import { describe, expect, it } from "vitest";
 import { bootTestServer, waitUntil } from "../src/testing/index.js";
 import { PlainGame } from "./fixtures/buzzer.js";

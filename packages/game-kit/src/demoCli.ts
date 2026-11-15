@@ -1,5 +1,5 @@
-import type { BaseGameState } from "@partygame/shared/schema";
-import { DemoRun, parseDemoArgs } from "@partygame/terminal";
+import type { BaseGameState } from "@openparty/shared/schema";
+import { DemoRun, parseDemoArgs } from "@openparty/terminal";
 import { failWith } from "./fail.js";
 import { hostedGame } from "./hostedGame.js";
 import { defaultIo } from "./io.js";

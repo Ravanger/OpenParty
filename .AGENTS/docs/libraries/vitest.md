@@ -9,7 +9,7 @@ Single test runner for all packages. Root `vitest.config.mts` (and a duplicate `
 | Command | Description |
 |---|---|
 | `vitest run` | Single pass for all projects (always use this non-interactively; bare `vitest` watches and hangs). |
-| `vitest run --project @partygame/server` | One project. Only the server config sets `test.name`; others use the directory. |
+| `vitest run --project @openparty/server` | One project. Only the server config sets `test.name`; others use the directory. |
 | `vitest run path/to/file.test.ts` | One file. |
 | `vitest run --coverage` | Root script `test:coverage`; thresholds are 100% for lines/functions/branches/statements. |
 

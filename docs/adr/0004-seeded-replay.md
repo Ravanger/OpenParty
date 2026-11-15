@@ -17,7 +17,7 @@ Each room gets a random seed drawn from the platform CSPRNG at creation time. Th
 
 ## Consequences
 
-The room RNG is seeded and deterministic. `ctx.newId()` returns UUIDs from the seeded RNG, so they are replayable. The action log lives in `ctx.priv` and is JSON-serializable. Games export the log via `getActionLog(priv)` to replay or analyze. The replay helper `replayLog` lives in `@partygame/core/replay` (source `packages/core/src/replay/`) and is re-exported from `@partygame/core/testing`.
+The room RNG is seeded and deterministic. `ctx.newId()` returns UUIDs from the seeded RNG, so they are replayable. The action log lives in `ctx.priv` and is JSON-serializable. Games export the log via `getActionLog(priv)` to replay or analyze. The replay helper `replayLog` lives in `@openparty/core/replay` (source `packages/core/src/replay/`) and is re-exported from `@openparty/core/testing`.
 
 ## Where it lives
 

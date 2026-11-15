@@ -1,6 +1,6 @@
 <script lang="ts" generics="TState extends BaseGameState, TScreens extends Readonly<Record<string, RouterScreen>>">
 // biome-ignore lint/correctness/noUnusedImports: used by the generics attribute
-import type { BaseGameState } from "@partygame/shared/schema";
+import type { BaseGameState } from "@openparty/shared/schema";
 import type { Snippet } from "svelte";
 // biome-ignore lint/correctness/noUnusedImports: used by the generics attribute
 import type { AppRouter, RouterScreen } from "../AppRouter.js";

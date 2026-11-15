@@ -1,4 +1,4 @@
-import { PlayerSchema } from "@partygame/shared/schema";
+import { PlayerSchema } from "@openparty/shared/schema";
 import { describe, expect, it } from "vitest";
 import { gamePackage } from "../../gamePackage.js";
 import { META } from "../../src/meta.js";

@@ -1,6 +1,6 @@
-import type { BotRoom } from "@partygame/bots";
-import { ClientMessage, isActionResult, LOBBY_PHASE, START_GAME } from "@partygame/shared";
-import type { BaseGameState } from "@partygame/shared/schema";
+import type { BotRoom } from "@openparty/bots";
+import { ClientMessage, isActionResult, LOBBY_PHASE, START_GAME } from "@openparty/shared";
+import type { BaseGameState } from "@openparty/shared/schema";
 import type { Prompter } from "./Prompter.js";
 import type { TerminalPlayerOptions, TerminalStrategy, TerminalTurn } from "./types.js";
 

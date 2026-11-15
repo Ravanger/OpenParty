@@ -1,17 +1,17 @@
-# @partygame/bots
+# @openparty/bots
 
 Bot players for any game: you write the strategy, the package handles joining, naming, pacing, and hosting.
 
 | Import | What |
 |---|---|
-| `@partygame/bots` | `joinBots`, `joinKitBots`, `BotTable`, `DemoTable` to seat bots, `BotPlayer` (one named, paced bot), `ColyseusConnector` and `defaultConnector` to open rooms; types `BotStrategy`, `BotKit`, `BotRoom` for your game; option types `JoinBotsOptions`, `JoinKitBotsOptions`, `BotTableOptions`, `SeatBotsOptions`, `DemoTableOptions`, `BotHostOptions`, `DelayRange` |
+| `@openparty/bots` | `joinBots`, `joinKitBots`, `BotTable`, `DemoTable` to seat bots, `BotPlayer` (one named, paced bot), `ColyseusConnector` and `defaultConnector` to open rooms; types `BotStrategy`, `BotKit`, `BotRoom` for your game; option types `JoinBotsOptions`, `JoinKitBotsOptions`, `BotTableOptions`, `SeatBotsOptions`, `DemoTableOptions`, `BotHostOptions`, `DelayRange` |
 
 ## Write a strategy
 
 `play(turn)` runs on every state change. `once` runs a step the first time its key is seen in a phase, `later` delays it (cancelled on phase change), `act` sends an action.
 
 ```ts
-import type { BotKit, BotStrategy } from "@partygame/bots";
+import type { BotKit, BotStrategy } from "@openparty/bots";
 
 const pressBot: BotStrategy<ButtonState> = {
   play: (turn) => {
@@ -54,7 +54,7 @@ const strategy: BotStrategy<ButtonState> = {
 All entry points take the kit plus `endpoint` and `apiPort`.
 
 ```ts
-import { BotTable, joinBots } from "@partygame/bots";
+import { BotTable, joinBots } from "@openparty/bots";
 
 const bots = await joinBots({ ...buttonKit, endpoint, apiPort, code: "ABCD", count: 3 }); // an existing room
 
@@ -67,14 +67,14 @@ await table.seatBots({ count: 3 });      // once a human has joined and named th
 
 ## Room connector
 
-Every entry point opens rooms through a `RoomConnector` (`@partygame/client-utils`): pass `connector` to `joinBots`, `BotTable` or `DemoTable` to supply one, and a table reuses its connector for the bots it seats. The default is built by `defaultConnector(endpoint, { roomName?, stateClass })`, a `ColyseusConnector` that holds the whole join flow (`joinById`, wait for the state sync, claim a name) over one Colyseus client; `roomName` is only needed to create rooms, so `create` rejects without it. The room code is resolved to an id once per batch — `joinBots` (and the tables, which forward their `resolveCode` option) call `resolveRoomCode` against `apiBaseOf(endpoint, apiPort)` by default and pass the id to every join.
+Every entry point opens rooms through a `RoomConnector` (`@openparty/client-utils`): pass `connector` to `joinBots`, `BotTable` or `DemoTable` to supply one, and a table reuses its connector for the bots it seats. The default is built by `defaultConnector(endpoint, { roomName?, stateClass })`, a `ColyseusConnector` that holds the whole join flow (`joinById`, wait for the state sync, claim a name) over one Colyseus client; `roomName` is only needed to create rooms, so `create` rejects without it. The room code is resolved to an id once per batch — `joinBots` (and the tables, which forward their `resolveCode` option) call `resolveRoomCode` against `apiBaseOf(endpoint, apiPort)` by default and pass the id to every join.
 
 ## Run an unattended demo
 
 `DemoTable` opens a watch-only room (room option `seats`) with a host bot, seats the bots and tells you when the game is over.
 
 ```ts
-import { DemoTable } from "@partygame/bots";
+import { DemoTable } from "@openparty/bots";
 
 const demo = new DemoTable({
   ...buttonKit,
@@ -93,6 +93,6 @@ await demo.leave();
 
 `BotOptions` (the `bot` option, or `bot` on the launcher's `create`): `thinkMs` (default `[2000, 6000]`), `reactMs` (`[500, 2500]`) — each a `DelayRange`, a `[minMs, maxMs]` range a random delay is drawn from — `rng`, `schedule`, `log`, `onOutcome`, `host` (`BotHostOptions`: the options that make a bot the host, `expectedPlayers`). `joinBots` takes `JoinBotsOptions` (connection, kit, room code and bot count), including `nameFor(n)` (default `Bot n`), `playerIds` and `timeoutMs`; `BotTable` takes `BotTableOptions` (connection, kit and join options) and `seatBots` takes `SeatBotsOptions` (how many bots to seat and how long, in milliseconds, to wait for a human first); `DemoTable` takes `DemoTableOptions` (connection, kit, bot count and finish rule), including `hostName`, `roomOptions` and `isFinished`.
 
-Depends on: `@partygame/client-utils`, `@partygame/shared`, `@colyseus/sdk`
+Depends on: `@openparty/client-utils`, `@openparty/shared`, `@colyseus/sdk`
 
 Guide: [docs/framework/README.md#bots](../../docs/framework/README.md#bots)

@@ -1,5 +1,5 @@
-import type { ClientStrings } from "@partygame/game-client";
-import type { ErrorCode } from "@partygame/shared";
+import type { ClientStrings } from "@openparty/game-client";
+import type { ErrorCode } from "@openparty/shared";
 import { getContext, setContext } from "svelte";
 
 const KEY = Symbol("ui-strings");
@@ -100,7 +100,7 @@ export interface UiStrings {
   /** Builds the accessible name of a how-to-play step dot from its position and the total number of steps. */
   stepLabel: (current: number, total: number) => string;
   /**
-   * The client-side table from `@partygame/game-client`; pass the same object to the manager's
+   * The client-side table from `@openparty/game-client`; pass the same object to the manager's
    * `strings` option so one table covers both layers.
    */
   clientStrings: Partial<ClientStrings>;

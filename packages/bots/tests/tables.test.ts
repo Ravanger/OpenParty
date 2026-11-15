@@ -1,17 +1,17 @@
 import { type SchemaType, t as schemaField } from "@colyseus/schema";
 import { Client, type Room } from "@colyseus/sdk";
-import { claimName, resolveRoomCode } from "@partygame/client-utils";
-import { actionFactory, defineGame } from "@partygame/core";
-import { RoomCodeService } from "@partygame/server";
-import { bootTestServer, type TestServer, waitUntil } from "@partygame/server/testing";
+import { claimName, resolveRoomCode } from "@openparty/client-utils";
+import { actionFactory, defineGame } from "@openparty/core";
+import { RoomCodeService } from "@openparty/server";
+import { bootTestServer, type TestServer, waitUntil } from "@openparty/server/testing";
 import {
   ClientMessage,
   LOBBY_PHASE,
   NAME_MAX_LENGTH,
   PROTOCOL_VERSION,
   RoomCodeSchema,
-} from "@partygame/shared";
-import { PlayerSchema } from "@partygame/shared/schema";
+} from "@openparty/shared";
+import { PlayerSchema } from "@openparty/shared/schema";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import type { BotPlayer } from "../src/BotPlayer.js";

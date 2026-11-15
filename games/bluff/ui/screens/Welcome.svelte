@@ -1,7 +1,7 @@
 <script lang="ts">
-import { readUrlCode, readUrlTvCode } from "@partygame/game-client";
-import { WelcomeViewModel } from "@partygame/game-ui";
-import { WelcomeScreen } from "@partygame/game-ui/components";
+import { readUrlCode, readUrlTvCode } from "@openparty/game-client";
+import { WelcomeViewModel } from "@openparty/game-ui";
+import { WelcomeScreen } from "@openparty/game-ui/components";
 import { untrack } from "svelte";
 import type { BluffManager } from "../manager.js";
 

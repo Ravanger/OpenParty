@@ -1,5 +1,5 @@
-import { EmptyPayloadSchema, playAgainAction } from "@partygame/core";
-import { ErrorCode } from "@partygame/shared";
+import { EmptyPayloadSchema, playAgainAction } from "@openparty/core";
+import { ErrorCode } from "@openparty/shared";
 import { ACTION, defineAction } from "../actions.js";
 import { writeAwards } from "../awards.js";
 import { PHASE } from "../phaseNames.js";

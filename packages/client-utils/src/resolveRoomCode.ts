@@ -1,4 +1,4 @@
-import { ResolveCodeResponseSchema, RoomCodeSchema } from "@partygame/shared";
+import { ResolveCodeResponseSchema, RoomCodeSchema } from "@openparty/shared";
 
 /** Why {@link resolveRoomCode} failed: the API knows no such room, or its reply was not a resolve-code answer. */
 export type RoomCodeFailure = "not-found" | "bad-reply";

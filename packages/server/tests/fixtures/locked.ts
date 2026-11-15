@@ -1,5 +1,5 @@
-import { defineGame } from "@partygame/core";
-import type { BaseGameState } from "@partygame/shared/schema";
+import { defineGame } from "@openparty/core";
+import type { BaseGameState } from "@openparty/shared/schema";
 import { z } from "zod";
 
 /** The password the Locked game's `canJoin` hook requires in `joinData`. */

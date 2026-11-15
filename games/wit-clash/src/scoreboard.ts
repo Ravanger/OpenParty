@@ -1,4 +1,4 @@
-import { composeLeaderboard } from "@partygame/core";
+import { composeLeaderboard } from "@openparty/core";
 import type { MatchupAward } from "./scoring.js";
 
 export interface ScoreRow {

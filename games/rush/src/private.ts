@@ -1,4 +1,4 @@
-import type { PhaseDefinition } from "@partygame/core";
+import type { PhaseDefinition } from "@openparty/core";
 import type { RushOptions } from "./options.js";
 import type { RushState } from "./state.js";
 

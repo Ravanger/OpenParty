@@ -1,4 +1,4 @@
-import { actionLogMiddleware, defineGame } from "@partygame/core";
+import { actionLogMiddleware, defineGame } from "@openparty/core";
 import { META } from "./meta.js";
 import { type RushOptions, RushOptionsSchema } from "./options.js";
 import { PHASE } from "./phaseNames.js";

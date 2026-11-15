@@ -1,7 +1,7 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { type Client, type Delayed, logger, Room, ServerError } from "@colyseus/core";
 import { type Schema, StateView } from "@colyseus/schema";
-import type { FilterLevel, TextFilter } from "@partygame/content/filter";
+import type { FilterLevel, TextFilter } from "@openparty/content/filter";
 import {
   AudienceScopes,
   evaluateJoin,
@@ -17,8 +17,8 @@ import {
   type Seed,
   sfc32,
   type TimerHandle,
-} from "@partygame/core";
-import { createBundle } from "@partygame/core/replay";
+} from "@openparty/core";
+import { createBundle } from "@openparty/core/replay";
 import {
   ActionEnvelopeSchema,
   type ActionResult,
@@ -36,9 +36,9 @@ import {
   RoomOptionsSchema,
   ServerMessage,
   SetNameSchema,
-} from "@partygame/shared";
-import type { BaseGameState } from "@partygame/shared/schema";
-import { PlayerSchema, syncedJsonOf } from "@partygame/shared/schema";
+} from "@openparty/shared";
+import type { BaseGameState } from "@openparty/shared/schema";
+import { PlayerSchema, syncedJsonOf } from "@openparty/shared/schema";
 import type { ZodError } from "zod";
 import type { RateLimiter, ResolvedRateLimits, TokenBucket } from "../RateLimiter.js";
 import type { RoomCodeService } from "../services/RoomCodeService.js";

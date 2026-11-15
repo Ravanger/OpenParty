@@ -25,7 +25,7 @@ Runtime validation at trust boundaries. Wire schemas live in `packages/shared/sr
 
 ## Best Practices in This Project
 - Always `safeParse` network data; `parse` only for trusted startup config.
-- Keep schemas in `@partygame/shared` so server and client share one contract.
+- Keep schemas in `@openparty/shared` so server and client share one contract.
 - Validate at ingress, not inside hot loops.
 
 ## References

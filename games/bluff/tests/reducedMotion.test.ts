@@ -1,6 +1,6 @@
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { auditReducedMotion } from "@partygame/game-ui/testing";
+import { auditReducedMotion } from "@openparty/game-ui/testing";
 import { describe, expect, it } from "vitest";
 
 const UI_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "ui");

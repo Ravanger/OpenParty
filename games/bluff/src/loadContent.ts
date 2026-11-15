@@ -1,4 +1,4 @@
-import { contentDirFrom } from "@partygame/content";
+import { contentDirFrom } from "@openparty/content";
 import { loadPrompts, type PromptRepository } from "./content/PromptRepository.js";
 
 export const MIN_PROMPTS = 6;

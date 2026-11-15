@@ -1,5 +1,5 @@
 <script lang="ts">
-import { ActionBar, StatusPanel } from "@partygame/game-ui/components";
+import { ActionBar, StatusPanel } from "@openparty/game-ui/components";
 import { untrack } from "svelte";
 import type { __PascalName__Manager } from "../manager.js";
 import { ResultsViewModel } from "../viewmodels/ResultsViewModel.js";

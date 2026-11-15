@@ -1,4 +1,4 @@
-# @partygame/content
+# @openparty/content
 
 ## Responsibility
 
@@ -8,12 +8,12 @@ Game-agnostic content tooling: JSONC parsing and content-directory loading, vali
 
 - Game vocabulary (the caller's schemas and domain concepts stay in the game).
 - Colyseus, sockets, HTTP, Svelte or DOM code.
-- Anything that needs another `@partygame/*` package at runtime; this is a bottom-layer package next to `shared`.
+- Anything that needs another `@openparty/*` package at runtime; this is a bottom-layer package next to `shared`.
 
 ## May import
 
 - Runtime: none
-- Dev: `@partygame/config`
+- Dev: `@openparty/config`
 
 ## Public entry points
 

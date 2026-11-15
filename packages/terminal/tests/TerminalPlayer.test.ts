@@ -1,6 +1,6 @@
 import { type SchemaType, t } from "@colyseus/schema";
-import type { BotRoom } from "@partygame/bots";
-import { BaseGameState, PlayerSchema } from "@partygame/shared/schema";
+import type { BotRoom } from "@openparty/bots";
+import { BaseGameState, PlayerSchema } from "@openparty/shared/schema";
 import { describe, expect, it } from "vitest";
 import { TerminalPlayer, type TerminalStrategy, type TerminalTurn } from "../src/index.js";
 import { ScriptedIo } from "../src/testing.js";

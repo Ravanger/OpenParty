@@ -1,4 +1,4 @@
-# @partygame/game-ui
+# @openparty/game-ui
 
 Svelte 5 viewmodels (no UI code) and reusable components for game screens.
 
@@ -6,9 +6,9 @@ Ships Svelte source; consumers need the Svelte plugin — Vite with `@sveltejs/v
 
 | Import | What |
 |---|---|
-| `@partygame/game-ui` | `createAppRouter`, `AppRouter`, `WelcomeViewModel`, `WaitingRoomViewModel`, `LobbySettingsViewModel`, `OptionsReader`, `PhaseClock`, `TypingReporter`, `GameControlsViewModel`, `HowToPlayViewModel`, `JoinNextRoundViewModel`, `NameField`, `ReplayViewModel`, `snapshotManager`, `replayManager`, `SoundPolicy`, `Spotlight`, `TextDraft`; `OptionFields`, `qrCode`, `playerSticker`, `rankRows`, `leaders`, `podiumSteps`, `roundLabel`, `plural`, `downloadReplay`, `mountReplayIfRequested`; `setStrings`, `defaultUiStrings`, `UiStrings`; types `RouterScreen`, `LobbySettingsConfig`, `HowToPlayStep`, `HowToPlayStorage`, `HowToPlayTimer`, `HowToPlayViewModelOptions`, `SoundPolicyOptions`, `StickerShape`, `TextDraftConfig`, `ProgressRow`, `ReplayManager` |
-| `@partygame/game-ui/components` | Svelte 5 source: `GameShell`, `WelcomeScreen`, `StatusPanel`, `Timer`, `PhaseTimer`, `PhaseBar`, `PlayerSticker`, `QrCode`, `ActionBar`, `NameInput`, `SoundToggle`, `LobbySettings`, `GameControls`, `HowToPlay`, `HowToPlayButton`, `Podium`, `Confetti`, `ScreenTitle`, `ProgressStrip`, `ChoiceBoard`, `ExportReplayButton`, `ReplayViewer` |
-| `@partygame/game-ui/testing` | Test-only CSS audits for a game's `ui/` directory: `auditContrast({ uiDir, minChecked, pairs? })` (WCAG AA over same-rule colour/background pairs plus explicit cross-rule pairs; fails on a colour variable defined nowhere and throws when fewer than `minChecked` pairs were checked), `auditReducedMotion({ uiDir, minGuarded, allow? })` (every transition/animation/`scroll-behavior: smooth` inside a no-preference block, no Svelte motion directives outside the allow list; throws below `minGuarded`) and the walkers `cssFiles`, `rules`, `stripComments` |
+| `@openparty/game-ui` | `createAppRouter`, `AppRouter`, `WelcomeViewModel`, `WaitingRoomViewModel`, `LobbySettingsViewModel`, `OptionsReader`, `PhaseClock`, `TypingReporter`, `GameControlsViewModel`, `HowToPlayViewModel`, `JoinNextRoundViewModel`, `NameField`, `ReplayViewModel`, `snapshotManager`, `replayManager`, `SoundPolicy`, `Spotlight`, `TextDraft`; `OptionFields`, `qrCode`, `playerSticker`, `rankRows`, `leaders`, `podiumSteps`, `roundLabel`, `plural`, `downloadReplay`, `mountReplayIfRequested`; `setStrings`, `defaultUiStrings`, `UiStrings`; types `RouterScreen`, `LobbySettingsConfig`, `HowToPlayStep`, `HowToPlayStorage`, `HowToPlayTimer`, `HowToPlayViewModelOptions`, `SoundPolicyOptions`, `StickerShape`, `TextDraftConfig`, `ProgressRow`, `ReplayManager` |
+| `@openparty/game-ui/components` | Svelte 5 source: `GameShell`, `WelcomeScreen`, `StatusPanel`, `Timer`, `PhaseTimer`, `PhaseBar`, `PlayerSticker`, `QrCode`, `ActionBar`, `NameInput`, `SoundToggle`, `LobbySettings`, `GameControls`, `HowToPlay`, `HowToPlayButton`, `Podium`, `Confetti`, `ScreenTitle`, `ProgressStrip`, `ChoiceBoard`, `ExportReplayButton`, `ReplayViewer` |
+| `@openparty/game-ui/testing` | Test-only CSS audits for a game's `ui/` directory: `auditContrast({ uiDir, minChecked, pairs? })` (WCAG AA over same-rule colour/background pairs plus explicit cross-rule pairs; fails on a colour variable defined nowhere and throws when fewer than `minChecked` pairs were checked), `auditReducedMotion({ uiDir, minGuarded, allow? })` (every transition/animation/`scroll-behavior: smooth` inside a no-preference block, no Svelte motion directives outside the allow list; throws below `minGuarded`) and the walkers `cssFiles`, `rules`, `stripComments` |
 
 Viewmodels are typed on `GameConnectionManager<TState>` and read its state reactively. Import through the `svelte` export condition (Vite with the Svelte plugin). Build one in a component with `untrack(() => new Vm(manager))`.
 
@@ -18,8 +18,8 @@ Viewmodels are typed on `GameConnectionManager<TState>` and read its state react
 
 ```svelte
 <script lang="ts">
-  import { createAppRouter } from "@partygame/game-ui";
-  import { LOBBY_PHASE } from "@partygame/shared";
+  import { createAppRouter } from "@openparty/game-ui";
+  import { LOBBY_PHASE } from "@openparty/shared";
   import Lobby from "./Lobby.svelte";
   import Round from "./Round.svelte";
   import Welcome from "./Welcome.svelte";
@@ -47,12 +47,12 @@ A `RouterScreen` is one entry of that table: `component` and an optional `banner
 
 ## App shell
 
-`GameShell` (from `@partygame/game-ui/components`) is the chrome every screen sits in: the header (wordmark, room code, `GameControls`), a reconnecting bar that dims and `inert`s the game view, a dismissible error toast, the routed screen inside `.screen`, and the phase banner. Pass your router and controls, and give it one snippet per route kind — `welcome`, `joinNextRound`, `phase(phase)` (the phase name, for indexing your own screen table) and `wordmark`:
+`GameShell` (from `@openparty/game-ui/components`) is the chrome every screen sits in: the header (wordmark, room code, `GameControls`), a reconnecting bar that dims and `inert`s the game view, a dismissible error toast, the routed screen inside `.screen`, and the phase banner. Pass your router and controls, and give it one snippet per route kind — `welcome`, `joinNextRound`, `phase(phase)` (the phase name, for indexing your own screen table) and `wordmark`:
 
 ```svelte
 <script lang="ts">
-  import { GameControlsViewModel, createAppRouter } from "@partygame/game-ui";
-  import { GameShell } from "@partygame/game-ui/components";
+  import { GameControlsViewModel, createAppRouter } from "@openparty/game-ui";
+  import { GameShell } from "@openparty/game-ui/components";
   import { untrack } from "svelte";
   import { isGameOver } from "../src/isGameOver.js";
   import JoinNextRound from "./screens/JoinNextRound.svelte";
@@ -83,9 +83,9 @@ The shell renders structure; it carries no game look. Its stable class names —
 
 ```svelte
 <script lang="ts">
-  import { readUrlCode, readUrlTvCode } from "@partygame/game-client";
-  import { WelcomeViewModel } from "@partygame/game-ui";
-  import { WelcomeScreen } from "@partygame/game-ui/components";
+  import { readUrlCode, readUrlTvCode } from "@openparty/game-client";
+  import { WelcomeViewModel } from "@openparty/game-ui";
+  import { WelcomeScreen } from "@openparty/game-ui/components";
   import { untrack } from "svelte";
 
   const vm = untrack(() => new WelcomeViewModel(manager, readUrlCode(), readUrlTvCode()));
@@ -102,8 +102,8 @@ The wordmark face (font, tape) is themed by your global `.screen .wordmark` rule
 
 ```svelte
 <script lang="ts">
-  import { readCodeParam, type GameConnectionManager } from "@partygame/game-client";
-  import { WelcomeViewModel } from "@partygame/game-ui";
+  import { readCodeParam, type GameConnectionManager } from "@openparty/game-client";
+  import { WelcomeViewModel } from "@openparty/game-ui";
   import { untrack } from "svelte";
 
   const { manager }: { manager: GameConnectionManager<ButtonState> } = $props();
@@ -124,8 +124,8 @@ Build the waiting room the same way and call `vm.destroy()` on teardown: `$effec
 `LobbySettingsViewModel` takes the zod schema you pass to `defineGame`. Every bounded numeric option (`.min()` and `.max()`) becomes a labelled number input for the host — step 1 for integers, the schema's `multipleOf` when present, else `any` — and a read-only line for everyone else; every boolean option becomes a checkbox; every string-enum option becomes a row of choice buttons, one per value (a commit that is not one of them is dropped without sending); every plain string option becomes a text input, bounded by `maxlength` when the schema bounds it. Options the form cannot render (unbounded numbers, arrays, objects, enums with non-string choices) are skipped and reported to the optional `onUnsupported(key, reason)` config — by default a console warning, once per key per instance; `labels` overrides the generated names, and the optional `choiceLabels` (`{ fieldKey: { rawValue: "Label" } }`) renames a select field's choice buttons and its read-only line without touching what gets committed (an unlisted choice keeps its raw value). Once a commit resolves — accepted or rejected — the field shows what the server published, so a normalised value and later changes are never hidden by local typing; if the server publishes a new value for a key while an older draft lingers, that draft is dropped (the typed value keeps showing while its own commit is in flight). The config type is `LobbySettingsConfig` (what the view model needs to build the form from the options schema). Members: `canEdit` (host only), `startsOpen` (panel starts expanded for host and spectators) and `setDraft(key, raw)` (stores what the host is typing without sending; `commit` sends it).
 
 ```ts
-import type { GameConnectionManager } from "@partygame/game-client";
-import { LobbySettingsViewModel as Base } from "@partygame/game-ui";
+import type { GameConnectionManager } from "@openparty/game-client";
+import { LobbySettingsViewModel as Base } from "@openparty/game-ui";
 
 export class LobbySettingsViewModel extends Base<ButtonState> {
   constructor(manager: GameConnectionManager<ButtonState>) {
@@ -158,7 +158,7 @@ const spotlight = new Spotlight(() => (isSpectator && bestAnswers.length > 0 ? 2
 $effect(() => () => spotlight.destroy());
 ```
 
-`Confetti` (from `@partygame/game-ui/components`) rains `count` deterministic pieces from the top of the screen, coloured by the theme palette (`--color-1` to `--color-4`, `--accent`); the pieces are hidden and the fall animation runs only under `prefers-reduced-motion: no-preference`. Render it inside an `{#if}` so it exists only while celebrating.
+`Confetti` (from `@openparty/game-ui/components`) rains `count` deterministic pieces from the top of the screen, coloured by the theme palette (`--color-1` to `--color-4`, `--accent`); the pieces are hidden and the fall animation runs only under `prefers-reduced-motion: no-preference`. Render it inside an `{#if}` so it exists only while celebrating.
 
 ## Text draft
 
@@ -169,17 +169,17 @@ $effect(() => () => spotlight.destroy());
 `SoundPolicy({ storage, storagePrefix, target })` (`SoundPolicyOptions`: where the toggle persists and where the first gesture is heard) is the room's sound gate: off by default, one persisted toggle, and nothing plays before the first tap (browsers block audio until a user gesture, and players on a shared TV may not want it). `enabled` (persisted under `${storagePrefix}.sound`; a throwing or empty storage — private windows — degrades to off), `unlocked` (a pointerdown or keydown on `target` has happened) and `canPlay` (both) are reactive getters; `toggle()` flips `enabled`; `dispose()` removes the gesture listeners when the owning screen unmounts. Construct it once with the page's globals, using the same prefix you pass to `GameConnectionManager`:
 
 ```ts
-import { SoundPolicy } from "@partygame/game-ui";
+import { SoundPolicy } from "@openparty/game-ui";
 
 const sound = new SoundPolicy({ storage: localStorage, storagePrefix: "my-game", target: window });
 ```
 
-`SoundToggle` (from `@partygame/game-ui/components`) is the button for it — a native `type="button"` with a constant label and `aria-pressed`, so a screen reader announces one state ("Sound, pressed") instead of a contradicting pair; the label comes from the `UiStrings` table (`sound`, default "Sound"), and the button has a 44px minimum height. Gate every sound your game makes on `canPlay`; combined with a feedback bus of sound events, that is one line per event:
+`SoundToggle` (from `@openparty/game-ui/components`) is the button for it — a native `type="button"` with a constant label and `aria-pressed`, so a screen reader announces one state ("Sound, pressed") instead of a contradicting pair; the label comes from the `UiStrings` table (`sound`, default "Sound"), and the button has a 44px minimum height. Gate every sound your game makes on `canPlay`; combined with a feedback bus of sound events, that is one line per event:
 
 ```svelte
 <script lang="ts">
-  import { SoundPolicy } from "@partygame/game-ui";
-  import { SoundToggle } from "@partygame/game-ui/components";
+  import { SoundPolicy } from "@openparty/game-ui";
+  import { SoundToggle } from "@openparty/game-ui/components";
 
   const sound = new SoundPolicy({ storage: localStorage, storagePrefix: "my-game", target: window });
 
@@ -208,8 +208,8 @@ Navigation is next/back plus a dot row (all wrapping within `stepCount()`); with
 
 ```svelte
 <script lang="ts">
-  import { HowToPlayViewModel } from "@partygame/game-ui";
-  import { HowToPlay, HowToPlayButton } from "@partygame/game-ui/components";
+  import { HowToPlayViewModel } from "@openparty/game-ui";
+  import { HowToPlay, HowToPlayButton } from "@openparty/game-ui/components";
   import { untrack } from "svelte";
 
   const howTo = untrack(() => new HowToPlayViewModel(manager, { storage: localStorage, storagePrefix }, () => STEPS.length));
@@ -229,7 +229,7 @@ Navigation is next/back plus a dot row (all wrapping within `stepCount()`); with
 
 ```svelte
 <script lang="ts">
-  import { ReplayViewModel, snapshotManager } from "@partygame/game-ui";
+  import { ReplayViewModel, snapshotManager } from "@openparty/game-ui";
   import { untrack } from "svelte";
 
   const vm = untrack(() => new ReplayViewModel(bundleText)); // the bundle file's contents
@@ -247,12 +247,12 @@ Navigation is next/back plus a dot row (all wrapping within `stepCount()`); with
 
 `replayManager(viewModel, stateClass)` extends the snapshot manager with the other members screens read while mounting in replay mode: `me()` is always `undefined`, `leave()` is a no-op, and `countdown()` is rebuilt from the snapshot's own `phaseEndsAt`/`serverNow` fields (the recorded phase is over, so it reads 0 almost immediately). A screen may read only these members; where a screen demands the game's manager type, cast the result at the use site.
 
-The viewer itself ships as components: `ReplayViewer` (from `@partygame/game-ui/components`) takes `screens` (a phase-name-to-`{ component }` record — the same shape as the game's `PHASE_SCREENS`), the game's synced `stateClass` and a `title` for the header wordmark (whose face is themed by the game's global `header .wordmark` rule). Each screen receives the `replayManager` adapter in place of the game's manager (the viewer narrows the screen's prop to it with an unchecked cast, so a screen may only read what `ReplayManager` provides); screens typed for the full manager pass through unchanged. It provides a file picker, previous/next/play controls and a scrubber over the bundle's snapshots; an invalid bundle shows its error, and a snapshot whose phase is missing from `screens` falls back to a message. `mountReplayIfRequested(ReplayViewer, target, props)` mounts it only when the URL carries a `?replay` parameter and returns whether it mounted, so a game's entry point never inlines the query check:
+The viewer itself ships as components: `ReplayViewer` (from `@openparty/game-ui/components`) takes `screens` (a phase-name-to-`{ component }` record — the same shape as the game's `PHASE_SCREENS`), the game's synced `stateClass` and a `title` for the header wordmark (whose face is themed by the game's global `header .wordmark` rule). Each screen receives the `replayManager` adapter in place of the game's manager (the viewer narrows the screen's prop to it with an unchecked cast, so a screen may only read what `ReplayManager` provides); screens typed for the full manager pass through unchanged. It provides a file picker, previous/next/play controls and a scrubber over the bundle's snapshots; an invalid bundle shows its error, and a snapshot whose phase is missing from `screens` falls back to a message. `mountReplayIfRequested(ReplayViewer, target, props)` mounts it only when the URL carries a `?replay` parameter and returns whether it mounted, so a game's entry point never inlines the query check:
 
 ```ts
 // ui/main.ts
-import { mountReplayIfRequested } from "@partygame/game-ui";
-import { ReplayViewer } from "@partygame/game-ui/components";
+import { mountReplayIfRequested } from "@openparty/game-ui";
+import { ReplayViewer } from "@openparty/game-ui/components";
 import { PHASE_SCREENS } from "./screens/index.js";
 import { MyState } from "../src/state.js";
 
@@ -267,7 +267,7 @@ if (
 }
 ```
 
-`ExportReplayButton` (from `@partygame/game-ui/components`) is the host's Results-screen button: it sends the host-only `EXPORT_REPLAY` request through `manager.exportReplay()` and downloads the answer as `<name>-replay.json` — the bundle's game name lower-cased, or `replay` when it has none; a refusal downloads nothing. `downloadReplay(response, doc?)` is the download itself (the document is injectable for tests).
+`ExportReplayButton` (from `@openparty/game-ui/components`) is the host's Results-screen button: it sends the host-only `EXPORT_REPLAY` request through `manager.exportReplay()` and downloads the answer as `<name>-replay.json` — the bundle's game name lower-cased, or `replay` when it has none; a refusal downloads nothing. `downloadReplay(response, doc?)` is the download itself (the document is injectable for tests).
 
 ## Components
 
@@ -279,8 +279,8 @@ Props (all render in plain markup, e.g. `<Timer seconds={12} fraction={0.4} />`)
 
 ```svelte
 <script lang="ts">
-  import { podiumSteps, rankRows, type PodiumRow } from "@partygame/game-ui";
-  import { Podium } from "@partygame/game-ui/components";
+  import { podiumSteps, rankRows, type PodiumRow } from "@openparty/game-ui";
+  import { Podium } from "@openparty/game-ui/components";
 
   const { rows }: { rows: Omit<PodiumRow, "rank">[] } = $props(); // best first
   const steps = $derived(podiumSteps(rankRows(rows)));
@@ -297,21 +297,21 @@ Every label the generic components render (the GameControls menu and dialog, the
 
 ```svelte
 <script lang="ts">
-  import { setStrings } from "@partygame/game-ui";
+  import { setStrings } from "@openparty/game-ui";
 
   setStrings({ leaveGame: "Spiel verlassen", secondsRemaining: (n) => `Noch ${n} Sekunden` });
 </script>
 ```
 
-The table also carries a `clientStrings` field (`Partial<ClientStrings>` from `@partygame/game-client`): pass the same object to both the manager's `strings` option and `setStrings`, and one table localises both layers. Server error text resolves as `clientStrings.errors[code] ?? message`, so codes you do not translate keep the server's own message.
+The table also carries a `clientStrings` field (`Partial<ClientStrings>` from `@openparty/game-client`): pass the same object to both the manager's `strings` option and `setStrings`, and one table localises both layers. Server error text resolves as `clientStrings.errors[code] ?? message`, so codes you do not translate keep the server's own message.
 
 ## Theme
 
 The package ships two stylesheets. `theme-contract.css` is a baseline for every contract variable (the `CONTRACT_VARIABLES` list in `src/themeContract.ts`), the `main.tv` base sizes for TV displays and the `.sr-only` utility; `base.css` is the look every framework component needs — page baseline, cards, tape, chips, stickers, buttons, notices, the hand font class and the reduced-motion guards — all on those tokens. Import both at the top of your game's `app.css`, then override any variable you want to change:
 
 ```css
-@import "@partygame/game-ui/theme-contract.css";
-@import "@partygame/game-ui/base.css";
+@import "@openparty/game-ui/theme-contract.css";
+@import "@openparty/game-ui/base.css";
 ```
 
 - Custom properties: `--ink`, `--ink-soft`, `--white`, `--paper`, `--color-1` to `--color-4`, `--accent`, `--danger`, `--disabled`, `--tape-1` to `--tape-4`, `--fs-1` to `--fs-6`, `--font-display`, `--font-hand`, `--font-body`, `--outline`, `--radius-card`, `--radius-btn`, `--radius-pill`, `--scrap-shadow`, `--podium-block-height-1`, `--podium-block-height-2`, `--podium-block-height-3`, `--scale`, `--timer-size`, `--screen-pad-x`, `--screen-pad-y`.
@@ -328,10 +328,10 @@ A violation that cannot be fixed yet goes into `tests/support/a11yAllowList.ts`:
 
 ## Testing (CSS audits)
 
-`@partygame/game-ui/testing` audits a game's `ui/` directory from its test suite — every game with a `ui/` runs both:
+`@openparty/game-ui/testing` audits a game's `ui/` directory from its test suite — every game with a `ui/` runs both:
 
 ```ts
-import { auditContrast, auditReducedMotion } from "@partygame/game-ui/testing";
+import { auditContrast, auditReducedMotion } from "@openparty/game-ui/testing";
 
 const report = auditContrast({ uiDir: UI_DIR, minChecked: 17 });
 expect(report.unresolved).toEqual([]);
@@ -342,6 +342,6 @@ expect(report.failures).toEqual([]);
 - `auditReducedMotion({ uiDir, minGuarded, allow? })` fails on any `transition*`/`animation*` declaration (a value of exactly `none` is exempt) or `scroll-behavior: smooth` outside a `prefers-reduced-motion: no-preference` block, and on `.svelte` files using `transition:`, `in:`, `out:` or `animate:` directives unless the file is in `allow`. It throws below `minGuarded` guarded declarations.
 - The walkers `cssFiles(uiDir)` (every `.css`/`.svelte` style block, comments stripped), `rules(css)` (top-level rules with their media conditions) and `stripComments(css)` are exported for tests that need the raw walk.
 
-Depends on: `@partygame/client-utils`, `@partygame/game-client`, `@partygame/shared`, `svelte`, `uqr`, `zod`
+Depends on: `@openparty/client-utils`, `@openparty/game-client`, `@openparty/shared`, `svelte`, `uqr`, `zod`
 
 Guide: [docs/framework/README.md#game-ui-viewmodels](../../docs/framework/README.md#game-ui-viewmodels) ([Components](../../docs/framework/README.md#components))

@@ -1,6 +1,6 @@
-import type { GameConnectionManager } from "@partygame/game-client";
-import { NAME_MAX_LENGTH } from "@partygame/shared";
-import type { BaseGameState } from "@partygame/shared/schema";
+import type { GameConnectionManager } from "@openparty/game-client";
+import { NAME_MAX_LENGTH } from "@openparty/shared";
+import type { BaseGameState } from "@openparty/shared/schema";
 
 /** A text draft that tells the server the name after a pause in typing; an unflushed rename is sent on destroy. */
 export class NameField<TState extends BaseGameState = BaseGameState> {

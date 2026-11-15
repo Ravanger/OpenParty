@@ -11,7 +11,7 @@ export type CreateArgs =
   | { ok: true; slug: string; name?: string; headless?: boolean }
   | { ok: false; error: string };
 
-const USAGE = 'Usage: partygame create <slug> [--name "Display Name"] [--headless]';
+const USAGE = 'Usage: openparty create <slug> [--name "Display Name"] [--headless]';
 
 /** Parses `create <slug> [--name "..." | --name=...] [--headless]`; a usage error otherwise. */
 export function parseCreateArgs(argv: string[]): CreateArgs {
@@ -134,8 +134,8 @@ function replaceOnce(text: string, file: string, edits: readonly TextEdit[]): st
 
 /** A headless tsconfig clears the UI type packages that `tsconfig.game.json` pulls in. */
 const TSCONFIG_EDIT: TextEdit = [
-  '"extends": "@partygame/config/tsconfig.game.json",',
-  '"extends": "@partygame/config/tsconfig.game.json",\n  "compilerOptions": {\n    "types": []\n  },',
+  '"extends": "@openparty/config/tsconfig.game.json",',
+  '"extends": "@openparty/config/tsconfig.game.json",\n  "compilerOptions": {\n    "types": []\n  },',
 ];
 
 /**
@@ -148,14 +148,14 @@ const PHASE_NAMES_EDIT: TextEdit = [
 ];
 
 /**
- * AGENTS.md rewording for the headless shape. Order matters: `@partygame/game-client` is removed
+ * AGENTS.md rewording for the headless shape. Order matters: `@openparty/game-client` is removed
  * from the Runtime line before it is added to the Dev line, so every anchor matches exactly once.
  */
 const AGENTS_EDITS: readonly TextEdit[] = [
   ["rules, UI screens and entry points", "rules and entry points"],
-  [", `@partygame/game-client`", ""],
-  [", `@partygame/game-ui`", ""],
-  ["- Dev: `@partygame/config`", "- Dev: `@partygame/config`, `@partygame/game-client`"],
+  [", `@openparty/game-client`", ""],
+  [", `@openparty/game-ui`", ""],
+  ["- Dev: `@openparty/config`", "- Dev: `@openparty/config`, `@openparty/game-client`"],
   [
     "`server.ts`, `launch.ts`, `ui/main.ts`, `bots/cli.ts`, `terminal/play.ts`",
     "`server.ts`, `launch.ts`, `bots/cli.ts`, `terminal/play.ts`",
@@ -200,16 +200,16 @@ const README_EDITS: readonly TextEdit[] = [
 export function pruneHeadlessGame(gameDir: string): void {
   const manifestPath = join(gameDir, "package.json");
   const pkg = JSON.parse(readFileSync(manifestPath, "utf8")) as HeadlessManifest;
-  const clientVersion = pkg.dependencies["@partygame/game-client"];
+  const clientVersion = pkg.dependencies["@openparty/game-client"];
   if (clientVersion === undefined) {
-    throw new Error("pruneHeadlessGame: package.json drifted: @partygame/game-client is missing");
+    throw new Error("pruneHeadlessGame: package.json drifted: @openparty/game-client is missing");
   }
-  delete pkg.dependencies["@partygame/game-ui"];
+  delete pkg.dependencies["@openparty/game-ui"];
   for (const name of UI_DEV_DEPENDENCIES) delete pkg.devDependencies[name];
-  delete pkg.dependencies["@partygame/game-client"];
+  delete pkg.dependencies["@openparty/game-client"];
   const entries: [string, string][] = [
     ...Object.entries(pkg.devDependencies),
-    ["@partygame/game-client", clientVersion],
+    ["@openparty/game-client", clientVersion],
   ];
   pkg.devDependencies = Object.fromEntries(entries.sort(([a], [b]) => a.localeCompare(b)));
   for (const script of HEADLESS_DROPPED_SCRIPTS) delete pkg.scripts[script];

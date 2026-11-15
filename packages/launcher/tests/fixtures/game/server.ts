@@ -1,4 +1,4 @@
-import { startNodeServer } from "@partygame/server/node";
+import { startNodeServer } from "@openparty/server/node";
 import { TAP_PUBLIC_FIELDS, TAP_ROOM, TapGame, TapState } from "../tapGame.js";
 
 await startNodeServer({

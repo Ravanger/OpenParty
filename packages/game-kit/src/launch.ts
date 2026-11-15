@@ -1,4 +1,4 @@
-import type { BaseGameState } from "@partygame/shared/schema";
+import type { BaseGameState } from "@openparty/shared/schema";
 import { defaultIo } from "./io.js";
 import { buildLaunchConfig } from "./launchConfig.js";
 import type { GameDeclaration, GameKitIo } from "./types.js";

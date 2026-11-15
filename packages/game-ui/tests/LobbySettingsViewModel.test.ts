@@ -1,5 +1,5 @@
-import { connectedClient, type SeatConfig } from "@partygame/game-client/testing";
-import { BaseGameState } from "@partygame/shared/schema";
+import { connectedClient, type SeatConfig } from "@openparty/game-client/testing";
+import { BaseGameState } from "@openparty/shared/schema";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { LobbySettingsViewModel } from "../src/LobbySettingsViewModel.svelte.js";

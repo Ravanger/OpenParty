@@ -1,6 +1,6 @@
 <script lang="ts" generics="TRow extends PodiumRow">
 // biome-ignore lint/correctness/noUnusedImports: used by the generics attribute
-import type { PodiumRow, PodiumStep } from "@partygame/game-ui";
+import type { PodiumRow, PodiumStep } from "@openparty/game-ui";
 import type { Snippet } from "svelte";
 import { getStrings } from "../strings.js";
 import PlayerSticker from "./PlayerSticker.svelte";

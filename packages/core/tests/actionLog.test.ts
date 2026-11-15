@@ -1,5 +1,5 @@
-import type { TextFilter } from "@partygame/content/filter";
-import { CLIENT_MESSAGES, ErrorCode, PROTOCOL_VERSION } from "@partygame/shared";
+import type { TextFilter } from "@openparty/content/filter";
+import { CLIENT_MESSAGES, ErrorCode, PROTOCOL_VERSION } from "@openparty/shared";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import {

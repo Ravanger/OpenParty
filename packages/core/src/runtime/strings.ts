@@ -1,4 +1,4 @@
-import { CLIENT_MESSAGES, END_GAME, LOBBY_PHASE } from "@partygame/shared";
+import { CLIENT_MESSAGES, END_GAME, LOBBY_PHASE } from "@openparty/shared";
 
 /**
  * Every message the core runtime owns: the lobby built-ins and the runtime's own refusals. A game

@@ -1,4 +1,4 @@
-import { uiTestConfig } from "@partygame/config/vitest";
+import { uiTestConfig } from "@openparty/config/vitest";
 
 export default uiTestConfig({
   name: "__slug__",

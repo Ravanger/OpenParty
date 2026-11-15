@@ -1,5 +1,5 @@
-import { getActionLog } from "@partygame/core";
-import { replayLog } from "@partygame/core/testing";
+import { getActionLog } from "@openparty/core";
+import { replayLog } from "@openparty/core/testing";
 import { describe, expect, it } from "vitest";
 import { createRushGame } from "../../src/game.js";
 import { RushOptionsSchema } from "../../src/options.js";

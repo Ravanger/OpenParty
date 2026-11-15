@@ -1,13 +1,13 @@
 import { Client } from "@colyseus/sdk";
-import { RoomCodeError } from "@partygame/client-utils";
+import { RoomCodeError } from "@openparty/client-utils";
 import {
   CLIENT_MESSAGES,
   CLOSE_CODES,
   ClientMessage,
   ErrorCode,
   PROTOCOL_VERSION,
-} from "@partygame/shared";
-import { BaseGameState, PlayerSchema } from "@partygame/shared/schema";
+} from "@openparty/shared";
+import { BaseGameState, PlayerSchema } from "@openparty/shared/schema";
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { GameConnectionManager } from "../src/GameConnectionManager.svelte.js";

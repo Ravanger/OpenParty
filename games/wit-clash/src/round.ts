@@ -1,5 +1,5 @@
-import { ensureMine, pruneMine, required, resetMine } from "@partygame/core";
-import { countVoted } from "@partygame/core/kits";
+import { ensureMine, pruneMine, required, resetMine } from "@openparty/core";
+import { countVoted } from "@openparty/core/kits";
 import { pickBestAnswers } from "./bestAnswers.js";
 import { eligibleVoterIds, seatedActiveIds } from "./eligibility.js";
 import { pickHighlights } from "./highlights.js";

@@ -35,7 +35,7 @@ describe("uiTestConfig", () => {
     expect(config.test?.coverage?.include).toEqual(["src/**/*.ts"]);
     expect(config.test?.setupFiles).toEqual([
       "@testing-library/jest-dom/vitest",
-      "@partygame/game-client/test-setup",
+      "@openparty/game-client/test-setup",
     ]);
   });
 
@@ -70,7 +70,7 @@ describe("uiTestConfig", () => {
 describe("nodeTestConfig", () => {
   it("sets up the node environment, compiling Svelte sources like the UI projects", () => {
     const config = nodeTestConfig(base);
-    // The shared preset aliases @partygame/* to source, so node tests can load a package's
+    // The shared preset aliases @openparty/* to source, so node tests can load a package's
     // .svelte.ts files (e.g. GameConnectionManager via game-client/testing). They must be
     // compiled with the same svelte transform as the UI projects: v8 coverage merges maps per
     // source location, and a plain-TS transform leaves phantom uncovered statements behind.
@@ -84,7 +84,7 @@ describe("nodeTestConfig", () => {
   });
 
   it("defaults setupFiles to the node WebSocket polyfill, replaced when given", () => {
-    expect(nodeTestConfig(base).test?.setupFiles).toEqual(["@partygame/config/node-test-setup"]);
+    expect(nodeTestConfig(base).test?.setupFiles).toEqual(["@openparty/config/node-test-setup"]);
     expect(nodeTestConfig({ ...base, setupFiles: ["./s.ts"] }).test?.setupFiles).toEqual([
       "./s.ts",
     ]);
@@ -108,41 +108,41 @@ describe("nodeTestConfig", () => {
 });
 
 /**
- * Every `@partygame/*` export subpath, mapped to the source file the shared preset must alias it
+ * Every `@openparty/*` export subpath, mapped to the source file the shared preset must alias it
  * to (relative to `packages/`). Adding an exported subpath to any package means adding its line
  * here: tests run against source so a new dist-only entry would silently test stale code.
  */
 const EXPECTED_SOURCE_ALIASES: Record<string, string> = {
-  "@partygame/bots": "bots/src/index.ts",
-  "@partygame/client-utils": "client-utils/src/index.ts",
-  "@partygame/config/node-test-setup": "config/node-test-setup.ts",
-  "@partygame/config/svelte": "config/src/svelte.ts",
-  "@partygame/config/vite": "config/src/vite.ts",
-  "@partygame/config/vitest": "config/src/vitest.ts",
-  "@partygame/content": "content/src/index.ts",
-  "@partygame/content/filter": "content/src/filter.ts",
-  "@partygame/core": "core/src/index.ts",
-  "@partygame/core/awards": "core/src/awards/index.ts",
-  "@partygame/core/kits": "core/src/kits/index.ts",
-  "@partygame/core/replay": "core/src/replay/index.ts",
-  "@partygame/core/testing": "core/src/testing/index.ts",
-  "@partygame/game-client": "game-client/src/index.ts",
-  "@partygame/game-client/test-setup": "game-client/test-setup.ts",
-  "@partygame/game-client/testing": "game-client/src/testing.ts",
-  "@partygame/game-kit": "game-kit/src/index.ts",
-  "@partygame/game-ui": "game-ui/src/index.ts",
-  "@partygame/game-ui/components": "game-ui/src/components/index.ts",
-  "@partygame/game-ui/testing": "game-ui/testing.ts",
-  "@partygame/launcher": "launcher/src/index.ts",
-  "@partygame/server": "server/src/index.ts",
-  "@partygame/server/bun": "server/src/bun.ts",
-  "@partygame/server/node": "server/src/node.ts",
-  "@partygame/server/probe": "server/src/probe.ts",
-  "@partygame/server/testing": "server/src/testing/index.ts",
-  "@partygame/shared": "shared/src/index.ts",
-  "@partygame/shared/schema": "shared/src/schema/index.ts",
-  "@partygame/terminal": "terminal/src/index.ts",
-  "@partygame/terminal/testing": "terminal/src/testing.ts",
+  "@openparty/bots": "bots/src/index.ts",
+  "@openparty/client-utils": "client-utils/src/index.ts",
+  "@openparty/config/node-test-setup": "config/node-test-setup.ts",
+  "@openparty/config/svelte": "config/src/svelte.ts",
+  "@openparty/config/vite": "config/src/vite.ts",
+  "@openparty/config/vitest": "config/src/vitest.ts",
+  "@openparty/content": "content/src/index.ts",
+  "@openparty/content/filter": "content/src/filter.ts",
+  "@openparty/core": "core/src/index.ts",
+  "@openparty/core/awards": "core/src/awards/index.ts",
+  "@openparty/core/kits": "core/src/kits/index.ts",
+  "@openparty/core/replay": "core/src/replay/index.ts",
+  "@openparty/core/testing": "core/src/testing/index.ts",
+  "@openparty/game-client": "game-client/src/index.ts",
+  "@openparty/game-client/test-setup": "game-client/test-setup.ts",
+  "@openparty/game-client/testing": "game-client/src/testing.ts",
+  "@openparty/game-kit": "game-kit/src/index.ts",
+  "@openparty/game-ui": "game-ui/src/index.ts",
+  "@openparty/game-ui/components": "game-ui/src/components/index.ts",
+  "@openparty/game-ui/testing": "game-ui/testing.ts",
+  "@openparty/launcher": "launcher/src/index.ts",
+  "@openparty/server": "server/src/index.ts",
+  "@openparty/server/bun": "server/src/bun.ts",
+  "@openparty/server/node": "server/src/node.ts",
+  "@openparty/server/probe": "server/src/probe.ts",
+  "@openparty/server/testing": "server/src/testing/index.ts",
+  "@openparty/shared": "shared/src/index.ts",
+  "@openparty/shared/schema": "shared/src/schema/index.ts",
+  "@openparty/terminal": "terminal/src/index.ts",
+  "@openparty/terminal/testing": "terminal/src/testing.ts",
 };
 
 const packagesDir = new URL("../..", import.meta.url); // packages/
@@ -154,9 +154,9 @@ function aliasesOf(config: ViteUserConfig): Record<string, string> {
 
 /** Subpaths the UI preset resolves to dist instead of source, and their package-relative dist targets. */
 const JSDOM_DIST_ONLY: Record<string, string> = {
-  "@partygame/server/node": "server/dist/node.js",
-  "@partygame/server/probe": "server/dist/probe.js",
-  "@partygame/server/testing": "server/dist/testing/index.js",
+  "@openparty/server/node": "server/dist/node.js",
+  "@openparty/server/probe": "server/dist/probe.js",
+  "@openparty/server/testing": "server/dist/testing/index.js",
 };
 
 function expectedAliases(overrides: Record<string, string> = {}): Record<string, string> {
@@ -171,7 +171,7 @@ function expectedAliases(overrides: Record<string, string> = {}): Record<string,
 }
 
 describe("source aliases (stale-dist trap)", () => {
-  it("maps every @partygame/* export subpath to package source in the node preset", () => {
+  it("maps every @openparty/* export subpath to package source in the node preset", () => {
     expect(aliasesOf(nodeTestConfig(base))).toEqual(expectedAliases());
   });
 
@@ -202,11 +202,11 @@ describe("source aliases (stale-dist trap)", () => {
 });
 
 describe("sourceAliases", () => {
-  const fixtureDir = mkdtempSync(join(tmpdir(), "partygame-aliases-"));
+  const fixtureDir = mkdtempSync(join(tmpdir(), "openparty-aliases-"));
 
   afterAll(() => rmSync(fixtureDir, { recursive: true, force: true }));
 
-  it("skips non-packages and non-@partygame packages; aliases only code exports", () => {
+  it("skips non-packages and non-@openparty packages; aliases only code exports", () => {
     const write = (relative: string, content: string): void => {
       const path = join(fixtureDir, relative);
       mkdirSync(dirname(path), { recursive: true });
@@ -222,12 +222,12 @@ describe("sourceAliases", () => {
       JSON.stringify({ name: "some-other/pkg", exports: { ".": "./dist/index.js" } }),
     );
     // A package without an exports field aliases nothing.
-    write("no-exports/package.json", JSON.stringify({ name: "@partygame/no-exports" }));
+    write("no-exports/package.json", JSON.stringify({ name: "@openparty/no-exports" }));
     // The fixture package: one alias per code export, subpath and root.
     write(
       "fixture/package.json",
       JSON.stringify({
-        name: "@partygame/fixture",
+        name: "@openparty/fixture",
         exports: {
           ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
           "./extra": { default: "./dist/extra.js" },
@@ -239,9 +239,9 @@ describe("sourceAliases", () => {
     );
 
     expect(sourceAliases(fixtureDir)).toEqual({
-      "@partygame/fixture/src-file": join(fixtureDir, "fixture", "src-file.ts"),
-      "@partygame/fixture/extra": join(fixtureDir, "fixture", "src", "extra.ts"),
-      "@partygame/fixture": join(fixtureDir, "fixture", "src", "index.ts"),
+      "@openparty/fixture/src-file": join(fixtureDir, "fixture", "src-file.ts"),
+      "@openparty/fixture/extra": join(fixtureDir, "fixture", "src", "extra.ts"),
+      "@openparty/fixture": join(fixtureDir, "fixture", "src", "index.ts"),
     });
   });
 });

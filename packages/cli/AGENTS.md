@@ -1,4 +1,4 @@
-# @partygame/cli
+# @openparty/cli
 
 ## Responsibility
 
@@ -8,16 +8,16 @@ The `create` command (`bun run new <slug>`) that scaffolds a tested game from `t
 
 - Framework runtime code other packages import.
 - A template that drifts from the reference game.
-- Runtime `@partygame/*` dependencies; the template's own `package.json` carries those.
+- Runtime `@openparty/*` dependencies; the template's own `package.json` carries those.
 
 ## May import
 
 - Runtime: none
-- Dev: `@partygame/config`
+- Dev: `@openparty/config`
 
 ## Public entry points
 
-- No `exports`; `bin`: `partygame` (`src/cli.ts`, a coverage-excluded runner).
+- No `exports`; `bin`: `openparty` (`src/cli.ts`, a coverage-excluded runner).
 
 ## Tests
 

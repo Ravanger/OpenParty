@@ -37,7 +37,7 @@ The launcher refuses to start if one of its ports is already in use.
 | 5173 | Vite dev server (`launch`, `launch:dev`, `launch:host`) |
 | 3000 | Built client (`launch:prod`) |
 
-The defaults are defined once, in `DEFAULT_PORTS` of `@partygame/launcher`; a test fails if the Vite preset's copy drifts. A game can move them by passing `ports` to its launch (the launcher then pins Vite to the dev client port with `--port`).
+The defaults are defined once, in `DEFAULT_PORTS` of `@openparty/launcher`; a test fails if the Vite preset's copy drifts. A game can move them by passing `ports` to its launch (the launcher then pins Vite to the dev client port with `--port`).
 
 ## Playing Over LAN
 

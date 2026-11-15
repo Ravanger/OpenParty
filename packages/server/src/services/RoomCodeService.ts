@@ -1,5 +1,5 @@
 import { randomInt } from "node:crypto";
-import { ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH } from "@partygame/shared";
+import { ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH } from "@openparty/shared";
 
 const MAX_ATTEMPTS = 10;
 

@@ -106,8 +106,8 @@ try {
                 "turbo",
                 "run",
                 "typecheck",
-                `--filter=@partygame/${validatedSlug}`,
-                `--filter=@partygame/${headlessSlug}`,
+                `--filter=@openparty/${validatedSlug}`,
+                `--filter=@openparty/${headlessSlug}`,
               ]),
             )
           : 0,

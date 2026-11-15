@@ -1,6 +1,6 @@
-import { actionFactory, defineGame } from "@partygame/core";
-import { ClientMessage } from "@partygame/shared";
-import { BaseGameState } from "@partygame/shared/schema";
+import { actionFactory, defineGame } from "@openparty/core";
+import { ClientMessage } from "@openparty/shared";
+import { BaseGameState } from "@openparty/shared/schema";
 import { afterEach, describe, expect, it } from "vitest";
 import { z } from "zod";
 import { jsonLineLogger } from "../src/logger.js";

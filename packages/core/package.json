@@ -1,5 +1,5 @@
 {
-  "name": "@partygame/core",
+  "name": "@openparty/core",
   "version": "0.1.0",
   "private": true,
   "license": "Apache-2.0",
@@ -39,13 +39,13 @@
     "typecheck": "tsc -p tsconfig.test.json"
   },
   "dependencies": {
-    "@partygame/content": "workspace:*",
-    "@partygame/shared": "workspace:*",
+    "@openparty/content": "workspace:*",
+    "@openparty/shared": "workspace:*",
     "zod": "^4.6.5",
     "xstate": "^5.33.2"
   },
   "devDependencies": {
-    "@partygame/config": "workspace:*",
+    "@openparty/config": "workspace:*",
     "fast-check": "^4.10.2",
     "typescript": "^6.0.3",
     "vitest": "^4.1.11"

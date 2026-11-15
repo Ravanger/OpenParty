@@ -1,10 +1,10 @@
-# @partygame/launcher
+# @openparty/launcher
 
 Unified launcher: game server, code-resolution API, browser client (dev/prod), optional bots and demo, all in one.
 
 | Import | What |
 |---|---|
-| `@partygame/launcher` | `runLauncher(config, argv)`; `Launcher`, `ProcessGroup`, `StaticSite`, `parseLaunchArgs`, `lanUrls`, `openBrowser`; `DEFAULT_PORTS` (the default game/API/client ports) and `defaultCommands(ports)` (the child-process commands the launcher runs by default); types `LaunchConfig`, `LaunchMode`, `LaunchArgs` (the parsed `launch` command line), `LaunchBots`, `LaunchDemo`, `LaunchPorts`, `LaunchCommands`, `CommandError` (the rejection of `ProcessGroup.run`, carrying the child's exit code) |
+| `@openparty/launcher` | `runLauncher(config, argv)`; `Launcher`, `ProcessGroup`, `StaticSite`, `parseLaunchArgs`, `lanUrls`, `openBrowser`; `DEFAULT_PORTS` (the default game/API/client ports) and `defaultCommands(ports)` (the child-process commands the launcher runs by default); types `LaunchConfig`, `LaunchMode`, `LaunchArgs` (the parsed `launch` command line), `LaunchBots`, `LaunchDemo`, `LaunchPorts`, `LaunchCommands`, `CommandError` (the rejection of `ProcessGroup.run`, carrying the child's exit code) |
 
 ## Launch a game
 
@@ -12,7 +12,7 @@ A game's `launch.ts` is only config. `gameDir` is the folder that holds the game
 
 ```ts
 import { fileURLToPath } from "node:url";
-import { runLauncher } from "@partygame/launcher";
+import { runLauncher } from "@openparty/launcher";
 
 await runLauncher(
   { name: "FirstToPress", gameDir: fileURLToPath(new URL(".", import.meta.url)) },
@@ -37,7 +37,7 @@ The launcher refuses to start when a port is taken, stops everything on Ctrl+C o
 
 ## Enable `--bots`
 
-Pass the bot kit from `@partygame/bots`. A flag for a missing option prints the usage and exits 2.
+Pass the bot kit from `@openparty/bots`. A flag for a missing option prints the usage and exits 2.
 
 ```ts
 await runLauncher(
@@ -55,7 +55,7 @@ await runLauncher(
 `create` receives `endpoint`, `apiPort`, `bot` (the launcher's logger) and `bots` (the count, between `min` and `max`); pass them to `DemoTable`.
 
 ```ts
-import { DemoTable } from "@partygame/bots";
+import { DemoTable } from "@openparty/bots";
 
 await runLauncher(
   {
@@ -81,6 +81,6 @@ await runLauncher(
 { name: "FirstToPress", gameDir, ports: { clientDev: 5200 }, commands: { build: ["bun", "run", "build"] } }
 ```
 
-Depends on: `@partygame/bots`, `@partygame/client-utils`, `@partygame/server`, `@partygame/shared`
+Depends on: `@openparty/bots`, `@openparty/client-utils`, `@openparty/server`, `@openparty/shared`
 
 Guide: [docs/framework/README.md#launcher](../../docs/framework/README.md#launcher)

@@ -1,4 +1,4 @@
-import { ErrorCode } from "@partygame/shared";
+import { ErrorCode } from "@openparty/shared";
 import { z } from "zod";
 import {
   type ActionLog,

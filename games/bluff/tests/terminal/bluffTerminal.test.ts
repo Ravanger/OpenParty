@@ -1,6 +1,6 @@
-import { StubRoom } from "@partygame/game-client/testing";
-import { TerminalPlayer } from "@partygame/terminal";
-import { ScriptedIo } from "@partygame/terminal/testing";
+import { StubRoom } from "@openparty/game-client/testing";
+import { TerminalPlayer } from "@openparty/terminal";
+import { ScriptedIo } from "@openparty/terminal/testing";
 import { describe, expect, it } from "vitest";
 import { PHASE } from "../../src/phaseNames.js";
 import { BluffState, RevealEntry } from "../../src/state.js";

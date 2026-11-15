@@ -1,5 +1,5 @@
-import { ensureMine, pruneMine, required, resetMine, shuffle } from "@partygame/core";
-import { allResponded } from "@partygame/core/kits";
+import { ensureMine, pruneMine, required, resetMine, shuffle } from "@openparty/core";
+import { allResponded } from "@openparty/core/kits";
 import { META } from "./meta.js";
 import { PHASE } from "./phaseNames.js";
 import type { CrewContext } from "./private.js";

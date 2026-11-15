@@ -1,4 +1,4 @@
-import type { BaseGameState } from "@partygame/shared/schema";
+import type { BaseGameState } from "@openparty/shared/schema";
 import type { GameDeclaration } from "./types.js";
 
 /** Types a game's declaration and returns it unchanged. */

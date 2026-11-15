@@ -1,5 +1,5 @@
-import type { PlayerInfo } from "@partygame/core";
-import { TestTable } from "@partygame/core/testing";
+import type { PlayerInfo } from "@openparty/core";
+import { TestTable } from "@openparty/core/testing";
 import { createCrewGame } from "../../src/game.js";
 import { type CrewOptions, CrewOptionsSchema } from "../../src/options.js";
 import type { CrewPrivate } from "../../src/private.js";

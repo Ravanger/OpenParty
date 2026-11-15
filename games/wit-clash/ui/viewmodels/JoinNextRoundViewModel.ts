@@ -1,4 +1,4 @@
-import { JoinNextRoundViewModel as BaseJoinNextRound, roundLabel } from "@partygame/game-ui";
+import { JoinNextRoundViewModel as BaseJoinNextRound, roundLabel } from "@openparty/game-ui";
 import type { WitClashState } from "../../src/state.js";
 import type { WitClashManager } from "../manager.js";
 import { PHASE_SCREENS } from "../screens/index.js";

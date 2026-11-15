@@ -1,6 +1,6 @@
-import { ROOM_CODE_LENGTH } from "@partygame/shared";
-import type { BaseGameState } from "@partygame/shared/schema";
-import { BadBotsArgsError, runBotsCommand } from "@partygame/terminal";
+import { ROOM_CODE_LENGTH } from "@openparty/shared";
+import type { BaseGameState } from "@openparty/shared/schema";
+import { BadBotsArgsError, runBotsCommand } from "@openparty/terminal";
 import { defaultIo } from "./io.js";
 import type { GameDeclaration, GameKitIo, GameMeta } from "./types.js";
 

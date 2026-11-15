@@ -1,4 +1,4 @@
-import { rankRows } from "@partygame/game-ui";
+import { rankRows } from "@openparty/game-ui";
 import { ACTION } from "../../src/actionNames.js";
 import type { __PascalName__Manager } from "../manager.js";
 

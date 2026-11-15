@@ -7,10 +7,10 @@ export interface PackageDescription {
   agentsMd: string | undefined;
 }
 
-const SCOPE = /@partygame\/[a-z0-9-]+/g;
+const SCOPE = /@openparty\/[a-z0-9-]+/g;
 
 const scoped = (names: string[]): Set<string> =>
-  new Set(names.filter((name) => name.startsWith("@partygame/")));
+  new Set(names.filter((name) => name.startsWith("@openparty/")));
 
 const mayImportSection = (text: string): string | undefined => {
   const start = text.search(/^## May import\s*$/m);

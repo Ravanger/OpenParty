@@ -1,7 +1,7 @@
 <script lang="ts" generics="TState extends BaseGameState">
-import type { GameConnectionManager } from "@partygame/game-client";
+import type { GameConnectionManager } from "@openparty/game-client";
 // biome-ignore lint/correctness/noUnusedImports: used by the generics attribute
-import type { BaseGameState } from "@partygame/shared/schema";
+import type { BaseGameState } from "@openparty/shared/schema";
 import { downloadReplay } from "../replayDownload.js";
 
 const { manager }: { manager: GameConnectionManager<TState> } = $props();

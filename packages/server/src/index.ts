@@ -1,4 +1,4 @@
-export { BaseGameState, PlayerSchema } from "@partygame/shared/schema";
+export { BaseGameState, PlayerSchema } from "@openparty/shared/schema";
 export { createApiHandler } from "./api/createApiHandler.js";
 export {
   createGameServer,

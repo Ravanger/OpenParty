@@ -1,4 +1,4 @@
-import { ErrorCode } from "@partygame/shared";
+import { ErrorCode } from "@openparty/shared";
 import { fireEvent, render, screen, within } from "@testing-library/svelte";
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it, vi } from "vitest";

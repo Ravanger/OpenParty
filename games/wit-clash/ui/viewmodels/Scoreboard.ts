@@ -1,4 +1,4 @@
-import { rankRows } from "@partygame/game-ui";
+import { rankRows } from "@openparty/game-ui";
 import type { WitClashManager } from "../manager.js";
 
 export interface ScoreRow {

@@ -1,5 +1,5 @@
-import { type BotOptions, BotPlayer, type BotRoom } from "@partygame/bots";
-import { PlayerSchema } from "@partygame/shared/schema";
+import { type BotOptions, BotPlayer, type BotRoom } from "@openparty/bots";
+import { PlayerSchema } from "@openparty/shared/schema";
 import { describe, expect, it } from "vitest";
 import { BluffBot, bluffBot, bluffKit } from "../../bots/bluffBot.js";
 import { ACTION } from "../../src/actionNames.js";

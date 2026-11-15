@@ -1,7 +1,7 @@
 import type { Room } from "@colyseus/sdk";
-import { type BotKit, type ColyseusConnector, defaultConnector } from "@partygame/bots";
-import { apiBaseOf, claimName, resolveRoomCode } from "@partygame/client-utils";
-import type { BaseGameState } from "@partygame/shared/schema";
+import { type BotKit, type ColyseusConnector, defaultConnector } from "@openparty/bots";
+import { apiBaseOf, claimName, resolveRoomCode } from "@openparty/client-utils";
+import type { BaseGameState } from "@openparty/shared/schema";
 
 /** The client-side room for a game whose state is `TState`. */
 export type GameRoomOf<TState extends BaseGameState> = Room<unknown, TState>;

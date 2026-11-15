@@ -1,4 +1,4 @@
-import { LOBBY_PHASE } from "@partygame/shared";
+import { LOBBY_PHASE } from "@openparty/shared";
 import { setup } from "xstate";
 
 /** Callbacks the generated machine calls back into the runtime. */

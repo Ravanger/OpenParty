@@ -1,6 +1,6 @@
 <script lang="ts">
-import { WaitingRoomViewModel } from "@partygame/game-ui";
-import { LobbyScreen } from "@partygame/game-ui/components";
+import { WaitingRoomViewModel } from "@openparty/game-ui";
+import { LobbyScreen } from "@openparty/game-ui/components";
 import { untrack } from "svelte";
 import type { BluffManager } from "../manager.js";
 import { LobbySettingsViewModel } from "../viewmodels/LobbySettingsViewModel.svelte.js";

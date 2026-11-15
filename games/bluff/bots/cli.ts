@@ -1,4 +1,4 @@
-import { botsCli } from "@partygame/game-kit";
+import { botsCli } from "@openparty/game-kit";
 import { gamePackage } from "../gamePackage.js";
 
 await botsCli(gamePackage);

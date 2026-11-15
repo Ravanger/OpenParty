@@ -1,5 +1,5 @@
-import { getActionLog } from "@partygame/core";
-import { replayLog } from "@partygame/core/testing";
+import { getActionLog } from "@openparty/core";
+import { replayLog } from "@openparty/core/testing";
 import { describe, expect, it } from "vitest";
 import { promptsFromArray } from "../../src/content/PromptRepository.js";
 import { createBluffGame } from "../../src/game.js";

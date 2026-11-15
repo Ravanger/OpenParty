@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { BaseGameState } from "@partygame/shared/schema";
+import type { BaseGameState } from "@openparty/shared/schema";
 import type { AppRouter } from "../../src/AppRouter.js";
 import { GameShell } from "../../src/components/index.js";
 import type { GameControlsViewModel } from "../../src/GameControlsViewModel.svelte.js";

@@ -1,5 +1,5 @@
-import { awardPoints, ensureMine, required, shuffle } from "@partygame/core";
-import { countVoted, entriesFor, tallyVotes } from "@partygame/core/kits";
+import { awardPoints, ensureMine, required, shuffle } from "@openparty/core";
+import { countVoted, entriesFor, tallyVotes } from "@openparty/core/kits";
 import { seatedActiveIds } from "./eligibility.js";
 import { PHASE } from "./phaseNames.js";
 import type { WitClashContext } from "./private.js";

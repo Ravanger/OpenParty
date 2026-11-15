@@ -1,5 +1,5 @@
-import { type BotOptions, type BotOutcome, BotPlayer, type BotRoom } from "@partygame/bots";
-import { END_GAME } from "@partygame/shared";
+import { type BotOptions, type BotOutcome, BotPlayer, type BotRoom } from "@openparty/bots";
+import { END_GAME } from "@openparty/shared";
 import { describe, expect, it } from "vitest";
 import {
   BOT_ANSWERS,

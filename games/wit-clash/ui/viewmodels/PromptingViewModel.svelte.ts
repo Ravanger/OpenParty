@@ -4,7 +4,7 @@ import {
   roundLabel,
   TextDraft,
   TypingReporter,
-} from "@partygame/game-ui";
+} from "@openparty/game-ui";
 import { ACTION, ANSWER_MAX_LENGTH } from "../../src/actionNames.js";
 import type { SubmitAnswerPayload } from "../../src/actions.js";
 import { DEFAULT_OPTIONS, type WitClashOptions, WitClashOptionsSchema } from "../../src/options.js";

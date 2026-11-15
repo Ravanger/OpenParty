@@ -1,4 +1,4 @@
-import { LOBBY_PHASE, PROTOCOL_VERSION, type ServerError } from "@partygame/shared";
+import { LOBBY_PHASE, PROTOCOL_VERSION, type ServerError } from "@openparty/shared";
 import {
   ACTION_LOG_ENTRY_KINDS,
   type ActionLog,

@@ -1,10 +1,10 @@
-import type { FilterLevel } from "@partygame/content/filter";
+import type { FilterLevel } from "@openparty/content/filter";
 import {
   ActionEnvelopeSchema,
   CLIENT_MESSAGES,
   ErrorCode,
   FrameworkError,
-} from "@partygame/shared";
+} from "@openparty/shared";
 import { type CoreStrings, mergeCoreStrings } from "./strings.js";
 import type {
   ActionContext,

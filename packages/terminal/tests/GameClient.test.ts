@@ -1,7 +1,7 @@
 import { Client } from "@colyseus/sdk";
-import { waitFor } from "@partygame/client-utils";
-import { type NodeServerHandle, startNodeServer } from "@partygame/server/node";
-import { CLOSE_CODES, ClientMessage, PROTOCOL_VERSION, ServerMessage } from "@partygame/shared";
+import { waitFor } from "@openparty/client-utils";
+import { type NodeServerHandle, startNodeServer } from "@openparty/server/node";
+import { CLOSE_CODES, ClientMessage, PROTOCOL_VERSION, ServerMessage } from "@openparty/shared";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { GameClient } from "../src/GameClient.js";
 import { TAP_PUBLIC_FIELDS, TAP_ROOM, TapGame, TapState } from "./fixtures/tapGame.js";

@@ -1,4 +1,4 @@
-# @partygame/server
+# @openparty/server
 
 ## Responsibility
 
@@ -7,14 +7,14 @@ The generic Colyseus host that runs any `defineGame` definition: rooms, seats, r
 ## Never put here
 
 - Game rules or game vocabulary.
-- Content loading (it lives in `@partygame/content`).
+- Content loading (it lives in `@openparty/content`).
 - Port probing (it lives in `./probe`).
 - Raw Zod messages or ad-hoc close codes sent to clients (use `CLOSE_CODES` and `CLIENT_MESSAGES`).
 
 ## May import
 
-- Runtime: `@partygame/client-utils`, `@partygame/content` (types only: `TextFilter` for name checks), `@partygame/core`, `@partygame/shared`
-- Dev: `@partygame/config`
+- Runtime: `@openparty/client-utils`, `@openparty/content` (types only: `TextFilter` for name checks), `@openparty/core`, `@openparty/shared`
+- Dev: `@openparty/config`
 
 ## Public entry points
 

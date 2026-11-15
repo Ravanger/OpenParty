@@ -1,4 +1,4 @@
-# @partygame/bots
+# @openparty/bots
 
 ## Responsibility
 
@@ -7,13 +7,13 @@ Bot players for any game: `BotPlayer`, `joinBots`, `BotTable`, `DemoTable`, driv
 ## Never put here
 
 - Game-specific strategies (they live in the game).
-- Generic client helpers such as `claimName` and `apiBaseOf` (they live in `@partygame/client-utils`).
+- Generic client helpers such as `claimName` and `apiBaseOf` (they live in `@openparty/client-utils`).
 - Terminal I/O or rendering.
 
 ## May import
 
-- Runtime: `@partygame/client-utils`, `@partygame/shared`
-- Dev: `@partygame/config`, `@partygame/core`, `@partygame/server`
+- Runtime: `@openparty/client-utils`, `@openparty/shared`
+- Dev: `@openparty/config`, `@openparty/core`, `@openparty/server`
 
 ## Public entry points
 
@@ -21,7 +21,7 @@ Bot players for any game: `BotPlayer`, `joinBots`, `BotTable`, `DemoTable`, driv
 
 ## Tests
 
-`tests/`; boot a real server with `bootTestServer` from `@partygame/server/testing`.
+`tests/`; boot a real server with `bootTestServer` from `@openparty/server/testing`.
 
 ## Before you add a file
 

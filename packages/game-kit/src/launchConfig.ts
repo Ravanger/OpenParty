@@ -3,9 +3,9 @@ import {
   type BotOptions,
   DemoTable,
   type DemoTableOptions,
-} from "@partygame/bots";
-import type { LaunchConfig, LaunchPorts } from "@partygame/launcher";
-import type { BaseGameState } from "@partygame/shared/schema";
+} from "@openparty/bots";
+import type { LaunchConfig, LaunchPorts } from "@openparty/launcher";
+import type { BaseGameState } from "@openparty/shared/schema";
 import type { GameDeclaration } from "./types.js";
 
 /** Merges one demo run's bot options: the launcher connection wins over the declaration, which wins over `defaults`. */

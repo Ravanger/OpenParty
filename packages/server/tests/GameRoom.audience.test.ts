@@ -6,7 +6,7 @@ import {
   ClientMessage,
   ErrorCode,
   ServerMessage,
-} from "@partygame/shared";
+} from "@openparty/shared";
 import { afterEach, describe, expect, it } from "vitest";
 import { collectMessages, type TestServer, waitUntil } from "../src/testing/index.js";
 import { bootPoll, pid, pollStateOf, startedPoll } from "./support.js";

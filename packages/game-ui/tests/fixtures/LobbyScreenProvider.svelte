@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { BaseGameState } from "@partygame/shared/schema";
+import type { BaseGameState } from "@openparty/shared/schema";
 import LobbyScreen from "../../src/components/LobbyScreen.svelte";
 import type { LobbySettingsViewModel } from "../../src/LobbySettingsViewModel.svelte.js";
 import type { WaitingRoomViewModel } from "../../src/WaitingRoomViewModel.svelte.js";

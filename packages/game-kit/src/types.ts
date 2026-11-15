@@ -1,10 +1,10 @@
-import type { BotKit, BotOptions } from "@partygame/bots";
-import type { TextFilter } from "@partygame/content/filter";
-import type { GameDefinition } from "@partygame/core";
-import type { LaunchConfig } from "@partygame/launcher";
-import type { HostedGame } from "@partygame/server";
-import type { BaseGameState } from "@partygame/shared/schema";
-import type { Prompter, TerminalStrategy } from "@partygame/terminal";
+import type { BotKit, BotOptions } from "@openparty/bots";
+import type { TextFilter } from "@openparty/content/filter";
+import type { GameDefinition } from "@openparty/core";
+import type { LaunchConfig } from "@openparty/launcher";
+import type { HostedGame } from "@openparty/server";
+import type { BaseGameState } from "@openparty/shared/schema";
+import type { Prompter, TerminalStrategy } from "@openparty/terminal";
 
 /** The browser-safe identity and limits of a game (a game keeps it in its own `src/meta.ts`). */
 export interface GameMeta {

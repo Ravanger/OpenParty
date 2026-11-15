@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
-import { between, type Parsed } from "@partygame/client-utils";
-import { NAME_MAX_LENGTH, RoomCodeSchema } from "@partygame/shared";
+import { between, type Parsed } from "@openparty/client-utils";
+import { NAME_MAX_LENGTH, RoomCodeSchema } from "@openparty/shared";
 
 /** The parsed `play` command line. */
 export interface PlayArgs {

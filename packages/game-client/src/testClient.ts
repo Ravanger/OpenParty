@@ -1,5 +1,5 @@
-import { LOBBY_PHASE } from "@partygame/shared";
-import { type BaseGameState, PlayerSchema } from "@partygame/shared/schema";
+import { LOBBY_PHASE } from "@openparty/shared";
+import { type BaseGameState, PlayerSchema } from "@openparty/shared/schema";
 import { GameConnectionManager } from "./GameConnectionManager.svelte.js";
 import { StubRoom } from "./testing.js";
 

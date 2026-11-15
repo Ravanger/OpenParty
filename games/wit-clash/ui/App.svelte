@@ -1,6 +1,6 @@
 <script lang="ts">
-import { GameControlsViewModel } from "@partygame/game-ui";
-import { GameShell } from "@partygame/game-ui/components";
+import { GameControlsViewModel } from "@openparty/game-ui";
+import { GameShell } from "@openparty/game-ui/components";
 import { untrack } from "svelte";
 import { isGameOver } from "../src/isGameOver.js";
 import type { WitClashManager } from "./manager.js";

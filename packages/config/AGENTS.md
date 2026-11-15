@@ -1,4 +1,4 @@
-# @partygame/config
+# @openparty/config
 
 ## Responsibility
 
@@ -8,7 +8,7 @@ Shared build, test, svelte and tsconfig presets every package and game extends.
 
 - Runtime code that ships to players or servers.
 - Game-specific settings.
-- Any `@partygame/*` import; it stays dependency-free.
+- Any `@openparty/*` import; it stays dependency-free.
 
 ## May import
 

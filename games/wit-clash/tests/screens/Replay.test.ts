@@ -1,6 +1,6 @@
-import { required } from "@partygame/core";
-import { ReplayViewer } from "@partygame/game-ui/components";
-import { syncedJsonOf } from "@partygame/shared/schema";
+import { required } from "@openparty/core";
+import { ReplayViewer } from "@openparty/game-ui/components";
+import { syncedJsonOf } from "@openparty/shared/schema";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { describe, expect, it } from "vitest";
 import { WitClashState } from "../../src/state.js";

@@ -1,4 +1,4 @@
-import { EmptyPayloadSchema, endIfBelowMinimum } from "@partygame/core";
+import { EmptyPayloadSchema, endIfBelowMinimum } from "@openparty/core";
 import { ACTION, defineAction } from "../actions.js";
 import { META } from "../meta.js";
 import { PHASE } from "../phaseNames.js";

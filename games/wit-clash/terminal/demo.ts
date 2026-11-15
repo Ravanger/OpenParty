@@ -1,4 +1,4 @@
-import { demoCli } from "@partygame/game-kit";
+import { demoCli } from "@openparty/game-kit";
 import { gamePackage } from "../gamePackage.js";
 
 await demoCli(gamePackage);

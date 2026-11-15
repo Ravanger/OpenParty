@@ -22,7 +22,7 @@ Options (host-tunable in the lobby): `rounds` (1–10, default 3), `writingSecon
 
 The prompts live in `content/prompts/`, one `.jsonc` pack file per theme, shaped `{ "id", "prompts": [{ "id", "question", "truth" }] }`. Pack ids and prompt ids are lowercase kebab-case and unique across every file; the loader reads the packs in name order. A good prompt has a truth that is surprising enough to sound fake — anyone who knows the answer breaks the bluffing, so school trivia with known answers does not belong here. The server refuses to start on a missing directory or file, invalid JSONC, duplicate ids, an empty list, or fewer than 6 prompts. Format and quality bar: `content/prompts/README.md`.
 
-## Framework kits used (`@partygame/core/kits`, `@experimental`)
+## Framework kits used (`@openparty/core/kits`, `@experimental`)
 
 - **collectResponses**: `allResponded` (Writing completes when every present player submitted), `entriesFor` (the fakes that become options).
 - **voteAndTally**: `tallyVotes` (Reveal vote counts), `allHaveVoted` (early Voting finish), `countVoted` (`votesCast`).
@@ -32,7 +32,7 @@ Roster guards from the core root: `departedIds`, `isBelowMinimum`.
 
 ## UI
 
-One screen per phase in `ui/screens/` (registered in `ui/screens/index.ts`), one viewmodel each under `ui/viewmodels/`, routed by `createAppRouter` from `@partygame/game-ui`. Every screen also renders with no seat (the TV display): the prompt, the board and the vote count stay visible, inputs disappear. Your own option is marked "yours" only in your private view — authorship never leaves the server until Reveal.
+One screen per phase in `ui/screens/` (registered in `ui/screens/index.ts`), one viewmodel each under `ui/viewmodels/`, routed by `createAppRouter` from `@openparty/game-ui`. Every screen also renders with no seat (the TV display): the prompt, the board and the vote count stay visible, inputs disappear. Your own option is marked "yours" only in your private view — authorship never leaves the server until Reveal.
 
 The lobby renders the shared `LobbyScreen` with a `LobbySettingsViewModel` built from `BluffOptionsSchema`: the host tunes every option (including the filter level) and everyone else sees them read-only. Results ranks ties with the shared `rankRows`/`Podium` — tied leaders share rank 1 and are all highlighted, leavers rank below seated players — and the writing screen caps fakes at `ANSWER_MAX_LENGTH`, keeps the draft on a refusal and shows the text filter's `CONTENT_REJECTED` message above the box.
 

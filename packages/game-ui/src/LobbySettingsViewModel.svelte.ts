@@ -1,6 +1,6 @@
-import type { GameConnectionManager } from "@partygame/game-client";
-import { SET_OPTIONS } from "@partygame/shared";
-import type { BaseGameState } from "@partygame/shared/schema";
+import type { GameConnectionManager } from "@openparty/game-client";
+import { SET_OPTIONS } from "@openparty/shared";
+import type { BaseGameState } from "@openparty/shared/schema";
 import { z } from "zod";
 import { type OptionField, OptionFields } from "./OptionFields.js";
 import { OptionsReader } from "./OptionsReader.svelte.js";

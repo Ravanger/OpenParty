@@ -4,9 +4,9 @@ import type {
   RoomConnector,
   RoomCreateOptions,
   RoomJoinOptions,
-} from "@partygame/client-utils";
-import { ClientMessage, ServerMessage } from "@partygame/shared";
-import { PlayerSchema } from "@partygame/shared/schema";
+} from "@openparty/client-utils";
+import { ClientMessage, ServerMessage } from "@openparty/shared";
+import { PlayerSchema } from "@openparty/shared/schema";
 import { describe, expect, it, vi } from "vitest";
 import { BotTable } from "../src/BotTable.js";
 import { ColyseusConnector } from "../src/ColyseusConnector.js";

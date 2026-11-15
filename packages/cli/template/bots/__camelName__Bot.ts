@@ -1,4 +1,4 @@
-import type { BotKit, BotStrategy, BotTurn } from "@partygame/bots";
+import type { BotKit, BotStrategy, BotTurn } from "@openparty/bots";
 import { ACTION } from "../src/actionNames.js";
 import { META } from "../src/meta.js";
 import { PHASE } from "../src/phaseNames.js";

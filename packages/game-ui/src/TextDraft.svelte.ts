@@ -1,6 +1,6 @@
-import type { GameConnectionManager } from "@partygame/game-client";
-import { ErrorCode } from "@partygame/shared";
-import type { BaseGameState } from "@partygame/shared/schema";
+import type { GameConnectionManager } from "@openparty/game-client";
+import { ErrorCode } from "@openparty/shared";
+import type { BaseGameState } from "@openparty/shared/schema";
 
 /** What `TextDraft` needs beyond the connection manager. */
 export interface TextDraftConfig {

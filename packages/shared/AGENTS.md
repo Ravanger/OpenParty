@@ -1,4 +1,4 @@
-# @partygame/shared
+# @openparty/shared
 
 ## Responsibility
 
@@ -7,13 +7,13 @@ The wire protocol and browser-safe state classes every other package agrees on.
 ## Never put here
 
 - Game vocabulary, Colyseus server code, XState, Svelte or DOM code.
-- CLI argument parsing, fetch and URL helpers (they live in `@partygame/client-utils`).
-- Anything that needs another `@partygame/*` package; shared is the bottom of the graph.
+- CLI argument parsing, fetch and URL helpers (they live in `@openparty/client-utils`).
+- Anything that needs another `@openparty/*` package; shared is the bottom of the graph.
 
 ## May import
 
 - Runtime: none
-- Dev: `@partygame/config`
+- Dev: `@openparty/config`
 
 ## Public entry points
 

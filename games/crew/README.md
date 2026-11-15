@@ -13,6 +13,6 @@ A departure mid-game reveals that player's signal publicly (the target stays loc
 
 Options (host-tunable in the lobby): `rounds` (1–5, default 2). Phase durations are constants in the phase files.
 
-Kits: `collectResponses` (`allResponded`) from `@partygame/core/kits` for the per-round share/hold collection.
+Kits: `collectResponses` (`allResponded`) from `@openparty/core/kits` for the per-round share/hold collection.
 
 Headless: rules only — no server, launch, bot or UI entries.

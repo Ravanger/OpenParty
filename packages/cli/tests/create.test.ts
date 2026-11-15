@@ -169,7 +169,7 @@ describe("runCreate", () => {
     await mkdir(join(root, "packages", "core"), { recursive: true });
     await writeFile(
       join(root, "packages", "core", "package.json"),
-      JSON.stringify({ name: "@partygame/core" }),
+      JSON.stringify({ name: "@openparty/core" }),
     );
     const code = await runCreate({
       slug: "core",
@@ -179,7 +179,7 @@ describe("runCreate", () => {
       install: () => 0,
     });
     expect(code).toBe(1);
-    expect(spy).toHaveBeenCalledWith(expect.stringMatching(/@partygame\/core/));
+    expect(spy).toHaveBeenCalledWith(expect.stringMatching(/@openparty\/core/));
     expect(existsSync(join(root, "games", "core"))).toBe(false);
   });
 
@@ -189,7 +189,7 @@ describe("runCreate", () => {
     await mkdir(join(root, "games", "foo"), { recursive: true });
     await writeFile(
       join(root, "games", "foo", "package.json"),
-      JSON.stringify({ name: "@partygame/foo" }),
+      JSON.stringify({ name: "@openparty/foo" }),
     );
     const code = await runCreate({
       slug: "foo-game",
@@ -312,7 +312,7 @@ describe("runCreate", () => {
     expect(code).toBe(0);
     expect(install).toHaveBeenCalledWith(root);
     expect(await readFile(join(root, "games", "my-game", "root.txt"), "utf8")).toBe(
-      "name=my-game\npackage=@partygame/my-game\npascal=MyGame\n",
+      "name=my-game\npackage=@openparty/my-game\npascal=MyGame\n",
     );
     expect(log).toHaveBeenCalledWith(expect.stringMatching(/Created games\/my-game\//));
     expect(log).toHaveBeenCalledWith(

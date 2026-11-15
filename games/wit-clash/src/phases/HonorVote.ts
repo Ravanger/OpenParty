@@ -1,6 +1,6 @@
-import { endIfBelowMinimum, ensureMine } from "@partygame/core";
-import { countVoted, leaders, tallyVotes } from "@partygame/core/kits";
-import { ErrorCode } from "@partygame/shared";
+import { endIfBelowMinimum, ensureMine } from "@openparty/core";
+import { countVoted, leaders, tallyVotes } from "@openparty/core/kits";
+import { ErrorCode } from "@openparty/shared";
 import { ACTION, defineAction, VoteHonorSchema } from "../actions.js";
 import { seatedActiveIds } from "../eligibility.js";
 import { META } from "../meta.js";
