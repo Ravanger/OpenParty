@@ -1,17 +1,17 @@
 {
-  "name": "@partygame/rush",
+  "name": "@openparty/rush",
   "version": "0.1.0",
   "private": true,
   "license": "Apache-2.0",
   "type": "module",
   "dependencies": {
     "@colyseus/schema": "^5.0.35",
-    "@partygame/core": "workspace:*",
-    "@partygame/shared": "workspace:*",
+    "@openparty/core": "workspace:*",
+    "@openparty/shared": "workspace:*",
     "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@partygame/config": "workspace:*",
+    "@openparty/config": "workspace:*",
     "vitest": "^4.1.11"
   },
   "scripts": {

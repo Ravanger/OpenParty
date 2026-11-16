@@ -1,5 +1,5 @@
 <script lang="ts">
-import { NameInput, StatusPanel } from "@partygame/game-ui/components";
+import { NameInput, StatusPanel } from "@openparty/game-ui/components";
 import { untrack } from "svelte";
 import Scoreboard from "../components/Scoreboard.svelte";
 import type { WitClashManager } from "../manager.js";

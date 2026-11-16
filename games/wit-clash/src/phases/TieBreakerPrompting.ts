@@ -1,4 +1,4 @@
-import { endIfBelowMinimum } from "@partygame/core";
+import { endIfBelowMinimum } from "@openparty/core";
 import { META } from "../meta.js";
 import type { WitClashPhase } from "../private.js";
 import { Round, TOO_FEW_PLAYERS_NOTICE } from "../round.js";

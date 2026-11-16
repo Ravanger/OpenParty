@@ -5,7 +5,7 @@ import {
   LOBBY_PHASE,
   SET_OPTIONS,
   START_GAME,
-} from "@partygame/shared";
+} from "@openparty/shared";
 import { mergeCoreStrings } from "./strings.js";
 import type {
   ActionDefinition,

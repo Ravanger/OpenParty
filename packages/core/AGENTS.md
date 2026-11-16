@@ -1,4 +1,4 @@
-# @partygame/core
+# @openparty/core
 
 ## Responsibility
 
@@ -13,8 +13,8 @@ The Colyseus-free game runtime: `defineGame`, `GameRuntime`, lobby built-ins, ac
 
 ## May import
 
-- Runtime: `@partygame/content` (types only: `TextFilter`/`FilterLevel` for the text-filter middleware), `@partygame/shared`
-- Dev: `@partygame/config`
+- Runtime: `@openparty/content` (types only: `TextFilter`/`FilterLevel` for the text-filter middleware), `@openparty/shared`
+- Dev: `@openparty/config`
 
 ## Public entry points
 

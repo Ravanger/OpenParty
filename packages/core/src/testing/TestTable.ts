@@ -1,4 +1,4 @@
-import { isServerError, type ServerError, START_GAME } from "@partygame/shared";
+import { isServerError, type ServerError, START_GAME } from "@openparty/shared";
 import {
   type GameDefinition,
   GameRuntime,

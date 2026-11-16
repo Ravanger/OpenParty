@@ -5,9 +5,9 @@ import {
   type RoomCreateOptions,
   type RoomJoinOptions,
   waitFor,
-} from "@partygame/client-utils";
-import { PROTOCOL_VERSION } from "@partygame/shared";
-import type { BaseGameState } from "@partygame/shared/schema";
+} from "@openparty/client-utils";
+import { PROTOCOL_VERSION } from "@openparty/shared";
+import type { BaseGameState } from "@openparty/shared/schema";
 import { DEFAULT_TIMEOUT_MS } from "./timeouts.js";
 import type { BotKit } from "./types.js";
 

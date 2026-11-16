@@ -1,5 +1,5 @@
-import { createTextFilter } from "@partygame/content/filter";
-import { defineGamePackage } from "@partygame/game-kit";
+import { createTextFilter } from "@openparty/content/filter";
+import { defineGamePackage } from "@openparty/game-kit";
 import { witClashKit } from "./bots/witClashBot.js";
 import { createWitClashGame } from "./src/game.js";
 import { isGameOver } from "./src/isGameOver.js";

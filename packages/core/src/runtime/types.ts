@@ -1,5 +1,5 @@
-import type { FilterLevel } from "@partygame/content/filter";
-import type { ErrorCode } from "@partygame/shared";
+import type { FilterLevel } from "@openparty/content/filter";
+import type { ErrorCode } from "@openparty/shared";
 import type { z } from "zod";
 import type { Seed } from "../utils.js";
 import type { CoreStrings } from "./strings.js";

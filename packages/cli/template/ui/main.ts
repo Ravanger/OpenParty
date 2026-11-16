@@ -1,5 +1,5 @@
 import "./app.css";
-import { clientConfig, GameConnectionManager } from "@partygame/game-client";
+import { clientConfig, GameConnectionManager } from "@openparty/game-client";
 import { mount } from "svelte";
 import { META } from "../src/meta.js";
 import { __PascalName__State } from "../src/state.js";

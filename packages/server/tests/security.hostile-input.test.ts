@@ -1,5 +1,5 @@
 import type { Room } from "@colyseus/core";
-import { ACTION_NAME_PATTERN, CLIENT_MESSAGES, ErrorCode } from "@partygame/shared";
+import { ACTION_NAME_PATTERN, CLIENT_MESSAGES, ErrorCode } from "@openparty/shared";
 import { afterEach, describe, expect, it } from "vitest";
 import { collectMessages, type TestServer, waitUntil } from "../src/testing/index.js";
 import { bootBuzzer, pid, seat, startedRoom, stateOf } from "./support.js";

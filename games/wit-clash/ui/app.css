@@ -1,5 +1,5 @@
-@import "@partygame/game-ui/theme-contract.css";
-@import "@partygame/game-ui/base.css";
+@import "@openparty/game-ui/theme-contract.css";
+@import "@openparty/game-ui/base.css";
 
 /* WitClash look: local tokens (grain, doodles, hand font, danger red) and the app-shell faces.
    The base look (cards, tape, chips, stickers, buttons, notices) comes from base.css. */

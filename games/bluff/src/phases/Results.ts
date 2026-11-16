@@ -1,4 +1,4 @@
-import { endIfBelowMinimum, playAgainAction } from "@partygame/core";
+import { endIfBelowMinimum, playAgainAction } from "@openparty/core";
 import { ACTION } from "../actions.js";
 import { META } from "../meta.js";
 import type { BluffPhase } from "../private.js";

@@ -1,4 +1,4 @@
-# @partygame/game-kit
+# @openparty/game-kit
 
 ## Responsibility
 
@@ -12,8 +12,8 @@ The dev-side game declaration: `defineGamePackage` plus the entry functions (`se
 
 ## May import
 
-- Runtime: `@partygame/bots`, `@partygame/content` (types only: `TextFilter` for the declaration's filter field), `@partygame/core`, `@partygame/launcher`, `@partygame/server`, `@partygame/shared`, `@partygame/terminal`
-- Dev: `@partygame/config`
+- Runtime: `@openparty/bots`, `@openparty/content` (types only: `TextFilter` for the declaration's filter field), `@openparty/core`, `@openparty/launcher`, `@openparty/server`, `@openparty/shared`, `@openparty/terminal`
+- Dev: `@openparty/config`
 
 ## Public entry points
 
@@ -21,7 +21,7 @@ The dev-side game declaration: `defineGamePackage` plus the entry functions (`se
 
 ## Tests
 
-`tests/`; a small fake game in `tests/fixtures/`, real servers via `@partygame/server/node` and `/testing`.
+`tests/`; a small fake game in `tests/fixtures/`, real servers via `@openparty/server/node` and `/testing`.
 
 ## Before you add a file
 

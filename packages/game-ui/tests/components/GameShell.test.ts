@@ -1,6 +1,6 @@
-import { connectedClient, type SeatConfig } from "@partygame/game-client/testing";
-import { ErrorCode } from "@partygame/shared";
-import { BaseGameState } from "@partygame/shared/schema";
+import { connectedClient, type SeatConfig } from "@openparty/game-client/testing";
+import { ErrorCode } from "@openparty/shared";
+import { BaseGameState } from "@openparty/shared/schema";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it, vi } from "vitest";

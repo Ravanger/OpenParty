@@ -1,5 +1,5 @@
-import { apiBaseOf, claimName, type RoomConnector, resolveRoomCode } from "@partygame/client-utils";
-import type { BaseGameState } from "@partygame/shared/schema";
+import { apiBaseOf, claimName, type RoomConnector, resolveRoomCode } from "@openparty/client-utils";
+import type { BaseGameState } from "@openparty/shared/schema";
 import { BotPlayer } from "./BotPlayer.js";
 import { defaultConnector } from "./ColyseusConnector.js";
 import { DEFAULT_TIMEOUT_MS } from "./timeouts.js";

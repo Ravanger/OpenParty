@@ -1,4 +1,4 @@
-import { ErrorCode } from "@partygame/shared";
+import { ErrorCode } from "@openparty/shared";
 import { describe, expect, it } from "vitest";
 import { defineGame, EmptyPayloadSchema, type PhaseState, playAgainAction } from "../src/index.js";
 import { TestTable } from "../src/testing/index.js";

@@ -1,8 +1,8 @@
 import type { Server as HttpServer } from "node:http";
 import { matchMaker, type Room, type Server } from "@colyseus/core";
 import { type Room as ClientRoom, ColyseusSDK } from "@colyseus/sdk";
-import { noopLogger } from "@partygame/core";
-import { PROTOCOL_VERSION } from "@partygame/shared";
+import { noopLogger } from "@openparty/core";
+import { PROTOCOL_VERSION } from "@openparty/shared";
 import { createGameServer, type GameServerOptions } from "../createGameServer.js";
 import { listenGameServer } from "../gameTransport.js";
 import { serveApi as serveApiOnNode } from "../node.js";

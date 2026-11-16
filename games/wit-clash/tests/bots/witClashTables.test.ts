@@ -1,13 +1,13 @@
 import type { Room } from "@colyseus/sdk";
-import { BotPlayer, BotTable, joinBots } from "@partygame/bots";
-import { type TestServer, waitUntil } from "@partygame/server/testing";
+import { BotPlayer, BotTable, joinBots } from "@openparty/bots";
+import { type TestServer, waitUntil } from "@openparty/server/testing";
 import {
   ClientMessage,
   PROTOCOL_VERSION,
   ResolveCodeResponseSchema,
   SET_OPTIONS,
   START_GAME,
-} from "@partygame/shared";
+} from "@openparty/shared";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { witClashBot, witClashKit } from "../../bots/witClashBot.js";
 import { PHASE } from "../../src/phaseNames.js";

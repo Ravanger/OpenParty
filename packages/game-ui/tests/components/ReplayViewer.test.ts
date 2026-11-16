@@ -1,4 +1,4 @@
-import { BaseGameState } from "@partygame/shared/schema";
+import { BaseGameState } from "@openparty/shared/schema";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ReplayViewer } from "../../src/components/index.js";

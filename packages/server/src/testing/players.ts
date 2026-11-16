@@ -1,7 +1,7 @@
 import type { Room } from "@colyseus/core";
 import type { Room as ClientRoom } from "@colyseus/sdk";
-import { ClientMessage, isServerError, type ServerError, ServerMessage } from "@partygame/shared";
-import type { BaseGameState } from "@partygame/shared/schema";
+import { ClientMessage, isServerError, type ServerError, ServerMessage } from "@openparty/shared";
+import type { BaseGameState } from "@openparty/shared/schema";
 import type { TestServer } from "./index.js";
 import { waitUntil } from "./waitUntil.js";
 

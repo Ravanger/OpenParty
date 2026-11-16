@@ -1,6 +1,6 @@
-import type { SeatConfig } from "@partygame/game-client/testing";
-import { addSeat, connectedClient } from "@partygame/game-client/testing";
-import { BaseGameState } from "@partygame/shared/schema";
+import type { SeatConfig } from "@openparty/game-client/testing";
+import { addSeat, connectedClient } from "@openparty/game-client/testing";
+import { BaseGameState } from "@openparty/shared/schema";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LobbySettingsViewModel } from "../../src/LobbySettingsViewModel.svelte.js";

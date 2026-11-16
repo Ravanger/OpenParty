@@ -1,5 +1,5 @@
-import { type NodeServerHandle, startNodeServer } from "@partygame/server/node";
-import { GameClient } from "@partygame/terminal";
+import { type NodeServerHandle, startNodeServer } from "@openparty/server/node";
+import { GameClient } from "@openparty/terminal";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { botsCli, defineGamePackage, hostedGame } from "../src/index.js";
 import { fakeIo } from "./fixtures/fakeIo.js";

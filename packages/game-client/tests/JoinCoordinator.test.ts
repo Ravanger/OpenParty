@@ -1,5 +1,5 @@
 import { Client } from "@colyseus/sdk";
-import { BaseGameState } from "@partygame/shared/schema";
+import { BaseGameState } from "@openparty/shared/schema";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { GameConnectionManager } from "../src/GameConnectionManager.svelte.js";
 import { JoinCoordinator } from "../src/JoinCoordinator.js";

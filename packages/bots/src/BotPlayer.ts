@@ -1,5 +1,5 @@
-import { ClientMessage, isActionResult, LOBBY_PHASE, START_GAME } from "@partygame/shared";
-import type { BaseGameState } from "@partygame/shared/schema";
+import { ClientMessage, isActionResult, LOBBY_PHASE, START_GAME } from "@openparty/shared";
+import type { BaseGameState } from "@openparty/shared/schema";
 import type {
   BotOptions,
   BotOutcome,

@@ -4,7 +4,7 @@ import {
   type PodiumStep,
   podiumSteps,
   roundLabel,
-} from "@partygame/game-ui";
+} from "@openparty/game-ui";
 import { ACTION } from "../../src/actionNames.js";
 import type { WitClashManager } from "../manager.js";
 import { MatchupRecap, type RevealedMatchup } from "./MatchupRecap.js";

@@ -1,5 +1,5 @@
 import { logger } from "@colyseus/core";
-import { CLOSE_CODES } from "@partygame/shared";
+import { CLOSE_CODES } from "@openparty/shared";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { RoomCodeService } from "../src/services/RoomCodeService.js";
 import { bootTestServer, type TestServer } from "../src/testing/index.js";

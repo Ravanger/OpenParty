@@ -1,6 +1,6 @@
-import { nodeTestConfig } from "@partygame/config/vitest";
+import { nodeTestConfig } from "@openparty/config/vitest";
 
 export default nodeTestConfig({
-  name: "@partygame/game-kit",
+  name: "@openparty/game-kit",
   coverage: ["src/**/*.ts"],
 });

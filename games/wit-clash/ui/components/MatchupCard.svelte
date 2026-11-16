@@ -1,6 +1,6 @@
 <script lang="ts">
-import { plural } from "@partygame/game-ui";
-import { PlayerSticker } from "@partygame/game-ui/components";
+import { plural } from "@openparty/game-ui";
+import { PlayerSticker } from "@openparty/game-ui/components";
 import type { RevealedMatchup } from "../viewmodels/MatchupRecap.js";
 
 const {

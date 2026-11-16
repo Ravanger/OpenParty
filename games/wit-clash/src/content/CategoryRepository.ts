@@ -1,5 +1,5 @@
-import { type ContentFile, loadJsoncDirWithFiles } from "@partygame/content";
-import { weightedSample } from "@partygame/core";
+import { type ContentFile, loadJsoncDirWithFiles } from "@openparty/content";
+import { weightedSample } from "@openparty/core";
 import { z } from "zod";
 
 const PromptSchema = z.object({ id: z.string().min(1), text: z.string().min(1) }).strict();

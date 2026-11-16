@@ -1,7 +1,7 @@
-import { createTextFilter } from "@partygame/content/filter";
-import { defineGame } from "@partygame/core";
-import { CLOSE_CODES } from "@partygame/shared";
-import { BaseGameState } from "@partygame/shared/schema";
+import { createTextFilter } from "@openparty/content/filter";
+import { defineGame } from "@openparty/core";
+import { CLOSE_CODES } from "@openparty/shared";
+import { BaseGameState } from "@openparty/shared/schema";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { z } from "zod";
 import type { TestServer } from "../src/testing/index.js";

@@ -1,6 +1,6 @@
 import { type SchemaType, t } from "@colyseus/schema";
-import { LOBBY_PHASE, START_GAME } from "@partygame/shared";
-import { BaseGameState, PlayerSchema } from "@partygame/shared/schema";
+import { LOBBY_PHASE, START_GAME } from "@openparty/shared";
+import { BaseGameState, PlayerSchema } from "@openparty/shared/schema";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { BotPlayer } from "../src/BotPlayer.js";
 import type { BotOptions, BotOutcome, BotRoom, BotStrategy, BotTurn } from "../src/types.js";

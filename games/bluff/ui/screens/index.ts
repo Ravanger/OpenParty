@@ -1,4 +1,4 @@
-import { LOBBY_PHASE } from "@partygame/shared";
+import { LOBBY_PHASE } from "@openparty/shared";
 import type { Component } from "svelte";
 import { PHASE, type PhaseName } from "../../src/phaseNames.js";
 import type { BluffManager } from "../manager.js";

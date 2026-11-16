@@ -6,7 +6,7 @@ import {
   required,
   resetMine,
   shuffle,
-} from "@partygame/core";
+} from "@openparty/core";
 import {
   allHaveVoted,
   allResponded,
@@ -14,7 +14,7 @@ import {
   drawPool,
   entriesFor,
   tallyVotes,
-} from "@partygame/core/kits";
+} from "@openparty/core/kits";
 import { META } from "./meta.js";
 import { type BluffContext, FAKE_SLOT } from "./private.js";
 import { settleRound } from "./scoring.js";

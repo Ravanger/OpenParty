@@ -1,4 +1,4 @@
-import { defineGameViteConfig } from "@partygame/config/vite";
+import { defineGameViteConfig } from "@openparty/config/vite";
 import type { ConfigEnv, UserConfig } from "vite";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_PORTS, defaultCommands } from "../src/index.js";

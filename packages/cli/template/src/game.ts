@@ -1,4 +1,4 @@
-import { defineGame } from "@partygame/core";
+import { defineGame } from "@openparty/core";
 import { META } from "./meta.js";
 import { type __PascalName__Options, __PascalName__OptionsSchema } from "./options.js";
 import { PHASE } from "./phaseNames.js";

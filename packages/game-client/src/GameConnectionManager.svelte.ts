@@ -1,5 +1,5 @@
 import { Client } from "@colyseus/sdk";
-import { apiBaseOf, RoomCodeError, resolveRoomCode } from "@partygame/client-utils";
+import { apiBaseOf, RoomCodeError, resolveRoomCode } from "@openparty/client-utils";
 import {
   type ActionResult,
   CLOSE_CODES,
@@ -14,8 +14,8 @@ import {
   RoomCodeSchema,
   type ServerError,
   ServerMessage,
-} from "@partygame/shared";
-import type { BaseGameState, PlayerSchema } from "@partygame/shared/schema";
+} from "@openparty/shared";
+import type { BaseGameState, PlayerSchema } from "@openparty/shared/schema";
 import { createSubscriber } from "svelte/reactivity";
 import { Countdown } from "./countdown.svelte.js";
 import { FeedbackBus } from "./FeedbackBus.js";

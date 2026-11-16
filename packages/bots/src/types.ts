@@ -1,4 +1,4 @@
-import type { BaseGameState } from "@partygame/shared/schema";
+import type { BaseGameState } from "@openparty/shared/schema";
 
 /** The part of a connected room a bot needs. `Room` from `@colyseus/sdk` satisfies it. */
 export interface BotRoom<TState extends BaseGameState> {

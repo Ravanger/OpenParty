@@ -3,7 +3,7 @@
 > **Version:** 2.11.5 (root devDependency, `packageManager: bun@1.4.2`)
 
 ## Overview
-Orchestrates workspace scripts. Workspaces: `packages/*`, `games/*` (`@partygame/shared`, `core`, `server`, `game-client`, `wit-clash`). Config is `turbo.json` with v2 `tasks` (not `pipeline`).
+Orchestrates workspace scripts. Workspaces: `packages/*`, `games/*` (`@openparty/shared`, `core`, `server`, `game-client`, `wit-clash`). Config is `turbo.json` with v2 `tasks` (not `pipeline`).
 
 ## Actual `turbo.json`
 | Task | Config |
@@ -20,7 +20,7 @@ Root scripts: `dev:all` = `turbo run dev`, `build` = `turbo build`, `test` = `tu
 - **`^build` matters**: `core`, `shared`, `game-client` are consumed through `dist/` (`main`/`types`), so tests fail on a clean checkout until dependencies are built. Turbo handles it; plain root `vitest run` does not.
 - **Stale `dist`**: if `tsc` produces nothing, Turbo's cache plus `tsconfig.tsbuildinfo` can skip emit. Delete `tsconfig.tsbuildinfo` and rebuild.
 - `--parallel` is deprecated; Turbo runs independent tasks in parallel by default. `dev:all` does not pass it.
-- Filter a package by its name: `turbo run test --filter=@partygame/server`.
+- Filter a package by its name: `turbo run test --filter=@openparty/server`.
 - `.turbo` is gitignored.
 
 ## References

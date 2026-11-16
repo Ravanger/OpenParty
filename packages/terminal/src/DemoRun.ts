@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { type BotKit, type BotOptions, type BotOutcome, DemoTable } from "@partygame/bots";
-import type { HostedGame } from "@partygame/server";
-import { type NodeServerHandle, startNodeServer } from "@partygame/server/node";
-import type { BaseGameState } from "@partygame/shared/schema";
+import { type BotKit, type BotOptions, type BotOutcome, DemoTable } from "@openparty/bots";
+import type { HostedGame } from "@openparty/server";
+import { type NodeServerHandle, startNodeServer } from "@openparty/server/node";
+import type { BaseGameState } from "@openparty/shared/schema";
 import { GameClient, type GameRoomOf } from "./GameClient.js";
 
 /** Options for `DemoRun`: the bot kit, bot count and the verdict hooks of one all-bot game. */

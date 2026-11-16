@@ -24,7 +24,7 @@ export interface FolderRecord {
 const isSingleEmoji = (value: string): boolean =>
   [...new Intl.Segmenter().segment(value)].length === 1 && /\p{Extended_Pictographic}/u.test(value);
 
-/** The `partygame` key of a game's package.json: how the catalog shows the game (#60). */
+/** The `openparty` key of a game's package.json: how the catalog shows the game (#60). */
 export const GameManifestSchema = z.object({
   name: z.string().min(1),
   description: z.string().min(1),
@@ -47,7 +47,7 @@ export type PickedGame =
   | { kind: "ask"; games: Game[]; rest: string[] }
   | { kind: "error"; error: string };
 
-const SCOPE = "@partygame/";
+const SCOPE = "@openparty/";
 
 export const commandNames = (): GameCommand[] => Object.keys(ENTRIES).filter(isGameCommand);
 
@@ -78,10 +78,10 @@ interface ManifestError {
   problem: string;
 }
 
-/** The valid `partygame` manifest of a package.json, or its problem when one is present but invalid. */
+/** The valid `openparty` manifest of a package.json, or its problem when one is present but invalid. */
 const manifestOf = (packageJson: unknown): { manifest?: GameManifest; problem?: string } => {
   if (typeof packageJson !== "object" || packageJson === null) return {};
-  const raw = (packageJson as Record<string, unknown>).partygame;
+  const raw = (packageJson as Record<string, unknown>).openparty;
   if (raw === undefined) return {};
   const result = GameManifestSchema.safeParse(raw);
   if (result.success) return { manifest: result.data };
@@ -91,12 +91,12 @@ const manifestOf = (packageJson: unknown): { manifest?: GameManifest; problem?: 
 const manifestProblem = (error: z.ZodError): string =>
   error.issues
     .map((issue) => {
-      const path = issue.path.length > 0 ? `partygame.${issue.path.join(".")}` : "partygame";
+      const path = issue.path.length > 0 ? `openparty.${issue.path.join(".")}` : "openparty";
       return `${path}: ${issue.message}`;
     })
     .join("; ");
 
-/** Games are the folders that have a package.json, sorted by folder name; folders named like a command or launch mode are ignored and reported. A malformed `partygame` manifest is reported in `manifestErrors` and the game falls back to its package name (#60). */
+/** Games are the folders that have a package.json, sorted by folder name; folders named like a command or launch mode are ignored and reported. A malformed `openparty` manifest is reported in `manifestErrors` and the game falls back to its package name (#60). */
 export const discoverGames = (
   records: FolderRecord[],
 ): {

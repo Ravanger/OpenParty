@@ -1,5 +1,5 @@
-import { PROTOCOL_VERSION } from "@partygame/shared";
-import { BaseGameState } from "@partygame/shared/schema";
+import { PROTOCOL_VERSION } from "@openparty/shared";
+import { BaseGameState } from "@openparty/shared/schema";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   bootTestServer,

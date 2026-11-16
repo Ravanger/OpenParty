@@ -1,4 +1,4 @@
-import { GameControlsViewModel } from "@partygame/game-ui";
+import { GameControlsViewModel } from "@openparty/game-ui";
 import { describe, expect, it } from "vitest";
 import { isGameOver } from "../../src/isGameOver.js";
 import { LobbySettingsViewModel } from "../../ui/viewmodels/LobbySettingsViewModel.svelte.js";

@@ -1,4 +1,4 @@
-import { actionFactory } from "@partygame/core";
+import { actionFactory } from "@openparty/core";
 import { z } from "zod";
 import { ACTION, ANSWER_MAX_LENGTH } from "./actionNames.js";
 import type { WitClashOptions } from "./options.js";

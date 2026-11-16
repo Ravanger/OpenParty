@@ -1,4 +1,4 @@
-import type { BaseGameState } from "@partygame/shared/schema";
+import type { BaseGameState } from "@openparty/shared/schema";
 import { parseLaunchArgs } from "./LaunchArgs.js";
 import { Launcher } from "./Launcher.js";
 import type { LaunchConfig } from "./types.js";

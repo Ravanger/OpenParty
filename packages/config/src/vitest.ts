@@ -14,8 +14,8 @@ export interface TestPresetOptions {
   overrides?: ViteUserConfig;
 }
 
-const DEFAULT_UI_SETUP = ["@testing-library/jest-dom/vitest", "@partygame/game-client/test-setup"];
-const DEFAULT_NODE_SETUP = ["@partygame/config/node-test-setup"];
+const DEFAULT_UI_SETUP = ["@testing-library/jest-dom/vitest", "@openparty/game-client/test-setup"];
+const DEFAULT_NODE_SETUP = ["@openparty/config/node-test-setup"];
 
 /** `packages/` — one level above both `src/` and `dist/`, so the same relative path works from source and from the shipped preset. */
 const PACKAGES_DIR = fileURLToPath(new URL("../..", import.meta.url));
@@ -50,7 +50,7 @@ function aliasEntries(packagesDir: string): AliasEntry[] {
     } catch {
       continue; // A file, or a directory without a manifest — not a package.
     }
-    if (!manifest.name?.startsWith("@partygame/")) continue;
+    if (!manifest.name?.startsWith("@openparty/")) continue;
     for (const [subpath, target] of Object.entries(manifest.exports ?? {})) {
       const value =
         typeof target === "string" ? target : (target.svelte ?? target.default ?? target.import);
@@ -64,14 +64,14 @@ function aliasEntries(packagesDir: string): AliasEntry[] {
       });
     }
   }
-  // Subpaths before their parent: alias matching is prefix-based, so `@partygame/core` would
-  // otherwise shadow `@partygame/core/testing`.
+  // Subpaths before their parent: alias matching is prefix-based, so `@openparty/core` would
+  // otherwise shadow `@openparty/core/testing`.
   entries.sort((a, b) => b.key.length - a.key.length);
   return entries;
 }
 
 /**
- * Maps every `@partygame/*` export subpath to its package source, so a test in one workspace never
+ * Maps every `@openparty/*` export subpath to its package source, so a test in one workspace never
  * reads another's stale `dist/` build. Both presets install this as `resolve.alias`; real consumers
  * (launcher, dev server) still resolve through `dist/` as usual.
  */
@@ -88,9 +88,9 @@ export function sourceAliases(packagesDir: string = PACKAGES_DIR): Record<string
  * fresh source, and the owning project's own tests cover the source.
  */
 const JSDOM_DIST_ONLY = [
-  "@partygame/server/node",
-  "@partygame/server/probe",
-  "@partygame/server/testing",
+  "@openparty/server/node",
+  "@openparty/server/probe",
+  "@openparty/server/testing",
 ];
 
 function shared(options: TestPresetOptions, environment: "jsdom" | "node"): ViteUserConfig {
@@ -128,7 +128,7 @@ export function uiTestConfig(options: TestPresetOptions): ViteUserConfig {
 export function nodeTestConfig(options: TestPresetOptions): ViteUserConfig {
   return mergeConfig(
     mergeConfig(shared(options, "node"), {
-      // The shared preset aliases @partygame/* to source, so node tests can load a package's
+      // The shared preset aliases @openparty/* to source, so node tests can load a package's
       // .svelte.ts files (e.g. GameConnectionManager via game-client/testing). Compile them
       // with the same svelte transform as the UI projects: v8 coverage merges per-project maps
       // by source location, and a plain-TS transform of runes leaves phantom uncovered items.

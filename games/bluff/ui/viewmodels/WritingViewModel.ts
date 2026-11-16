@@ -1,5 +1,5 @@
-import { OptionsReader, PhaseClock, type ProgressRow, roundLabel } from "@partygame/game-ui";
-import { ErrorCode } from "@partygame/shared";
+import { OptionsReader, PhaseClock, type ProgressRow, roundLabel } from "@openparty/game-ui";
+import { ErrorCode } from "@openparty/shared";
 import { ACTION } from "../../src/actionNames.js";
 import { type BluffOptions, BluffOptionsSchema, DEFAULT_OPTIONS } from "../../src/options.js";
 import type { BluffManager } from "../manager.js";

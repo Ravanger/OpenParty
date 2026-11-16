@@ -1,5 +1,5 @@
-import type { GameConnectionManager } from "@partygame/game-client";
-import type { BaseGameState } from "@partygame/shared/schema";
+import type { GameConnectionManager } from "@openparty/game-client";
+import type { BaseGameState } from "@openparty/shared/schema";
 import type { Snippet } from "svelte";
 
 /** Browser storage the sheet's seen flag persists to (e.g. `localStorage`); every access is wrapped, so a throwing or blocked storage (private windows) degrades to opening once per page load. @experimental How-to-play API; may change before 1.0. */

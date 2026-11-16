@@ -1,5 +1,5 @@
 <script lang="ts">
-import { isUrgent } from "@partygame/game-client";
+import { isUrgent } from "@openparty/game-client";
 
 const {
   seconds,

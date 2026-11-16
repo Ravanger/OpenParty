@@ -1,5 +1,5 @@
 <script lang="ts">
-import { ActionBar, PlayerSticker, Podium } from "@partygame/game-ui/components";
+import { ActionBar, PlayerSticker, Podium } from "@openparty/game-ui/components";
 import { untrack } from "svelte";
 import type { BluffManager } from "../manager.js";
 import { ResultsViewModel } from "../viewmodels/ResultsViewModel.js";

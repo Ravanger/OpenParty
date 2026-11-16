@@ -1,6 +1,6 @@
-import { defaultClientStrings, type GameConnectionManager } from "@partygame/game-client";
-import { CLIENT_MESSAGES, RoomCodeSchema, sanitizeRoomCode } from "@partygame/shared";
-import type { BaseGameState } from "@partygame/shared/schema";
+import { defaultClientStrings, type GameConnectionManager } from "@openparty/game-client";
+import { CLIENT_MESSAGES, RoomCodeSchema, sanitizeRoomCode } from "@openparty/shared";
+import type { BaseGameState } from "@openparty/shared/schema";
 import { errorText, getStrings } from "./strings.js";
 
 /** The entry screen: hosting a room, or joining or watching one by code, with an optional share-link code. */

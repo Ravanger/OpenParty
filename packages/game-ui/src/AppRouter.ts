@@ -1,6 +1,6 @@
-import type { GameConnectionManager } from "@partygame/game-client";
-import { LOBBY_PHASE, type ServerError } from "@partygame/shared";
-import type { BaseGameState } from "@partygame/shared/schema";
+import type { GameConnectionManager } from "@openparty/game-client";
+import { LOBBY_PHASE, type ServerError } from "@openparty/shared";
+import type { BaseGameState } from "@openparty/shared/schema";
 
 /** A screen entry of the router's table, optionally with a banner. */
 export interface RouterScreen {

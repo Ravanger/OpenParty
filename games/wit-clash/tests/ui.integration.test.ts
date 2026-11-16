@@ -1,6 +1,6 @@
-import { GameConnectionManager } from "@partygame/game-client";
-import { bootTestServer, type TestServer, waitUntil } from "@partygame/server/testing";
-import { ErrorCode, KICK_PLAYER } from "@partygame/shared";
+import { GameConnectionManager } from "@openparty/game-client";
+import { bootTestServer, type TestServer, waitUntil } from "@openparty/server/testing";
+import { ErrorCode, KICK_PLAYER } from "@openparty/shared";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { createWitClashGame } from "../src/game.js";
 import { META } from "../src/meta.js";

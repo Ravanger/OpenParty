@@ -1,9 +1,9 @@
-import { type BotKit, type BotOptions, type BotPlayer, joinKitBots } from "@partygame/bots";
-import { joinUrl, tvUrl } from "@partygame/client-utils";
-import type { HostedGame } from "@partygame/server";
-import { type NodeServerHandle, startNodeServer } from "@partygame/server/node";
-import { ServerProbe } from "@partygame/server/probe";
-import type { BaseGameState } from "@partygame/shared/schema";
+import { type BotKit, type BotOptions, type BotPlayer, joinKitBots } from "@openparty/bots";
+import { joinUrl, tvUrl } from "@openparty/client-utils";
+import type { HostedGame } from "@openparty/server";
+import { type NodeServerHandle, startNodeServer } from "@openparty/server/node";
+import { ServerProbe } from "@openparty/server/probe";
+import type { BaseGameState } from "@openparty/shared/schema";
 import { GameClient, type GameRoomOf } from "./GameClient.js";
 import type { Prompter } from "./Prompter.js";
 

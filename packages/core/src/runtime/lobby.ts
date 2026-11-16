@@ -7,7 +7,7 @@ import {
   PlayerIdSchema,
   SET_OPTIONS,
   START_GAME,
-} from "@partygame/shared";
+} from "@openparty/shared";
 import { z } from "zod";
 import { EmptyPayloadSchema } from "../actions.js";
 import { type CoreStrings, mergeCoreStrings } from "./strings.js";

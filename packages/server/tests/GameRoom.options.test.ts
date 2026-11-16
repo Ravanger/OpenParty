@@ -1,7 +1,7 @@
 import { logger, matchMaker, type Room } from "@colyseus/core";
-import { defineGame } from "@partygame/core";
-import { CLOSE_CODES, MAX_OPTIONS_JSON_LENGTH, PROTOCOL_VERSION } from "@partygame/shared";
-import { BaseGameState } from "@partygame/shared/schema";
+import { defineGame } from "@openparty/core";
+import { CLOSE_CODES, MAX_OPTIONS_JSON_LENGTH, PROTOCOL_VERSION } from "@openparty/shared";
+import { BaseGameState } from "@openparty/shared/schema";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { bootTestServer, type TestServer } from "../src/testing/index.js";

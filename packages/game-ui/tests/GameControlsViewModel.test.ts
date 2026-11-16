@@ -1,5 +1,5 @@
-import { connectedClient } from "@partygame/game-client/testing";
-import { BaseGameState } from "@partygame/shared/schema";
+import { connectedClient } from "@openparty/game-client/testing";
+import { BaseGameState } from "@openparty/shared/schema";
 import { describe, expect, it, vi } from "vitest";
 import { GameControlsViewModel } from "../src/GameControlsViewModel.svelte.js";
 

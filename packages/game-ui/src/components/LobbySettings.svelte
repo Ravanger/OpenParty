@@ -1,7 +1,7 @@
 <script lang="ts" generics="TState extends BaseGameState">
-import type { LobbySettingsViewModel } from "@partygame/game-ui";
+import type { LobbySettingsViewModel } from "@openparty/game-ui";
 // biome-ignore lint/correctness/noUnusedImports: used by the generics attribute
-import type { BaseGameState } from "@partygame/shared/schema";
+import type { BaseGameState } from "@openparty/shared/schema";
 import { getStrings } from "../strings.js";
 import { nextId } from "./uniqueId.js";
 

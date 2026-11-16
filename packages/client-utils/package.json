@@ -1,5 +1,5 @@
 {
-  "name": "@partygame/client-utils",
+  "name": "@openparty/client-utils",
   "version": "0.1.0",
   "private": true,
   "license": "Apache-2.0",
@@ -18,10 +18,10 @@
     "typecheck": "tsc -p tsconfig.test.json"
   },
   "dependencies": {
-    "@partygame/shared": "workspace:*"
+    "@openparty/shared": "workspace:*"
   },
   "devDependencies": {
-    "@partygame/config": "workspace:*",
+    "@openparty/config": "workspace:*",
     "typescript": "^6.0.3",
     "vitest": "^4.1.11"
   }

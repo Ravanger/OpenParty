@@ -1,6 +1,6 @@
-import { connectedClient } from "@partygame/game-client/testing";
-import { NAME_MAX_LENGTH } from "@partygame/shared";
-import { BaseGameState } from "@partygame/shared/schema";
+import { connectedClient } from "@openparty/game-client/testing";
+import { NAME_MAX_LENGTH } from "@openparty/shared";
+import { BaseGameState } from "@openparty/shared/schema";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NameField } from "../src/NameField.svelte.js";
 

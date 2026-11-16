@@ -1,29 +1,29 @@
 {
-  "name": "@partygame/bluff",
+  "name": "@openparty/bluff",
   "version": "0.1.0",
   "private": true,
   "license": "Apache-2.0",
   "type": "module",
-  "partygame": {
+  "openparty": {
     "name": "Bluff",
     "description": "A bluffing party game for 3 to 8 players",
     "icon": "🎭"
   },
   "dependencies": {
     "@colyseus/schema": "^5.0.35",
-    "@partygame/bots": "workspace:*",
-    "@partygame/content": "workspace:*",
-    "@partygame/core": "workspace:*",
-    "@partygame/game-client": "workspace:*",
-    "@partygame/game-kit": "workspace:*",
-    "@partygame/game-ui": "workspace:*",
-    "@partygame/shared": "workspace:*",
-    "@partygame/terminal": "workspace:*",
+    "@openparty/bots": "workspace:*",
+    "@openparty/content": "workspace:*",
+    "@openparty/core": "workspace:*",
+    "@openparty/game-client": "workspace:*",
+    "@openparty/game-kit": "workspace:*",
+    "@openparty/game-ui": "workspace:*",
+    "@openparty/shared": "workspace:*",
+    "@openparty/terminal": "workspace:*",
     "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@partygame/config": "workspace:*",
-    "@partygame/server": "workspace:*",
+    "@openparty/config": "workspace:*",
+    "@openparty/server": "workspace:*",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@testing-library/jest-dom": "^6.10.0",
     "@testing-library/svelte": "^5.4.2",

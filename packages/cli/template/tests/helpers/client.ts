@@ -4,9 +4,9 @@ import {
   type FetchStub,
   fakeFetch,
   type SeatConfig,
-} from "@partygame/game-client/testing";
+} from "@openparty/game-client/testing";
 
-export { addSeat, type FetchStub, type SeatConfig } from "@partygame/game-client/testing";
+export { addSeat, type FetchStub, type SeatConfig } from "@openparty/game-client/testing";
 
 import { vi } from "vitest";
 import { META } from "../../src/meta.js";

@@ -1,7 +1,7 @@
-import { ServerProbe } from "@partygame/server/probe";
-import { ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH } from "@partygame/shared";
-import { PlaySession, type PlaySessionOptions, TerminalPlayer } from "@partygame/terminal";
-import { ScriptedIo } from "@partygame/terminal/testing";
+import { ServerProbe } from "@openparty/server/probe";
+import { ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH } from "@openparty/shared";
+import { PlaySession, type PlaySessionOptions, TerminalPlayer } from "@openparty/terminal";
+import { ScriptedIo } from "@openparty/terminal/testing";
 import { afterEach, describe, expect, it } from "vitest";
 import { witClashKit } from "../../bots/witClashBot.js";
 import { gamePackage } from "../../gamePackage.js";

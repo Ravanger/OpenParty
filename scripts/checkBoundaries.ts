@@ -20,7 +20,7 @@ export interface Violation {
   detail: string;
 }
 
-const SCOPE = "@partygame/";
+const SCOPE = "@openparty/";
 const CONFIG = `${SCOPE}config`;
 const CLI = `${SCOPE}cli`;
 const IMPORT =
@@ -104,12 +104,12 @@ const manifestViolations = (workspace: Workspace): Violation[] => {
   const dev = [...runtime, ...(layer?.dev ?? []).map((name) => SCOPE + name), CONFIG];
   const allowed = (name: string, list: string[]): boolean =>
     isGame(workspace) ? name !== CLI : list.includes(name);
-  const partygame = (names: string[]): string[] => names.filter((name) => name.startsWith(SCOPE));
+  const openparty = (names: string[]): string[] => names.filter((name) => name.startsWith(SCOPE));
   return [
-    ...partygame(workspace.dependencies)
+    ...openparty(workspace.dependencies)
       .filter((name) => !allowed(name, runtime))
       .map((name) => violation(`${name} is not allowed in dependencies`)),
-    ...partygame(workspace.devDependencies)
+    ...openparty(workspace.devDependencies)
       .filter((name) => !allowed(name, dev))
       .map((name) => violation(`${name} is not allowed in devDependencies`)),
   ];

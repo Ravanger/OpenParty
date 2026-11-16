@@ -1,4 +1,4 @@
-# @partygame/bluff
+# @openparty/bluff
 
 ## Responsibility
 
@@ -11,8 +11,8 @@ The bluffing party game: rules, UI screens, content and entry points, built only
 
 ## May import
 
-- Runtime: `@partygame/bots`, `@partygame/content`, `@partygame/core`, `@partygame/game-client`, `@partygame/game-kit`, `@partygame/game-ui`, `@partygame/shared`, `@partygame/terminal`
-- Dev: `@partygame/config`, `@partygame/server`
+- Runtime: `@openparty/bots`, `@openparty/content`, `@openparty/core`, `@openparty/game-client`, `@openparty/game-kit`, `@openparty/game-ui`, `@openparty/shared`, `@openparty/terminal`
+- Dev: `@openparty/config`, `@openparty/server`
 
 ## Public entry points
 

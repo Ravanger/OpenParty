@@ -1,5 +1,5 @@
 {
-  "name": "@partygame/launcher",
+  "name": "@openparty/launcher",
   "version": "0.1.0",
   "private": true,
   "license": "Apache-2.0",
@@ -18,16 +18,16 @@
     "typecheck": "tsc -p tsconfig.test.json"
   },
   "dependencies": {
-    "@partygame/bots": "workspace:*",
-    "@partygame/client-utils": "workspace:*",
-    "@partygame/server": "workspace:*",
-    "@partygame/shared": "workspace:*"
+    "@openparty/bots": "workspace:*",
+    "@openparty/client-utils": "workspace:*",
+    "@openparty/server": "workspace:*",
+    "@openparty/shared": "workspace:*"
   },
   "devDependencies": {
     "@colyseus/schema": "^5.0.35",
     "@colyseus/sdk": "^0.18.4",
-    "@partygame/config": "workspace:*",
-    "@partygame/core": "workspace:*",
+    "@openparty/config": "workspace:*",
+    "@openparty/core": "workspace:*",
     "typescript": "^6.0.3",
     "vitest": "^4.1.11",
     "zod": "^4.6.5"

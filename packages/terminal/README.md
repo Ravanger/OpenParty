@@ -1,16 +1,16 @@
-# @partygame/terminal
+# @openparty/terminal
 
 Terminal client: a human at a prompt, bots, or an all-bot demo run. You write the strategy.
 
-- `@partygame/terminal`: `TerminalPlayer`, `PlaySession`, `ReadlinePrompter`, `DemoRun`, `parsePlayArgs`, `parseDemoArgs`, `runBotsCommand` (throws `BadBotsArgsError` on a bad argv; map it to your bad-arguments exit code); `DEFAULT_ENDPOINT` (`ws://localhost:2567`), `DEFAULT_API_PORT` (3001); types `TerminalStrategy`, `TerminalTurn`, `TerminalPlayerOptions` (optional clock and quit word), `GameRoomOf<TState>` (the client-side room), `PlayArgs`, `BotsArgs`, `ArgsLimits`, `PlaySessionOptions`, `DemoRunOptions`, `BotsCommandOptions`, `BotsCommandHandle`
-- `@partygame/terminal/testing`: `ScriptedIo`, a scripted `Prompter`
+- `@openparty/terminal`: `TerminalPlayer`, `PlaySession`, `ReadlinePrompter`, `DemoRun`, `parsePlayArgs`, `parseDemoArgs`, `runBotsCommand` (throws `BadBotsArgsError` on a bad argv; map it to your bad-arguments exit code); `DEFAULT_ENDPOINT` (`ws://localhost:2567`), `DEFAULT_API_PORT` (3001); types `TerminalStrategy`, `TerminalTurn`, `TerminalPlayerOptions` (optional clock and quit word), `GameRoomOf<TState>` (the client-side room), `PlayArgs`, `BotsArgs`, `ArgsLimits`, `PlaySessionOptions`, `DemoRunOptions`, `BotsCommandOptions`, `BotsCommandHandle`
+- `@openparty/terminal/testing`: `ScriptedIo`, a scripted `Prompter`
 
 ## Write a strategy
 
 `play(turn)` runs once per stage (the phase, unless you give `stageOf`) and not in the Lobby. When the stage changes, the turn's `signal` aborts and a pending `ask` or `changed` rejects, so no cleanup is needed.
 
 ```ts
-import type { TerminalStrategy } from "@partygame/terminal";
+import type { TerminalStrategy } from "@openparty/terminal";
 
 export const buttonTerminal = (): TerminalStrategy<ButtonState> => ({
   async play(turn) {
@@ -37,11 +37,11 @@ Optional: `stageOf(state)`; `narrate(state)` returns lines printed on every stat
 
 ## Wire `terminal/play.ts`
 
-`parsePlayArgs` reads `--bots`, `--name`, `--join`, `--endpoint`, `--api-port`. `parseDemoArgs(argv, { minBots, maxBots, usage })` reads `--bots N` (both the space and `=` forms) for an all-bot demo (default 3, clamped into the range; an empty value, a non-integer or out-of-range count, a repeated flag, unknown flags and extra positionals are rejected with `usage`). `PlayArgs`, `BotsArgs` and `DemoArgs` are the parsed command lines; `ArgsLimits` and `DemoArgsLimits` carry the limits and usage text. Entries exit 2 on bad arguments. `PlaySession` (options `PlaySessionOptions`: where the server is, which room to enter, who plays) finds or starts a server, creates or joins a room and seats bots from your `BotKit`; rooms are opened through `GameClient`, a thin wrapper over the default room connector (`defaultConnector`) from `@partygame/bots`.
+`parsePlayArgs` reads `--bots`, `--name`, `--join`, `--endpoint`, `--api-port`. `parseDemoArgs(argv, { minBots, maxBots, usage })` reads `--bots N` (both the space and `=` forms) for an all-bot demo (default 3, clamped into the range; an empty value, a non-integer or out-of-range count, a repeated flag, unknown flags and extra positionals are rejected with `usage`). `PlayArgs`, `BotsArgs` and `DemoArgs` are the parsed command lines; `ArgsLimits` and `DemoArgsLimits` carry the limits and usage text. Entries exit 2 on bad arguments. `PlaySession` (options `PlaySessionOptions`: where the server is, which room to enter, who plays) finds or starts a server, creates or joins a room and seats bots from your `BotKit`; rooms are opened through `GameClient`, a thin wrapper over the default room connector (`defaultConnector`) from `@openparty/bots`.
 
 ```ts
 import { createInterface } from "node:readline/promises";
-import { PlaySession, ReadlinePrompter, TerminalPlayer, parsePlayArgs } from "@partygame/terminal";
+import { PlaySession, ReadlinePrompter, TerminalPlayer, parsePlayArgs } from "@openparty/terminal";
 
 const usage = "Usage: bun run play [--bots=0..7] [--name=You] [--join=ABCD]";
 const parsed = parsePlayArgs(process.argv.slice(2), { maxBots: 7, usage });
@@ -72,7 +72,7 @@ lines.close();
 `bun run bots <CODE> [count]` seats bots in a room created in the browser. `runBotsCommand` takes `BotsCommandOptions`; the `BotsCommandHandle` it resolves with controls the seated bots.
 
 ```ts
-import { runBotsCommand } from "@partygame/terminal";
+import { runBotsCommand } from "@openparty/terminal";
 
 await runBotsCommand({
   kit: buttonKit,
@@ -90,7 +90,7 @@ await runBotsCommand({
 `DemoRun` (options `DemoRunOptions`: kit, bot count and verdict hooks) plays one game on its own server and prints `PASS` or `FAIL`: it fails on a refused bot action, no finish within `timeoutMs` (default 180 s), or lines from the optional `problems(state)`.
 
 ```ts
-import { DemoRun } from "@partygame/terminal";
+import { DemoRun } from "@openparty/terminal";
 
 const passed = await new DemoRun({
   games: [{ roomName: "button", definition: ButtonGame, stateClass: ButtonState }],
@@ -104,8 +104,8 @@ process.exit(passed ? 0 : 1);
 
 ## Test a strategy
 
-`ScriptedIo` (from `@partygame/terminal/testing`) is a `Prompter` that records `asked` and `printed` lines; `await io.type("text")` answers the pending question. Pass it to `TerminalPlayer` or `PlaySession`.
+`ScriptedIo` (from `@openparty/terminal/testing`) is a `Prompter` that records `asked` and `printed` lines; `await io.type("text")` answers the pending question. Pass it to `TerminalPlayer` or `PlaySession`.
 
-Depends on: `@partygame/bots`, `@partygame/client-utils`, `@partygame/server`, `@partygame/shared`, `@colyseus/sdk`
+Depends on: `@openparty/bots`, `@openparty/client-utils`, `@openparty/server`, `@openparty/shared`, `@colyseus/sdk`
 
 Guide: [docs/framework/README.md#terminal](../../docs/framework/README.md#terminal)

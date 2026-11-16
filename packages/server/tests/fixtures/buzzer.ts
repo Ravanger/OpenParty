@@ -1,6 +1,6 @@
 import { type SchemaType, schema, t } from "@colyseus/schema";
-import { actionFactory, defineGame } from "@partygame/core";
-import { BaseGameState } from "@partygame/shared/schema";
+import { actionFactory, defineGame } from "@openparty/core";
+import { BaseGameState } from "@openparty/shared/schema";
 import { z } from "zod";
 
 export const SecretSchema = schema({ word: t.string().default("") }, "SecretSchema");

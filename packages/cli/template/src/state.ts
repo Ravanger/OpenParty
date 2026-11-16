@@ -1,5 +1,5 @@
 import { type SchemaType, t } from "@colyseus/schema";
-import { BaseGameState } from "@partygame/shared/schema";
+import { BaseGameState } from "@openparty/shared/schema";
 
 export const __PascalName__State = BaseGameState.extend(
   {

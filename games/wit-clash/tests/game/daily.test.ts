@@ -1,5 +1,5 @@
-import { getActionLog, utcDay } from "@partygame/core";
-import { replayLog } from "@partygame/core/testing";
+import { getActionLog, utcDay } from "@openparty/core";
+import { replayLog } from "@openparty/core/testing";
 import { describe, expect, it } from "vitest";
 import { categoriesFromArray } from "../../src/content/CategoryRepository.js";
 import { createWitClashGame } from "../../src/game.js";

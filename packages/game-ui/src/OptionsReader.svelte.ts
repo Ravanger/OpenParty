@@ -1,5 +1,5 @@
-import type { GameConnectionManager } from "@partygame/game-client";
-import type { BaseGameState } from "@partygame/shared/schema";
+import type { GameConnectionManager } from "@openparty/game-client";
+import type { BaseGameState } from "@openparty/shared/schema";
 import type { z } from "zod";
 
 /**

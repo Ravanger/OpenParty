@@ -1,4 +1,4 @@
-import type { GameContext, PhaseDefinition } from "@partygame/core";
+import type { GameContext, PhaseDefinition } from "@openparty/core";
 import type { __PascalName__Options } from "./options.js";
 import type { __PascalName__State } from "./state.js";
 

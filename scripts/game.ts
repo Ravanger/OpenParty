@@ -82,7 +82,7 @@ if (!existsSync(join(root, entry))) {
   process.exit(2);
 }
 
-if (process.env.PARTYGAME_SKIP_BUILD !== "1") {
+if (process.env.OPENPARTY_SKIP_BUILD !== "1") {
   const name = games.find((g) => g.folder === game)?.name ?? game;
   const build = spawnSync(process.execPath, buildArgs(name), { cwd: root, stdio: "inherit" });
   if (build.status !== 0) {

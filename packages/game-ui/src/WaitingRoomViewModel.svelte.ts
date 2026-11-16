@@ -1,7 +1,7 @@
-import { joinUrl } from "@partygame/client-utils";
-import type { GameConnectionManager } from "@partygame/game-client";
-import { KICK_PLAYER, START_GAME } from "@partygame/shared";
-import type { BaseGameState } from "@partygame/shared/schema";
+import { joinUrl } from "@openparty/client-utils";
+import type { GameConnectionManager } from "@openparty/game-client";
+import { KICK_PLAYER, START_GAME } from "@openparty/shared";
+import type { BaseGameState } from "@openparty/shared/schema";
 import { NameField } from "./NameField.svelte.js";
 import { getStrings } from "./strings.js";
 

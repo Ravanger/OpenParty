@@ -1,5 +1,5 @@
-import { connectedClient } from "@partygame/game-client/testing";
-import { BaseGameState } from "@partygame/shared/schema";
+import { connectedClient } from "@openparty/game-client/testing";
+import { BaseGameState } from "@openparty/shared/schema";
 import { render, screen, waitFor } from "@testing-library/svelte";
 import { userEvent } from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";

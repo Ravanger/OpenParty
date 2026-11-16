@@ -1,9 +1,9 @@
-import { Countdown } from "@partygame/game-client";
+import { Countdown } from "@openparty/game-client";
 import {
   type BaseGameState,
   type PlayerSchema,
   syncedStateFromJson,
-} from "@partygame/shared/schema";
+} from "@openparty/shared/schema";
 
 /** One recorded phase boundary of a replay bundle: the synced state when `phase` ended. */
 export interface ReplaySnapshot {
@@ -37,7 +37,7 @@ export interface SnapshotManager<TState extends BaseGameState> {
   readonly state: TState;
 }
 
-/** Bundle format version this viewer understands; must match `BUNDLE_VERSION` in @partygame/core/replay. */
+/** Bundle format version this viewer understands; must match `BUNDLE_VERSION` in @openparty/core/replay. */
 const SUPPORTED_BUNDLE_VERSION = 1;
 const DEFAULT_INTERVAL_MS = 1000;
 

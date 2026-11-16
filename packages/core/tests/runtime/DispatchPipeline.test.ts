@@ -1,4 +1,4 @@
-import { CLIENT_MESSAGES, ErrorCode, FrameworkError, type ServerError } from "@partygame/shared";
+import { CLIENT_MESSAGES, ErrorCode, FrameworkError, type ServerError } from "@openparty/shared";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { DispatchPipeline } from "../../src/runtime/DispatchPipeline.js";

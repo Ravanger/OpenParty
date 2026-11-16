@@ -1,4 +1,4 @@
-import { PlayerSchema } from "@partygame/shared/schema";
+import { PlayerSchema } from "@openparty/shared/schema";
 import type { __PascalName__State } from "../../src/state.js";
 
 export const ME = "me-0000001";

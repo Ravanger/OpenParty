@@ -1,5 +1,5 @@
-import type { BotConnection, BotKit, DemoTable } from "@partygame/bots";
-import type { BaseGameState } from "@partygame/shared/schema";
+import type { BotConnection, BotKit, DemoTable } from "@openparty/bots";
+import type { BaseGameState } from "@openparty/shared/schema";
 
 /** The TCP ports the launcher's services listen on. */
 export interface LaunchPorts {

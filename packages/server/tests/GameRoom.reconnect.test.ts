@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { CloseCode } from "@colyseus/core";
-import { CLOSE_CODES, PROTOCOL_VERSION } from "@partygame/shared";
-import { syncedJsonOf } from "@partygame/shared/schema";
+import { CLOSE_CODES, PROTOCOL_VERSION } from "@openparty/shared";
+import { syncedJsonOf } from "@openparty/shared/schema";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import type { TestServer } from "../src/testing/index.js";
 import { waitUntil } from "../src/testing/index.js";

@@ -1,6 +1,6 @@
 import { createServer, request as httpRequest, type Server } from "node:http";
 import { networkInterfaces } from "node:os";
-import type { LogFields, Logger } from "@partygame/core";
+import type { LogFields, Logger } from "@openparty/core";
 import { afterEach, describe, expect, it } from "vitest";
 import { type NodeServerHandle, serveApi, startNodeServer } from "../src/node.js";
 import { freePort, ServerProbe } from "../src/probe.js";

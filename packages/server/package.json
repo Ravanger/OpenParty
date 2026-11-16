@@ -1,5 +1,5 @@
 {
-  "name": "@partygame/server",
+  "name": "@openparty/server",
   "version": "0.1.0",
   "private": true,
   "license": "Apache-2.0",
@@ -15,16 +15,16 @@
     "@colyseus/bun-websockets": "^0.18.3",
     "@colyseus/core": "^0.18.18",
     "@colyseus/schema": "^5.0.35",
-    "@partygame/client-utils": "workspace:*",
-    "@partygame/content": "workspace:*",
-    "@partygame/core": "workspace:*",
-    "@partygame/shared": "workspace:*",
+    "@openparty/client-utils": "workspace:*",
+    "@openparty/content": "workspace:*",
+    "@openparty/core": "workspace:*",
+    "@openparty/shared": "workspace:*",
     "@colyseus/sdk": "^0.18.4",
     "zod": "^4.6.5"
   },
   "devDependencies": {
     "@colyseus/ws-transport": "^0.18.4",
-    "@partygame/config": "workspace:*",
+    "@openparty/config": "workspace:*",
     "typescript": "^6.0.3",
     "vitest": "^4.1.11"
   },

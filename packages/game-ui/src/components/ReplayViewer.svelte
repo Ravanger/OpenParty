@@ -1,6 +1,6 @@
 <script lang="ts" generics="TState extends BaseGameState">
 // biome-ignore lint/correctness/noUnusedImports: used by the generics attribute
-import type { BaseGameState } from "@partygame/shared/schema";
+import type { BaseGameState } from "@openparty/shared/schema";
 import type { Component } from "svelte";
 import { type ReplayManager, ReplayViewModel, replayManager } from "../ReplayViewModel.svelte.js";
 

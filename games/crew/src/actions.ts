@@ -1,4 +1,4 @@
-import { actionFactory } from "@partygame/core";
+import { actionFactory } from "@openparty/core";
 import { z } from "zod";
 import { ACTION, GUESS_MAX, GUESS_MIN } from "./actionNames.js";
 import type { CrewOptions } from "./options.js";

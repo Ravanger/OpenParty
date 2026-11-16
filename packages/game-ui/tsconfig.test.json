@@ -4,7 +4,7 @@
     "noEmit": true,
     "rootDir": ".",
     "types": ["vitest/globals"],
-    "paths": { "@partygame/game-ui": ["./src/index.ts"] }
+    "paths": { "@openparty/game-ui": ["./src/index.ts"] }
   },
   "include": ["src", "tests", "vitest.setup.ts"]
 }

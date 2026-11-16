@@ -1,4 +1,4 @@
-/* The @partygame/game-ui base stylesheet: the look every framework component needs — the page
+/* The @openparty/game-ui base stylesheet: the look every framework component needs — the page
    baseline, cards, tape, chips, stickers, buttons, notices and the hand font class, all on the
    theme-contract tokens. Import it after theme-contract.css; games keep their own look by
    overriding the tokens, not these rules. */

@@ -1,5 +1,5 @@
-import { required } from "@partygame/core";
-import { leaders } from "@partygame/core/kits";
+import { required } from "@openparty/core";
+import { leaders } from "@openparty/core/kits";
 
 export interface TalliedOption {
   id: string;

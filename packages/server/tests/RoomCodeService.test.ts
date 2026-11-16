@@ -1,4 +1,4 @@
-import { ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH, RoomCodeSchema } from "@partygame/shared";
+import { ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH, RoomCodeSchema } from "@openparty/shared";
 import { beforeEach, describe, expect, it } from "vitest";
 import { RoomCodeService } from "../src/services/RoomCodeService.js";
 

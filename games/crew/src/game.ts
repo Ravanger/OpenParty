@@ -1,4 +1,4 @@
-import { defineGame } from "@partygame/core";
+import { defineGame } from "@openparty/core";
 import { Crew } from "./crew.js";
 import { META } from "./meta.js";
 import { type CrewOptions, CrewOptionsSchema } from "./options.js";

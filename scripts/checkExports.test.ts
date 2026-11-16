@@ -197,7 +197,7 @@ describe("buildCurrent", () => {
   const none: Snapshot = { knownViolations: [], packages: {} };
 
   const files = {
-    "packages/b/package.json": manifest("@partygame/b", {
+    "packages/b/package.json": manifest("@openparty/b", {
       ".": dist,
       "./extra": { svelte: "./src/extra.ts" },
       "./data.json": "./data.json",
@@ -228,10 +228,10 @@ describe("buildCurrent", () => {
     ].join("\n"),
     "packages/b/src/plain.ts": "const local = 1;\n",
     "packages/b/src/extra.ts": "export const extra = 1;\n",
-    "packages/a/package.json": manifest("@partygame/a", { ".": dist }),
+    "packages/a/package.json": manifest("@openparty/a", { ".": dist }),
     "packages/a/src/index.ts": [
-      'import type { Doc } from "@partygame/b";',
-      'export { Base } from "@partygame/b";',
+      'import type { Doc } from "@openparty/b";',
+      'export { Base } from "@openparty/b";',
       "/** Mine. */",
       "export class Mine implements Doc {",
       "  private hidden(): void {}",
@@ -246,7 +246,7 @@ describe("buildCurrent", () => {
       "}",
       "",
     ].join("\n"),
-    "packages/none/package.json": manifest("@partygame/none"),
+    "packages/none/package.json": manifest("@openparty/none"),
     "packages/stray/readme.txt": "no manifest",
   };
 

@@ -1,4 +1,4 @@
-import { RoomCodeSchema } from "@partygame/shared";
+import { RoomCodeSchema } from "@openparty/shared";
 import { DEFAULT_RESOLVE_CODE_BUCKET, type RateLimiter, type TokenBucket } from "../RateLimiter.js";
 import type { RoomCodeService } from "../services/RoomCodeService.js";
 

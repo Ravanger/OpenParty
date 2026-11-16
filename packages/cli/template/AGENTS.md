@@ -1,4 +1,4 @@
-# @partygame/__slug__
+# @openparty/__slug__
 
 ## Responsibility
 
@@ -11,8 +11,8 @@ The __DisplayNameMd__ game: rules, UI screens and entry points, built only on th
 
 ## May import
 
-- Runtime: `@partygame/bots`, `@partygame/core`, `@partygame/game-client`, `@partygame/game-kit`, `@partygame/game-ui`, `@partygame/shared`, `@partygame/terminal`
-- Dev: `@partygame/config`
+- Runtime: `@openparty/bots`, `@openparty/core`, `@openparty/game-client`, `@openparty/game-kit`, `@openparty/game-ui`, `@openparty/shared`, `@openparty/terminal`
+- Dev: `@openparty/config`
 
 ## Public entry points
 

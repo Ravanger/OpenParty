@@ -1,6 +1,6 @@
-import type { TextFilter } from "@partygame/content/filter";
-import { type NodeServerHandle, startNodeServer } from "@partygame/server/node";
-import { freePort, ServerProbe } from "@partygame/server/probe";
+import type { TextFilter } from "@openparty/content/filter";
+import { type NodeServerHandle, startNodeServer } from "@openparty/server/node";
+import { freePort, ServerProbe } from "@openparty/server/probe";
 import { describe, expect, it } from "vitest";
 import { defineGamePackage, type GameKitIo, type ServeOptions, serve } from "../src/index.js";
 import { fakeIo } from "./fixtures/fakeIo.js";

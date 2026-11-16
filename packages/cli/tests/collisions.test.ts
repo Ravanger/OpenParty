@@ -34,20 +34,20 @@ const addPackage = async (
 describe("findCollision", () => {
   it("reports a slug whose package name already exists", async () => {
     const root = await makeRoot();
-    await addPackage(root, "packages", "core", { name: "@partygame/core" });
-    await expect(findCollision(root, "core")).resolves.toMatch(/@partygame\/core/);
+    await addPackage(root, "packages", "core", { name: "@openparty/core" });
+    await expect(findCollision(root, "core")).resolves.toMatch(/@openparty\/core/);
   });
 
   it("reports a slug that is an existing game folder name", async () => {
     const root = await makeRoot();
-    // A package name that does not match @partygame/<folder>, so the folder rule is what fires.
+    // A package name that does not match @openparty/<folder>, so the folder rule is what fires.
     await addPackage(root, "games", "odd-game", { name: "unscoped" });
     await expect(findCollision(root, "odd-game")).resolves.toMatch(/existing game/);
   });
 
   it("reports a slug that is an existing game's -game project name", async () => {
     const root = await makeRoot();
-    await addPackage(root, "games", "alpha", { name: "@partygame/alpha" });
+    await addPackage(root, "games", "alpha", { name: "@openparty/alpha" });
     const message = await findCollision(root, "alpha-game");
     expect(message).toBeDefined();
     expect(message).toMatch(/vitest project/);
@@ -55,7 +55,7 @@ describe("findCollision", () => {
 
   it("reports a slug whose -game project is an existing game folder name", async () => {
     const root = await makeRoot();
-    await addPackage(root, "games", "bar-game", { name: "@partygame/bar-game" });
+    await addPackage(root, "games", "bar-game", { name: "@openparty/bar-game" });
     await expect(findCollision(root, "bar")).resolves.toMatch(/bar-game/);
   });
 
@@ -102,8 +102,8 @@ describe("findCollision", () => {
 
   it("returns undefined for a free slug among existing workspaces", async () => {
     const root = await makeRoot();
-    await addPackage(root, "packages", "core", { name: "@partygame/core" });
-    await addPackage(root, "games", "beta", { name: "@partygame/beta" });
+    await addPackage(root, "packages", "core", { name: "@openparty/core" });
+    await addPackage(root, "games", "beta", { name: "@openparty/beta" });
     await expect(findCollision(root, "fresh-game")).resolves.toBeUndefined();
   });
 });

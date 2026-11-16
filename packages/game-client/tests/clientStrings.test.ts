@@ -1,6 +1,6 @@
 import { Client } from "@colyseus/sdk";
-import { CLIENT_MESSAGES, ErrorCode, ROOM_CODE_LENGTH } from "@partygame/shared";
-import { BaseGameState } from "@partygame/shared/schema";
+import { CLIENT_MESSAGES, ErrorCode, ROOM_CODE_LENGTH } from "@openparty/shared";
+import { BaseGameState } from "@openparty/shared/schema";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { GameConnectionManager } from "../src/GameConnectionManager.svelte.js";
 import { defaultClientStrings } from "../src/strings.js";

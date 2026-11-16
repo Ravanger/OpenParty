@@ -1,4 +1,4 @@
-import { defineGamePackage } from "@partygame/game-kit";
+import { defineGamePackage } from "@openparty/game-kit";
 import { __camelName__Kit } from "./bots/__camelName__Bot.js";
 import { create__PascalName__Game } from "./src/game.js";
 import { isGameOver } from "./src/isGameOver.js";

@@ -24,7 +24,7 @@ describe("template dependency versions", () => {
     const referenceDeps = merged(await readManifest(REFERENCE));
     const drift = Object.entries(templateDeps)
       .filter(([name, range]) => {
-        if (name.startsWith("@partygame/")) return false; // workspace:* in both
+        if (name.startsWith("@openparty/")) return false; // workspace:* in both
         const referenceRange = referenceDeps[name];
         return referenceRange !== undefined && referenceRange !== range;
       })
@@ -36,7 +36,7 @@ describe("template dependency versions", () => {
     const templateDeps = merged(await readManifest(TEMPLATE));
     const referenceDeps = merged(await readManifest(REFERENCE));
     const missing = Object.keys(templateDeps).filter(
-      (name) => !name.startsWith("@partygame/") && referenceDeps[name] === undefined,
+      (name) => !name.startsWith("@openparty/") && referenceDeps[name] === undefined,
     );
     expect(missing).toEqual([]);
   });

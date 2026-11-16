@@ -1,6 +1,6 @@
 <script lang="ts">
-import { plural } from "@partygame/game-ui";
-import { ChoiceBoard, PhaseTimer, ScreenTitle } from "@partygame/game-ui/components";
+import { plural } from "@openparty/game-ui";
+import { ChoiceBoard, PhaseTimer, ScreenTitle } from "@openparty/game-ui/components";
 import { untrack } from "svelte";
 import type { BluffManager } from "../manager.js";
 import { VotingViewModel } from "../viewmodels/VotingViewModel.svelte.js";

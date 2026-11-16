@@ -1,5 +1,5 @@
 {
-  "name": "@partygame/game-client",
+  "name": "@openparty/game-client",
   "version": "0.1.0",
   "private": true,
   "license": "Apache-2.0",
@@ -30,15 +30,15 @@
   },
   "dependencies": {
     "@colyseus/sdk": "^0.18.4",
-    "@partygame/client-utils": "workspace:*",
-    "@partygame/shared": "workspace:*",
+    "@openparty/client-utils": "workspace:*",
+    "@openparty/shared": "workspace:*",
     "svelte": "^5.57.1"
   },
   "devDependencies": {
     "@colyseus/schema": "^5.0.35",
-    "@partygame/config": "workspace:*",
-    "@partygame/core": "workspace:*",
-    "@partygame/server": "workspace:*",
+    "@openparty/config": "workspace:*",
+    "@openparty/core": "workspace:*",
+    "@openparty/server": "workspace:*",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "typescript": "^6.0.3",
     "vitest": "^4.1.11",

@@ -1,4 +1,4 @@
-import { EmptyPayloadSchema } from "@partygame/core";
+import { EmptyPayloadSchema } from "@openparty/core";
 import { ACTION, defineAction } from "../actions.js";
 import { PHASE } from "../phaseNames.js";
 import type { __PascalName__Phase } from "../private.js";

@@ -1,6 +1,6 @@
 <script lang="ts">
-import { plural } from "@partygame/game-ui";
-import { PhaseTimer } from "@partygame/game-ui/components";
+import { plural } from "@openparty/game-ui";
+import { PhaseTimer } from "@openparty/game-ui/components";
 import { untrack } from "svelte";
 import type { BluffManager } from "../manager.js";
 import { RevealViewModel } from "../viewmodels/RevealViewModel.js";

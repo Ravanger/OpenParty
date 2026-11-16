@@ -1,11 +1,11 @@
-import { actionLogMiddleware, type LogFields, type Logger } from "@partygame/core";
-import { parseBundle, verifyBundle } from "@partygame/core/replay";
+import { actionLogMiddleware, type LogFields, type Logger } from "@openparty/core";
+import { parseBundle, verifyBundle } from "@openparty/core/replay";
 import {
   type ActionResult,
   CLIENT_MESSAGES,
   ClientMessage,
   type ExportReplayResponse,
-} from "@partygame/shared";
+} from "@openparty/shared";
 import { afterEach, describe, expect, it } from "vitest";
 import { type TestServer, waitUntil } from "../src/testing/index.js";
 import { BUZZER_PUBLIC_FIELDS, BuzzerGame, BuzzerState } from "./fixtures/buzzer.js";

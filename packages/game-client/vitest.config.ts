@@ -1,7 +1,7 @@
-import { uiTestConfig } from "@partygame/config/vitest";
+import { uiTestConfig } from "@openparty/config/vitest";
 
 export default uiTestConfig({
-  name: "@partygame/game-client",
+  name: "@openparty/game-client",
   coverage: ["src/**/*.ts"],
   setupFiles: ["./vitest.setup.ts"],
 });

@@ -3,7 +3,7 @@
 > **Versions:** none installed. `@colyseus/testing` and `@colyseus/tools` are intentionally not dependencies; the repo ships its own harness.
 
 ## Overview
-Every server and game integration test runs a **real Colyseus server on a free port** through `@partygame/server/testing` (`packages/server/src/testing/index.ts`), which also serves game authors. No test mocks `colyseus`, `@colyseus/core` or `@colyseus/schema`.
+Every server and game integration test runs a **real Colyseus server on a free port** through `@openparty/server/testing` (`packages/server/src/testing/index.ts`), which also serves game authors. No test mocks `colyseus`, `@colyseus/core` or `@colyseus/schema`.
 
 ## Harness API
 | Export | Description |

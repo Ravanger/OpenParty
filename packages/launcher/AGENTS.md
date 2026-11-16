@@ -1,4 +1,4 @@
-# @partygame/launcher
+# @openparty/launcher
 
 ## Responsibility
 
@@ -7,13 +7,13 @@
 ## Never put here
 
 - Game rules or game vocabulary.
-- Port-probing primitives (they live in `@partygame/server/probe`).
+- Port-probing primitives (they live in `@openparty/server/probe`).
 - Per-game scripts; a game supplies a `LaunchConfig` through game-kit `launch`.
 
 ## May import
 
-- Runtime: `@partygame/bots`, `@partygame/client-utils`, `@partygame/server`, `@partygame/shared`
-- Dev: `@partygame/config`, `@partygame/core`
+- Runtime: `@openparty/bots`, `@openparty/client-utils`, `@openparty/server`, `@openparty/shared`
+- Dev: `@openparty/config`, `@openparty/core`
 
 ## Public entry points
 

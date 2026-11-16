@@ -1,4 +1,4 @@
-import { actionFactory } from "@partygame/core";
+import { actionFactory } from "@openparty/core";
 import { ACTION } from "./actionNames.js";
 import type { RushOptions } from "./options.js";
 import type { RushPrivate } from "./private.js";

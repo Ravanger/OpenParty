@@ -1,5 +1,5 @@
-import type { PlayerInfo } from "@partygame/core";
-import { TestTable } from "@partygame/core/testing";
+import type { PlayerInfo } from "@openparty/core";
+import { TestTable } from "@openparty/core/testing";
 import { type Prompt, promptsFromArray } from "../../src/content/PromptRepository.js";
 import { createBluffGame } from "../../src/game.js";
 import { type BluffOptions, BluffOptionsSchema } from "../../src/options.js";

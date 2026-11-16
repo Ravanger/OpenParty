@@ -1,4 +1,4 @@
-import { required } from "@partygame/core";
+import { required } from "@openparty/core";
 import { describe, expect, it } from "vitest";
 import { createWitClashGame } from "../../src/game.js";
 import { makeCategories } from "./support.js";

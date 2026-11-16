@@ -22,7 +22,7 @@ Each screen has a typed viewmodel that can be tested in isolation (jsdom, no Sve
 ## Where it lives
 
 - `packages/game-ui/src/*.svelte.ts` — `WelcomeViewModel`, `WaitingRoomViewModel`, `LobbySettingsViewModel`, `GameControlsViewModel`, `NameField`; `AppRouter` in `packages/game-ui/src/AppRouter.ts`
-- `packages/game-ui/tests/` — viewmodel tests with `connectedClient` from `@partygame/game-client/testing`
+- `packages/game-ui/tests/` — viewmodel tests with `connectedClient` from `@openparty/game-client/testing`
 - `games/wit-clash/ui/screens/*.svelte` — components using viewmodels
 - `packages/config/src/svelte.ts` — Svelte compiler config with `runes: true`
 - `docs/framework/README.md` — Game UI viewmodels section

@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { type TestServer, waitUntil } from "@partygame/server/testing";
+import { type TestServer, waitUntil } from "@openparty/server/testing";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
   answerAll,

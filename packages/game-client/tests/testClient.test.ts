@@ -1,4 +1,4 @@
-import { BaseGameState } from "@partygame/shared/schema";
+import { BaseGameState } from "@openparty/shared/schema";
 import { flushSync } from "svelte";
 import { describe, expect, it } from "vitest";
 import { addSeat, connectedClient, fakeFetch } from "../src/testing.js";

@@ -1,6 +1,6 @@
 import type { Server as HttpServer } from "node:http";
 import { connect, createServer as createSocketServer } from "node:net";
-import { ResolveCodeResponseSchema } from "@partygame/shared";
+import { ResolveCodeResponseSchema } from "@openparty/shared";
 import { z } from "zod";
 
 const AddressSchema = z.object({ port: z.number() });

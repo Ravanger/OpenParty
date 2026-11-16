@@ -1,5 +1,5 @@
 <script lang="ts">
-import { ActionBar, PlayerSticker } from "@partygame/game-ui/components";
+import { ActionBar, PlayerSticker } from "@openparty/game-ui/components";
 import { untrack } from "svelte";
 import type { __PascalName__Manager } from "../manager.js";
 import { WavingViewModel } from "../viewmodels/WavingViewModel.js";

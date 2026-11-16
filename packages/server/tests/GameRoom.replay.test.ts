@@ -1,13 +1,13 @@
 import type { Room } from "@colyseus/core";
-import { actionLogMiddleware, required } from "@partygame/core";
-import { parseBundle, replayLog, verifyBundle } from "@partygame/core/replay";
+import { actionLogMiddleware, required } from "@openparty/core";
+import { parseBundle, replayLog, verifyBundle } from "@openparty/core/replay";
 import {
   CLIENT_MESSAGES,
   ClientMessage,
   type ExportReplayResponse,
   FRAMEWORK_VERSION,
-} from "@partygame/shared";
-import { BaseGameState } from "@partygame/shared/schema";
+} from "@openparty/shared";
+import { BaseGameState } from "@openparty/shared/schema";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import type { GameRoom } from "../src/rooms/GameRoom.js";
 import type { TestServer } from "../src/testing/index.js";

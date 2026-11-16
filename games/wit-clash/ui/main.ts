@@ -1,9 +1,9 @@
 import "@fontsource/lilita-one";
 import "@fontsource/gochi-hand";
 import "./app.css";
-import { clientConfig, GameConnectionManager } from "@partygame/game-client";
-import { mountReplayIfRequested } from "@partygame/game-ui";
-import { ReplayViewer } from "@partygame/game-ui/components";
+import { clientConfig, GameConnectionManager } from "@openparty/game-client";
+import { mountReplayIfRequested } from "@openparty/game-ui";
+import { ReplayViewer } from "@openparty/game-ui/components";
 import { mount } from "svelte";
 import { META } from "../src/meta.js";
 import { WitClashState } from "../src/state.js";

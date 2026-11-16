@@ -1,4 +1,4 @@
-# @partygame/game-ui
+# @openparty/game-ui
 
 ## Responsibility
 
@@ -13,8 +13,8 @@ Generic Svelte 5 viewmodels and components for the screens every game has (welco
 
 ## May import
 
-- Runtime: `@partygame/client-utils`, `@partygame/game-client`, `@partygame/shared`
-- Dev: `@partygame/config`
+- Runtime: `@openparty/client-utils`, `@openparty/game-client`, `@openparty/shared`
+- Dev: `@openparty/config`
 
 ## Public entry points
 
@@ -26,7 +26,7 @@ Generic Svelte 5 viewmodels and components for the screens every game has (welco
 
 ## Tests
 
-`tests/` (jsdom, Testing Library); build state through `StubRoom` from `@partygame/game-client/testing`.
+`tests/` (jsdom, Testing Library); build state through `StubRoom` from `@openparty/game-client/testing`.
 
 ## Before you add a file
 

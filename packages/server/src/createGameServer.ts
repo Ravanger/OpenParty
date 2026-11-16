@@ -1,7 +1,7 @@
 import type { ServerOptions, Transport } from "@colyseus/core";
-import type { TextFilter } from "@partygame/content/filter";
-import type { GameDefinition, Logger } from "@partygame/core";
-import { assertSyncedFields, type BaseGameState } from "@partygame/shared/schema";
+import type { TextFilter } from "@openparty/content/filter";
+import type { GameDefinition, Logger } from "@openparty/core";
+import { assertSyncedFields, type BaseGameState } from "@openparty/shared/schema";
 import { GameColyseusServer } from "./gameTransport.js";
 import { jsonLineLogger } from "./logger.js";
 import {

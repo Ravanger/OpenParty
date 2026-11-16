@@ -1,6 +1,6 @@
-import type { GameConnectionManager } from "@partygame/game-client";
-import { END_GAME, LOBBY_PHASE } from "@partygame/shared";
-import type { BaseGameState } from "@partygame/shared/schema";
+import type { GameConnectionManager } from "@openparty/game-client";
+import { END_GAME, LOBBY_PHASE } from "@openparty/shared";
+import type { BaseGameState } from "@openparty/shared/schema";
 
 /** Leave and, for the host, end the game: shown in every phase except the lobby, which has its own leave button. */
 export class GameControlsViewModel<TState extends BaseGameState> {

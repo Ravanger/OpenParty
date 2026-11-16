@@ -1,7 +1,7 @@
 import { type SchemaType, t } from "@colyseus/schema";
-import { actionFactory, defineGame } from "@partygame/core";
-import { ErrorCode } from "@partygame/shared";
-import { BaseGameState } from "@partygame/shared/schema";
+import { actionFactory, defineGame } from "@openparty/core";
+import { ErrorCode } from "@openparty/shared";
+import { BaseGameState } from "@openparty/shared/schema";
 import { z } from "zod";
 
 export const PollState = BaseGameState.extend(

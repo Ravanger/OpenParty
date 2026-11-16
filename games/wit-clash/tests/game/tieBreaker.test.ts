@@ -1,4 +1,4 @@
-import { required } from "@partygame/core";
+import { required } from "@openparty/core";
 import { describe, expect, it } from "vitest";
 import { makeCategories, nth, Table, type TableConfig } from "./support.js";
 

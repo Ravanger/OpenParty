@@ -1,6 +1,6 @@
 import { CloseCode } from "@colyseus/sdk";
-import { bootTestServer, type TestServer, waitUntil } from "@partygame/server/testing";
-import { ErrorCode, PROTOCOL_VERSION, RoomCodeSchema } from "@partygame/shared";
+import { bootTestServer, type TestServer, waitUntil } from "@openparty/server/testing";
+import { ErrorCode, PROTOCOL_VERSION, RoomCodeSchema } from "@openparty/shared";
 import { flushSync } from "svelte";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { GameConnectionManager } from "../src/GameConnectionManager.svelte.js";

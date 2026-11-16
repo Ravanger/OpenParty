@@ -1,4 +1,4 @@
-import { assertSyncedFields } from "@partygame/shared/schema";
+import { assertSyncedFields } from "@openparty/shared/schema";
 import { describe, expect, it } from "vitest";
 import { gamePackage } from "../../gamePackage.js";
 import { promptsFromArray } from "../../src/content/PromptRepository.js";

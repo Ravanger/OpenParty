@@ -1,4 +1,4 @@
-# @partygame/game-client
+# @openparty/game-client
 
 Svelte 5 SDK: connect to a game, manage state, send actions. No game-specific code.
 
@@ -6,16 +6,16 @@ Ships source (`.ts`/`.svelte.ts`); consumers need the Svelte plugin — Vite wit
 
 | Import | What |
 |---|---|
-| `@partygame/game-client` | `GameConnectionManager<TState>`: connect, sync, send actions; `Countdown`, `isUrgent(secondsLeft)`, `FeedbackBus`, `clientConfig(env?)`, `resolveEndpoints`, `readCodeParam`, `readUrlCode(search?)`, `readUrlTvCode(search?)`; `ClientStrings`, `defaultClientStrings` for the manager's `strings` option; types `GameConnectionOptions` (server endpoints, room name and storage namespace), `ConnectionStatus`, `FeedbackEvent` (any bus event, discriminated by `type`), `ClientEnv` (the `VITE_*` build-env keys) |
-| `@partygame/game-client/testing` | `StubRoom`, `connectedClient`, `fakeFetch` for UI tests without a server |
-| `@partygame/game-client/test-setup` | jsdom setup (shims storage, fixes WebSocket for the SDK) |
+| `@openparty/game-client` | `GameConnectionManager<TState>`: connect, sync, send actions; `Countdown`, `isUrgent(secondsLeft)`, `FeedbackBus`, `clientConfig(env?)`, `resolveEndpoints`, `readCodeParam`, `readUrlCode(search?)`, `readUrlTvCode(search?)`; `ClientStrings`, `defaultClientStrings` for the manager's `strings` option; types `GameConnectionOptions` (server endpoints, room name and storage namespace), `ConnectionStatus`, `FeedbackEvent` (any bus event, discriminated by `type`), `ClientEnv` (the `VITE_*` build-env keys) |
+| `@openparty/game-client/testing` | `StubRoom`, `connectedClient`, `fakeFetch` for UI tests without a server |
+| `@openparty/game-client/test-setup` | jsdom setup (shims storage, fixes WebSocket for the SDK) |
 
 ## Create the manager
 
 One manager per app. `storagePrefix` namespaces the browser storage; `rootSchema` is your state class (import it from a browser-safe `state.ts`).
 
 ```ts
-import { GameConnectionManager, clientConfig } from "@partygame/game-client";
+import { GameConnectionManager, clientConfig } from "@openparty/game-client";
 
 const { resolveEndpoints } = clientConfig(import.meta.env);
 const { endpoint, apiPort, apiBase } = resolveEndpoints(); // page host:2567 and API 3001, or the VITE_* overrides
@@ -50,7 +50,7 @@ await manager.leave();                   // forgets the room
 `join` options (`JoinOptions`): `name`, `spectator`, and `joinData` (string/number/boolean values; at most 8 keys, keys up to 32 characters, strings up to 256). `joinData` is sent once per join and never stored or logged by the manager.
 
 ```ts
-import { readUrlCode, readUrlTvCode } from "@partygame/game-client";
+import { readUrlCode, readUrlTvCode } from "@openparty/game-client";
 
 readUrlCode(); // "ABCD" from ?code=abcd, else undefined
 readUrlTvCode(); // "ABCD" from ?tv=abcd for a TV display, else undefined
@@ -97,7 +97,7 @@ manager.onMessage("TURN", (turn) => turn.id); // typed; other names are a compil
 
 ## Export the replay
 
-`exportReplay()` is the client route to the host-only `EXPORT_REPLAY` request (#19's server child). It resolves with an `ExportReplayResponse` from `@partygame/shared`: the room's replay bundle for the host, or a refusal — the server's well-formed refusal (for example `UNAUTHORIZED` for a non-host) is passed through and remembered in `lastServerError`, while a malformed reply becomes a fixed `BAD_REPLY`. A request that cannot be sent or answered fails locally with `NOT_CONNECTED` (no room) or `CONNECTION_LOST` (the exception goes to the `logger` option, default `console.warn`).
+`exportReplay()` is the client route to the host-only `EXPORT_REPLAY` request (#19's server child). It resolves with an `ExportReplayResponse` from `@openparty/shared`: the room's replay bundle for the host, or a refusal — the server's well-formed refusal (for example `UNAUTHORIZED` for a non-host) is passed through and remembered in `lastServerError`, while a malformed reply becomes a fixed `BAD_REPLY`. A request that cannot be sent or answered fails locally with `NOT_CONNECTED` (no room) or `CONNECTION_LOST` (the exception goes to the `logger` option, default `console.warn`).
 
 ```ts
 const response = await manager.exportReplay(); // host: the bundle; non-host: { ok: false, error }
@@ -137,10 +137,10 @@ The manager runs its state watchers (phase observation and the urgency timer) on
 
 ## Test UI without a server
 
-`connectedClient` builds a manager attached to a `StubRoom` around a real state object (`setup(state)` fills it first). Mutate the state, then `patch()` as Colyseus would. Add `"@partygame/game-client/test-setup"` to the vitest `setupFiles` (the `@partygame/config` UI preset does).
+`connectedClient` builds a manager attached to a `StubRoom` around a real state object (`setup(state)` fills it first). Mutate the state, then `patch()` as Colyseus would. Add `"@openparty/game-client/test-setup"` to the vitest `setupFiles` (the `@openparty/config` UI preset does).
 
 ```ts
-import { addSeat, connectedClient } from "@partygame/game-client/testing";
+import { addSeat, connectedClient } from "@openparty/game-client/testing";
 
 const c = connectedClient({
   stateClass: ButtonState,
@@ -156,6 +156,6 @@ c.room.requests; // what the UI sent
 
 `connectedClient(options)` takes `ConnectedClientOptions` and returns a `ConnectedClient` (manager, state, stub room and own seat); `addSeat` takes a `SeatConfig` (overrides for the seat, unset fields take the defaults). `fakeFetch({ roomId })` stands in for the code API and returns a recording `FetchStub`; `StubRoom` also has `push`, `dropConnection`, `reconnected` and `closed`.
 
-Depends on: `@partygame/client-utils`, `@partygame/shared`, `@colyseus/sdk`, `svelte`
+Depends on: `@openparty/client-utils`, `@openparty/shared`, `@colyseus/sdk`, `svelte`
 
 Guide: [docs/framework/README.md#client-sdk](../../docs/framework/README.md#client-sdk)

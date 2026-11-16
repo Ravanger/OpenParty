@@ -1,8 +1,8 @@
-/* Theme for this game: only the tokens that differ from the @partygame/game-ui theme contract,
+/* Theme for this game: only the tokens that differ from the @openparty/game-ui theme contract,
    plus this game's app-shell faces. The base look (cards, tape, chips, stickers, buttons,
    notices) comes from the shared stylesheets imported below. Restyle freely. */
-@import "@partygame/game-ui/theme-contract.css";
-@import "@partygame/game-ui/base.css";
+@import "@openparty/game-ui/theme-contract.css";
+@import "@openparty/game-ui/base.css";
 
 :root {
   color-scheme: light;

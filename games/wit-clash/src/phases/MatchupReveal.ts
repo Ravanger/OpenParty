@@ -1,5 +1,5 @@
-import { awardPoints, endIfBelowMinimum, required } from "@partygame/core";
-import { tallyVotes } from "@partygame/core/kits";
+import { awardPoints, endIfBelowMinimum, required } from "@openparty/core";
+import { tallyVotes } from "@openparty/core/kits";
 import { META } from "../meta.js";
 import { PHASE } from "../phaseNames.js";
 import type { WitClashContext, WitClashPhase } from "../private.js";

@@ -5,7 +5,7 @@ import { formatGame, parseCreateArgs, runCreate } from "./create.js";
 
 const [command, ...rest] = process.argv.slice(2);
 if (command !== "create") {
-  console.error('Usage: partygame create <slug> [--name "Display Name"] [--headless]');
+  console.error('Usage: openparty create <slug> [--name "Display Name"] [--headless]');
   process.exit(2);
 }
 const args = parseCreateArgs(rest);

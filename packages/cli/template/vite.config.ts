@@ -1,3 +1,3 @@
-import { defineGameViteConfig } from "@partygame/config/vite";
+import { defineGameViteConfig } from "@openparty/config/vite";
 
 export default defineGameViteConfig();

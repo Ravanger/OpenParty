@@ -1,5 +1,5 @@
 <script lang="ts">
-import { plural, Spotlight } from "@partygame/game-ui";
+import { plural, Spotlight } from "@openparty/game-ui";
 import {
   ActionBar,
   Confetti,
@@ -7,7 +7,7 @@ import {
   PlayerSticker,
   Podium,
   StatusPanel,
-} from "@partygame/game-ui/components";
+} from "@openparty/game-ui/components";
 import { untrack } from "svelte";
 import MatchupCard from "../components/MatchupCard.svelte";
 import Scoreboard from "../components/Scoreboard.svelte";

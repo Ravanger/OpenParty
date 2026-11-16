@@ -1,5 +1,5 @@
-import { createTextFilter } from "@partygame/content/filter";
-import { actionLogMiddleware, defineGame, textFilterMiddleware } from "@partygame/core";
+import { createTextFilter } from "@openparty/content/filter";
+import { actionLogMiddleware, defineGame, textFilterMiddleware } from "@openparty/core";
 import type { PromptRepository } from "./content/PromptRepository.js";
 import { META } from "./meta.js";
 import { type BluffOptions, BluffOptionsSchema } from "./options.js";

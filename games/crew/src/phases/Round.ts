@@ -1,5 +1,5 @@
-import { EmptyPayloadSchema, endIfBelowMinimum } from "@partygame/core";
-import { ErrorCode } from "@partygame/shared";
+import { EmptyPayloadSchema, endIfBelowMinimum } from "@openparty/core";
+import { ErrorCode } from "@openparty/shared";
 import { ACTION, defineAction } from "../actions.js";
 import { Crew, TOO_FEW_PLAYERS_NOTICE } from "../crew.js";
 import { META } from "../meta.js";

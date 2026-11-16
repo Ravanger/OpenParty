@@ -26,7 +26,7 @@ What the framework does and does not protect, for game authors and maintainers. 
 | Client → room (WebSocket) | Join options, `ACTION` envelopes, `SET_NAME`, `EXPORT_REPLAY` | Adversarial. Every byte is schema-validated before it reaches game code; rejections are fixed client-safe messages. |
 | Client → HTTP API (`/api/resolve-code`) | Room code lookups | Adversarial origin and address. CORS allow-list (loopback by default) plus a per-address token bucket. |
 | Game → framework | `defineGame` definitions, phase hooks, action handlers, `publicFields` declarations | Trusted author. The framework enforces the boundaries the game *declares* (e.g. which state fields are public) and refuses to boot on violations. |
-| Content files → server | JSON/JSONC data files loaded at startup | Trusted deployer. Parsed and validated against a caller-supplied schema (`@partygame/content`). |
+| Content files → server | JSON/JSONC data files loaded at startup | Trusted deployer. Parsed and validated against a caller-supplied schema (`@openparty/content`). |
 
 ## Player ids
 
@@ -116,7 +116,7 @@ What the framework does and does not protect, for game authors and maintainers. 
 
 **Today.**
 - Names: `SetNameSchema` trims and enforces 1–`NAME_MAX_LENGTH` (20) code points with no control, format or separator characters and at least one visible character — invisible-only names (zero-width spaces) and bidi overrides (U+202E) are refused (`SetNameSchema` in `packages/shared/src/protocol.ts`, `NAME_MAX_LENGTH` in `packages/shared/src/limits.ts`); duplicate names are refused (`NAME_TAKEN`), a taken join-time name is dropped.
-- Optional profanity filtering: a `TextFilter` from `@partygame/content` wired into `createGameServer`; names are checked at join (close 4405) and on `SET_NAME`, and action text fields via `textFilterMiddleware` (`packages/core/src/middleware.ts`) at the game's `filterLevel` (`off`/`moderate`/`strict`, default `off`). Filtered rejections are recorded **without** the offending text (`redactPayload`; `packages/core/src/actionLog.ts`). Tests: `packages/server/tests/GameRoom.filter.test.ts`.
+- Optional profanity filtering: a `TextFilter` from `@openparty/content` wired into `createGameServer`; names are checked at join (close 4405) and on `SET_NAME`, and action text fields via `textFilterMiddleware` (`packages/core/src/middleware.ts`) at the game's `filterLevel` (`off`/`moderate`/`strict`, default `off`). Filtered rejections are recorded **without** the offending text (`redactPayload`; `packages/core/src/actionLog.ts`). Tests: `packages/server/tests/GameRoom.filter.test.ts`.
 - The framework does not sanitize HTML. Svelte escapes text interpolation by default; rendering user content with `@html` would be an unsanitized XSS hole and is the game's responsibility.
 
 **Expectation for game authors.** Never render user content through `@html`; set a `filterLevel` appropriate to your audience (a kids' party table wants `strict`); treat names as display-only labels, never as identifiers beyond `playerId`.
@@ -172,7 +172,7 @@ What the framework does and does not protect, for game authors and maintainers. 
 
 **Expectation for game authors.** Keep phase hooks and handlers fast and allocation-light — a pathological hook blocks the process's event loop, and no framework cap can save you from your own code. A hook that throws returns the room to the Lobby via `onError`; it does not take the process down.
 
-**Status.** `mitigated` for per-client floods, oversized frames and room spam; what remains is listed under *Open findings*. The structured logger (`jsonLineLogger` from `@partygame/server`; `GameRoom.logLine`) records `room.created`, `player.joined`, `player.left`, `player.reconnected` and `action.rejected`, but a rate-limit refusal (`GameRoom.limited` returning false) and a host `EXPORT_REPLAY` write no log line, so who flooded or exported, and when, is not recorded.
+**Status.** `mitigated` for per-client floods, oversized frames and room spam; what remains is listed under *Open findings*. The structured logger (`jsonLineLogger` from `@openparty/server`; `GameRoom.logLine`) records `room.created`, `player.joined`, `player.left`, `player.reconnected` and `action.rejected`, but a rate-limit refusal (`GameRoom.limited` returning false) and a host `EXPORT_REPLAY` write no log line, so who flooded or exported, and when, is not recorded.
 
 ## Open findings
 

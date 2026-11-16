@@ -1,6 +1,6 @@
-import { waitFor } from "@partygame/client-utils";
-import { RoomCodeSchema } from "@partygame/shared";
-import type { BaseGameState } from "@partygame/shared/schema";
+import { waitFor } from "@openparty/client-utils";
+import { RoomCodeSchema } from "@openparty/shared";
+import type { BaseGameState } from "@openparty/shared/schema";
 import { OPEN_TIMEOUT_MS } from "./timeouts.js";
 
 const POLL_MS = 20;

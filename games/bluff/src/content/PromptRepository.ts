@@ -1,4 +1,4 @@
-import { loadJsoncDirWithFiles } from "@partygame/content";
+import { loadJsoncDirWithFiles } from "@openparty/content";
 import { z } from "zod";
 
 const PromptSchema = z.object({

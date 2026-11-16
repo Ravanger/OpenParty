@@ -1,5 +1,5 @@
-import type { TextFilter } from "@partygame/content/filter";
-import { ErrorCode } from "@partygame/shared";
+import type { TextFilter } from "@openparty/content/filter";
+import { ErrorCode } from "@openparty/shared";
 import {
   InvalidPrivateStateError,
   type MiddlewareContext,

@@ -1,6 +1,6 @@
-import type { BotKit } from "@partygame/bots";
-import { waitFor } from "@partygame/client-utils";
-import { type NodeServerHandle, startNodeServer } from "@partygame/server/node";
+import type { BotKit } from "@openparty/bots";
+import { waitFor } from "@openparty/client-utils";
+import { type NodeServerHandle, startNodeServer } from "@openparty/server/node";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { GameClient } from "../src/GameClient.js";
 import { runBotsCommand } from "../src/runBotsCommand.js";

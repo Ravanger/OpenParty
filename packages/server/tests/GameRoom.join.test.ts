@@ -1,5 +1,5 @@
 import { matchMaker, type Room } from "@colyseus/core";
-import { CLIENT_MESSAGES, CLOSE_CODES, PROTOCOL_VERSION, RoomCodeSchema } from "@partygame/shared";
+import { CLIENT_MESSAGES, CLOSE_CODES, PROTOCOL_VERSION, RoomCodeSchema } from "@openparty/shared";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { collectMessages, type TestServer, waitUntil } from "../src/testing/index.js";
 import { LOCKED_PASSWORD } from "./fixtures/locked.js";

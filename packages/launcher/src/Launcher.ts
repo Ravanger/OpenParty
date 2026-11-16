@@ -1,9 +1,9 @@
 import { spawn } from "node:child_process";
 import { join } from "node:path";
-import { type BotConnection, BotTable, type DemoTable } from "@partygame/bots";
-import { joinUrl, tvUrl } from "@partygame/client-utils";
-import { ServerProbe } from "@partygame/server/probe";
-import type { BaseGameState } from "@partygame/shared/schema";
+import { type BotConnection, BotTable, type DemoTable } from "@openparty/bots";
+import { joinUrl, tvUrl } from "@openparty/client-utils";
+import { ServerProbe } from "@openparty/server/probe";
+import type { BaseGameState } from "@openparty/shared/schema";
 import type { LaunchArgs, LaunchMode } from "./LaunchArgs.js";
 import { type BrowserSpawner, lanUrls, openBrowser } from "./network.js";
 import { ProcessGroup } from "./ProcessGroup.js";

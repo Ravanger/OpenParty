@@ -1,4 +1,4 @@
-import { ServerMessage } from "@partygame/shared";
+import { ServerMessage } from "@openparty/shared";
 import { ManualHost } from "../runtime/ManualHost.js";
 import type { Logger, LogLevel, LogLine, RuntimeHost, TimerHandle } from "../runtime/types.js";
 import { MAX_TIMER_FIRES_PER_ADVANCE, TimerLimitError } from "../timers.js";

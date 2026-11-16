@@ -1,11 +1,11 @@
-import { DEFAULT_PORTS } from "@partygame/launcher";
-import type { BaseGameState } from "@partygame/shared/schema";
+import { DEFAULT_PORTS } from "@openparty/launcher";
+import type { BaseGameState } from "@openparty/shared/schema";
 import {
   PlaySession,
   type PlaySessionOptions,
   parsePlayArgs,
   TerminalPlayer,
-} from "@partygame/terminal";
+} from "@openparty/terminal";
 import { failWith } from "./fail.js";
 import { hostedGame } from "./hostedGame.js";
 import { defaultIo } from "./io.js";

@@ -1,4 +1,4 @@
-import { CLIENT_MESSAGES } from "@partygame/shared";
+import { CLIENT_MESSAGES } from "@openparty/shared";
 import { describe, expect, it } from "vitest";
 import { makeCategories, nth, Table, type TableConfig } from "./support.js";
 

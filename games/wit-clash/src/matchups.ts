@@ -1,4 +1,4 @@
-import { required, shuffle } from "@partygame/core";
+import { required, shuffle } from "@openparty/core";
 
 export interface PlannedMatchup {
   index: number;

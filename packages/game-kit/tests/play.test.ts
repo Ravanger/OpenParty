@@ -1,7 +1,7 @@
-import { startNodeServer } from "@partygame/server/node";
-import { freePort } from "@partygame/server/probe";
-import type { TerminalStrategy } from "@partygame/terminal";
-import { ScriptedIo } from "@partygame/terminal/testing";
+import { startNodeServer } from "@openparty/server/node";
+import { freePort } from "@openparty/server/probe";
+import type { TerminalStrategy } from "@openparty/terminal";
+import { ScriptedIo } from "@openparty/terminal/testing";
 import { describe, expect, it, vi } from "vitest";
 import { defineGamePackage, hostedGame, play } from "../src/index.js";
 import { fakeIo } from "./fixtures/fakeIo.js";

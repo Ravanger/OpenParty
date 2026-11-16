@@ -1,20 +1,20 @@
-# @partygame/config
+# @openparty/config
 
 Build and test presets so a game's config files are one-liners. Add it as a devDependency.
 
 | Import | What |
 |---|---|
-| `@partygame/config/vite` | `defineGameViteConfig({ port?, overrides? })` (`GameViteOptions`: dev server port and Vite overrides merged into the game's client config): Svelte, LAN dev server, `development` condition only for `vite serve` |
-| `@partygame/config/vitest` | `uiTestConfig`, `nodeTestConfig`: jsdom + Svelte or node test projects |
-| `@partygame/config/svelte` | `svelteConfig`: `vitePreprocess()`, runes mode |
-| `@partygame/config/node-test-setup` | vitest setup file (the default `setupFiles` of `nodeTestConfig`): defines a global `WebSocket` on Node < 21, where Colyseus's reconnect path reads it |
-| `@partygame/config/tsconfig.base.json`, `/tsconfig.game.json` | compiler options for a game (`game` extends `base`) |
+| `@openparty/config/vite` | `defineGameViteConfig({ port?, overrides? })` (`GameViteOptions`: dev server port and Vite overrides merged into the game's client config): Svelte, LAN dev server, `development` condition only for `vite serve` |
+| `@openparty/config/vitest` | `uiTestConfig`, `nodeTestConfig`: jsdom + Svelte or node test projects |
+| `@openparty/config/svelte` | `svelteConfig`: `vitePreprocess()`, runes mode |
+| `@openparty/config/node-test-setup` | vitest setup file (the default `setupFiles` of `nodeTestConfig`): defines a global `WebSocket` on Node < 21, where Colyseus's reconnect path reads it |
+| `@openparty/config/tsconfig.base.json`, `/tsconfig.game.json` | compiler options for a game (`game` extends `base`) |
 
 ## Vite
 
 ```ts
 // vite.config.ts
-import { defineGameViteConfig } from "@partygame/config/vite";
+import { defineGameViteConfig } from "@openparty/config/vite";
 
 export default defineGameViteConfig();
 // defineGameViteConfig({ port: 5200, overrides: { build: { sourcemap: true } } })
@@ -24,33 +24,33 @@ export default defineGameViteConfig();
 
 ## Vitest
 
-`uiTestConfig` runs jsdom + Svelte tests with jest-dom and `@partygame/game-client/test-setup` as default `setupFiles`. `nodeTestConfig` is for rules, bots and terminal tests. Both compile Svelte sources (`.svelte`, `.svelte.ts`) with the same transform, so a node test that loads another package's runes file (e.g. `GameConnectionManager` via `@partygame/game-client/testing`) gets identical code — and identical v8 coverage — to the UI projects.
+`uiTestConfig` runs jsdom + Svelte tests with jest-dom and `@openparty/game-client/test-setup` as default `setupFiles`. `nodeTestConfig` is for rules, bots and terminal tests. Both compile Svelte sources (`.svelte`, `.svelte.ts`) with the same transform, so a node test that loads another package's runes file (e.g. `GameConnectionManager` via `@openparty/game-client/testing`) gets identical code — and identical v8 coverage — to the UI projects.
 
 ```ts
 // vitest.config.ts
-import { uiTestConfig } from "@partygame/config/vitest";
+import { uiTestConfig } from "@openparty/config/vitest";
 
 export default uiTestConfig({ name: "my-game", coverage: ["src/**/*.ts", "ui/**/*.ts"] });
 ```
 
 Options (`TestPresetOptions`: project name, coverage globs and test globs): `{ name, coverage, include?, exclude?, setupFiles?, overrides? }`. `include` defaults to `tests/**/*.test.ts`; `exclude` always adds `dist/**`, `node_modules/**` and `coverage/**`; a given `setupFiles` replaces the UI default. In a multi-project setup, give each project its own `name` and call `nodeTestConfig({ name, coverage, include: [...] })` for the non-UI ones.
 
-Both presets install a `resolve.alias` that maps every `@partygame/*` export subpath to its package **source** (`src/...`, enumerated from each package's `exports`), so a test never reads another workspace's stale `dist/` build — no `bun run build` is needed before running tests after editing a dependency package.
+Both presets install a `resolve.alias` that maps every `@openparty/*` export subpath to its package **source** (`src/...`, enumerated from each package's `exports`), so a test never reads another workspace's stale `dist/` build — no `bun run build` is needed before running tests after editing a dependency package.
 
-One exception, in the UI preset only: `@partygame/server/node`, `@partygame/server/probe` and `@partygame/server/testing` resolve to `dist/`. jsdom transforms modules with Vite's client pipeline, which rewrites value imports of node: builtins as CJS interop; remapped through source maps, their v8 coverage items don't line up with the SSR-transformed ones from node projects (the provider merges per-project maps by source location), leaving phantom uncovered lines. UI tests need a working test server, not fresh source — the server package's own tests cover that source. If you add a subpath whose source graph value-imports a node: builtin, add it to `JSDOM_DIST_ONLY` in `src/vitest.ts` (and its test twin in `tests/vitest.test.ts`). Real consumers (the launcher, the dev server) still resolve through `dist/` as usual; this only changes what vitest loads.
+One exception, in the UI preset only: `@openparty/server/node`, `@openparty/server/probe` and `@openparty/server/testing` resolve to `dist/`. jsdom transforms modules with Vite's client pipeline, which rewrites value imports of node: builtins as CJS interop; remapped through source maps, their v8 coverage items don't line up with the SSR-transformed ones from node projects (the provider merges per-project maps by source location), leaving phantom uncovered lines. UI tests need a working test server, not fresh source — the server package's own tests cover that source. If you add a subpath whose source graph value-imports a node: builtin, add it to `JSDOM_DIST_ONLY` in `src/vitest.ts` (and its test twin in `tests/vitest.test.ts`). Real consumers (the launcher, the dev server) still resolve through `dist/` as usual; this only changes what vitest loads.
 
 ## Svelte
 
 ```js
 // svelte.config.js
-export { svelteConfig as default } from "@partygame/config/svelte";
+export { svelteConfig as default } from "@openparty/config/svelte";
 ```
 
 ## TypeScript
 
 ```json
 {
-  "extends": "@partygame/config/tsconfig.game.json",
+  "extends": "@openparty/config/tsconfig.game.json",
   "include": ["src/**/*.ts", "ui/**/*.ts", "ui/**/*.svelte", "tests/**/*.ts"]
 }
 ```

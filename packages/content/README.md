@@ -1,4 +1,4 @@
-# @partygame/content
+# @openparty/content
 
 Content tooling for games: parse commented-JSON (`.json`/`.jsonc`) content folders and validate them against a Zod schema; filter free text (answers, player names) against an English profanity dataset. Game-agnostic — the schemas and vocabulary stay in the game.
 
@@ -6,11 +6,11 @@ Content tooling for games: parse commented-JSON (`.json`/`.jsonc`) content folde
 
 | Subpath | What |
 |---|---|
-| `@partygame/content` | `stripJsonComments`, `loadJsoncFile`, `loadJsoncDir`, `loadJsoncDirWithFiles`, `contentDirFrom` |
-| `@partygame/content/filter` | `TextFilter`, `FilterLevel`, `FilterResult`, `createTextFilter` |
+| `@openparty/content` | `stripJsonComments`, `loadJsoncFile`, `loadJsoncDir`, `loadJsoncDirWithFiles`, `contentDirFrom` |
+| `@openparty/content/filter` | `TextFilter`, `FilterLevel`, `FilterResult`, `createTextFilter` |
 
 ```ts
-import { loadJsoncDir } from "@partygame/content";
+import { loadJsoncDir } from "@openparty/content";
 import { z } from "zod";
 
 const Item = z.object({ id: z.string(), n: z.number() });
@@ -32,7 +32,7 @@ const items = await loadJsoncDir("./content/items", Item, { idOf: (item) => item
 `createTextFilter()` returns the default English `TextFilter`, backed by the [obscenity](https://github.com/jo3-l/obscenity) dataset and its recommended transformers (case folding, confusables, leet-speak such as `$` for `s`, repeated-letter collapse). Matchers are built lazily on first use.
 
 ```ts
-import { createTextFilter } from "@partygame/content/filter";
+import { createTextFilter } from "@openparty/content/filter";
 
 const filter = createTextFilter();
 filter.check("hello world", "moderate"); // { ok: true }

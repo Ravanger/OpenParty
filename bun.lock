@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "partygame",
+      "name": "openparty",
       "devDependencies": {
         "@biomejs/biome": "^2.5.15",
         "@stryker-mutator/core": "^10.0.0",
@@ -22,23 +22,23 @@
       },
     },
     "games/bluff": {
-      "name": "@partygame/bluff",
+      "name": "@openparty/bluff",
       "version": "0.1.0",
       "dependencies": {
         "@colyseus/schema": "^5.0.35",
-        "@partygame/bots": "workspace:*",
-        "@partygame/content": "workspace:*",
-        "@partygame/core": "workspace:*",
-        "@partygame/game-client": "workspace:*",
-        "@partygame/game-kit": "workspace:*",
-        "@partygame/game-ui": "workspace:*",
-        "@partygame/shared": "workspace:*",
-        "@partygame/terminal": "workspace:*",
+        "@openparty/bots": "workspace:*",
+        "@openparty/content": "workspace:*",
+        "@openparty/core": "workspace:*",
+        "@openparty/game-client": "workspace:*",
+        "@openparty/game-kit": "workspace:*",
+        "@openparty/game-ui": "workspace:*",
+        "@openparty/shared": "workspace:*",
+        "@openparty/terminal": "workspace:*",
         "zod": "^4.6.5",
       },
       "devDependencies": {
-        "@partygame/config": "workspace:*",
-        "@partygame/server": "workspace:*",
+        "@openparty/config": "workspace:*",
+        "@openparty/server": "workspace:*",
         "@sveltejs/vite-plugin-svelte": "^7.3.1",
         "@testing-library/jest-dom": "^6.10.0",
         "@testing-library/svelte": "^5.4.2",
@@ -50,56 +50,56 @@
       },
     },
     "games/crew": {
-      "name": "@partygame/crew",
+      "name": "@openparty/crew",
       "version": "0.1.0",
       "dependencies": {
         "@colyseus/schema": "^5.0.35",
-        "@partygame/core": "workspace:*",
-        "@partygame/shared": "workspace:*",
+        "@openparty/core": "workspace:*",
+        "@openparty/shared": "workspace:*",
         "zod": "^4.6.5",
       },
       "devDependencies": {
-        "@partygame/config": "workspace:*",
-        "@partygame/server": "workspace:*",
+        "@openparty/config": "workspace:*",
+        "@openparty/server": "workspace:*",
         "vitest": "^4.1.11",
       },
     },
     "games/rush": {
-      "name": "@partygame/rush",
+      "name": "@openparty/rush",
       "version": "0.1.0",
       "dependencies": {
         "@colyseus/schema": "^5.0.35",
-        "@partygame/core": "workspace:*",
-        "@partygame/shared": "workspace:*",
+        "@openparty/core": "workspace:*",
+        "@openparty/shared": "workspace:*",
         "zod": "^4.6.5",
       },
       "devDependencies": {
-        "@partygame/config": "workspace:*",
+        "@openparty/config": "workspace:*",
         "vitest": "^4.1.11",
       },
     },
     "games/wit-clash": {
-      "name": "@partygame/wit-clash",
+      "name": "@openparty/wit-clash",
       "version": "0.1.0",
       "dependencies": {
         "@colyseus/schema": "^5.0.35",
         "@fontsource/gochi-hand": "^5.3.0",
         "@fontsource/lilita-one": "^5.3.0",
-        "@partygame/bots": "workspace:*",
-        "@partygame/content": "workspace:*",
-        "@partygame/core": "workspace:*",
-        "@partygame/game-client": "workspace:*",
-        "@partygame/game-kit": "workspace:*",
-        "@partygame/game-ui": "workspace:*",
-        "@partygame/server": "workspace:*",
-        "@partygame/shared": "workspace:*",
-        "@partygame/terminal": "workspace:*",
+        "@openparty/bots": "workspace:*",
+        "@openparty/content": "workspace:*",
+        "@openparty/core": "workspace:*",
+        "@openparty/game-client": "workspace:*",
+        "@openparty/game-kit": "workspace:*",
+        "@openparty/game-ui": "workspace:*",
+        "@openparty/server": "workspace:*",
+        "@openparty/shared": "workspace:*",
+        "@openparty/terminal": "workspace:*",
         "zod": "^4.6.5",
       },
       "devDependencies": {
         "@colyseus/core": "^0.18.18",
         "@colyseus/sdk": "^0.18.4",
-        "@partygame/config": "workspace:*",
+        "@openparty/config": "workspace:*",
         "@sveltejs/vite-plugin-svelte": "^7.3.1",
         "@testing-library/jest-dom": "^6.10.0",
         "@testing-library/svelte": "^5.4.2",
@@ -112,49 +112,49 @@
       },
     },
     "packages/bots": {
-      "name": "@partygame/bots",
+      "name": "@openparty/bots",
       "version": "0.1.0",
       "dependencies": {
         "@colyseus/sdk": "^0.18.4",
-        "@partygame/client-utils": "workspace:*",
-        "@partygame/shared": "workspace:*",
+        "@openparty/client-utils": "workspace:*",
+        "@openparty/shared": "workspace:*",
       },
       "devDependencies": {
         "@colyseus/schema": "^5.0.35",
-        "@partygame/config": "workspace:*",
-        "@partygame/core": "workspace:*",
-        "@partygame/server": "workspace:*",
+        "@openparty/config": "workspace:*",
+        "@openparty/core": "workspace:*",
+        "@openparty/server": "workspace:*",
         "typescript": "^6.0.3",
         "vitest": "^4.1.11",
         "zod": "^4.6.5",
       },
     },
     "packages/cli": {
-      "name": "@partygame/cli",
+      "name": "@openparty/cli",
       "version": "0.1.0",
       "bin": {
-        "partygame": "./src/cli.ts",
+        "openparty": "./src/cli.ts",
       },
       "devDependencies": {
-        "@partygame/config": "workspace:*",
+        "@openparty/config": "workspace:*",
         "typescript": "^6.0.3",
         "vitest": "^4.1.11",
       },
     },
     "packages/client-utils": {
-      "name": "@partygame/client-utils",
+      "name": "@openparty/client-utils",
       "version": "0.1.0",
       "dependencies": {
-        "@partygame/shared": "workspace:*",
+        "@openparty/shared": "workspace:*",
       },
       "devDependencies": {
-        "@partygame/config": "workspace:*",
+        "@openparty/config": "workspace:*",
         "typescript": "^6.0.3",
         "vitest": "^4.1.11",
       },
     },
     "packages/config": {
-      "name": "@partygame/config",
+      "name": "@openparty/config",
       "version": "0.1.0",
       "dependencies": {
         "ws": "^8.18.1",
@@ -175,49 +175,49 @@
       },
     },
     "packages/content": {
-      "name": "@partygame/content",
+      "name": "@openparty/content",
       "version": "0.1.0",
       "dependencies": {
         "obscenity": "^0.4.6",
         "zod": "^4.6.5",
       },
       "devDependencies": {
-        "@partygame/config": "workspace:*",
+        "@openparty/config": "workspace:*",
         "@types/node": "^26.6.3",
         "typescript": "^6.0.3",
         "vitest": "^4.1.11",
       },
     },
     "packages/core": {
-      "name": "@partygame/core",
+      "name": "@openparty/core",
       "version": "0.1.0",
       "dependencies": {
-        "@partygame/content": "workspace:*",
-        "@partygame/shared": "workspace:*",
+        "@openparty/content": "workspace:*",
+        "@openparty/shared": "workspace:*",
         "xstate": "^5.33.2",
         "zod": "^4.6.5",
       },
       "devDependencies": {
-        "@partygame/config": "workspace:*",
+        "@openparty/config": "workspace:*",
         "fast-check": "^4.10.2",
         "typescript": "^6.0.3",
         "vitest": "^4.1.11",
       },
     },
     "packages/game-client": {
-      "name": "@partygame/game-client",
+      "name": "@openparty/game-client",
       "version": "0.1.0",
       "dependencies": {
         "@colyseus/sdk": "^0.18.4",
-        "@partygame/client-utils": "workspace:*",
-        "@partygame/shared": "workspace:*",
+        "@openparty/client-utils": "workspace:*",
+        "@openparty/shared": "workspace:*",
         "svelte": "^5.57.1",
       },
       "devDependencies": {
         "@colyseus/schema": "^5.0.35",
-        "@partygame/config": "workspace:*",
-        "@partygame/core": "workspace:*",
-        "@partygame/server": "workspace:*",
+        "@openparty/config": "workspace:*",
+        "@openparty/core": "workspace:*",
+        "@openparty/server": "workspace:*",
         "@sveltejs/vite-plugin-svelte": "^7.3.1",
         "typescript": "^6.0.3",
         "vitest": "^4.1.11",
@@ -225,38 +225,38 @@
       },
     },
     "packages/game-kit": {
-      "name": "@partygame/game-kit",
+      "name": "@openparty/game-kit",
       "version": "0.1.0",
       "dependencies": {
-        "@partygame/bots": "workspace:*",
-        "@partygame/content": "workspace:*",
-        "@partygame/core": "workspace:*",
-        "@partygame/launcher": "workspace:*",
-        "@partygame/server": "workspace:*",
-        "@partygame/shared": "workspace:*",
-        "@partygame/terminal": "workspace:*",
+        "@openparty/bots": "workspace:*",
+        "@openparty/content": "workspace:*",
+        "@openparty/core": "workspace:*",
+        "@openparty/launcher": "workspace:*",
+        "@openparty/server": "workspace:*",
+        "@openparty/shared": "workspace:*",
+        "@openparty/terminal": "workspace:*",
       },
       "devDependencies": {
         "@colyseus/schema": "^5.0.35",
-        "@partygame/config": "workspace:*",
+        "@openparty/config": "workspace:*",
         "typescript": "^6.0.3",
         "vitest": "^4.1.11",
         "zod": "^4.6.5",
       },
     },
     "packages/game-ui": {
-      "name": "@partygame/game-ui",
+      "name": "@openparty/game-ui",
       "version": "0.1.0",
       "dependencies": {
-        "@partygame/client-utils": "workspace:*",
-        "@partygame/game-client": "workspace:*",
-        "@partygame/shared": "workspace:*",
+        "@openparty/client-utils": "workspace:*",
+        "@openparty/game-client": "workspace:*",
+        "@openparty/shared": "workspace:*",
         "svelte": "^5.57.1",
         "uqr": "^0.1.3",
         "zod": "^4.6.5",
       },
       "devDependencies": {
-        "@partygame/config": "workspace:*",
+        "@openparty/config": "workspace:*",
         "@sveltejs/vite-plugin-svelte": "^7.3.1",
         "@testing-library/jest-dom": "^6.10.0",
         "@testing-library/svelte": "^5.4.2",
@@ -269,73 +269,73 @@
       },
     },
     "packages/launcher": {
-      "name": "@partygame/launcher",
+      "name": "@openparty/launcher",
       "version": "0.1.0",
       "dependencies": {
-        "@partygame/bots": "workspace:*",
-        "@partygame/client-utils": "workspace:*",
-        "@partygame/server": "workspace:*",
-        "@partygame/shared": "workspace:*",
+        "@openparty/bots": "workspace:*",
+        "@openparty/client-utils": "workspace:*",
+        "@openparty/server": "workspace:*",
+        "@openparty/shared": "workspace:*",
       },
       "devDependencies": {
         "@colyseus/schema": "^5.0.35",
         "@colyseus/sdk": "^0.18.4",
-        "@partygame/config": "workspace:*",
-        "@partygame/core": "workspace:*",
+        "@openparty/config": "workspace:*",
+        "@openparty/core": "workspace:*",
         "typescript": "^6.0.3",
         "vitest": "^4.1.11",
         "zod": "^4.6.5",
       },
     },
     "packages/server": {
-      "name": "@partygame/server",
+      "name": "@openparty/server",
       "version": "0.1.0",
       "dependencies": {
         "@colyseus/bun-websockets": "^0.18.3",
         "@colyseus/core": "^0.18.18",
         "@colyseus/schema": "^5.0.35",
         "@colyseus/sdk": "^0.18.4",
-        "@partygame/client-utils": "workspace:*",
-        "@partygame/content": "workspace:*",
-        "@partygame/core": "workspace:*",
-        "@partygame/shared": "workspace:*",
+        "@openparty/client-utils": "workspace:*",
+        "@openparty/content": "workspace:*",
+        "@openparty/core": "workspace:*",
+        "@openparty/shared": "workspace:*",
         "zod": "^4.6.5",
       },
       "devDependencies": {
         "@colyseus/ws-transport": "^0.18.4",
-        "@partygame/config": "workspace:*",
+        "@openparty/config": "workspace:*",
         "typescript": "^6.0.3",
         "vitest": "^4.1.11",
       },
     },
     "packages/shared": {
-      "name": "@partygame/shared",
+      "name": "@openparty/shared",
       "version": "0.1.0",
       "dependencies": {
         "@colyseus/schema": "^5.0.35",
         "zod": "^4.6.5",
       },
       "devDependencies": {
-        "@partygame/config": "workspace:*",
+        "@openparty/config": "workspace:*",
         "@types/node": "^26.6.3",
         "typescript": "^6.0.3",
         "vitest": "^4.1.11",
       },
     },
     "packages/terminal": {
-      "name": "@partygame/terminal",
+      "name": "@openparty/terminal",
       "version": "0.1.0",
       "dependencies": {
         "@colyseus/sdk": "^0.18.4",
-        "@partygame/bots": "workspace:*",
-        "@partygame/client-utils": "workspace:*",
-        "@partygame/server": "workspace:*",
-        "@partygame/shared": "workspace:*",
+        "@openparty/bots": "workspace:*",
+        "@openparty/client-utils": "workspace:*",
+        "@openparty/server": "workspace:*",
+        "@openparty/shared": "workspace:*",
       },
       "devDependencies": {
         "@colyseus/schema": "^5.0.35",
-        "@partygame/config": "workspace:*",
-        "@partygame/core": "workspace:*",
+        "@openparty/config": "workspace:*",
+        "@openparty/core": "workspace:*",
         "typescript": "^6.0.3",
         "vitest": "^4.1.11",
         "zod": "^4.6.5",
@@ -555,6 +555,40 @@
 
     "@napi-rs/wasm-runtime": ["@napi-rs/wasm-runtime@1.2.5", "", { "dependencies": { "@tybys/wasm-util": "^0.10.3" }, "peerDependencies": { "@emnapi/core": "^1.7.1 || ^2.0.0-alpha.4", "@emnapi/runtime": "^1.7.1 || ^2.0.0-alpha.4" } }, "sha512-HshSvXzmBxNzqejd3k/KemgQ3hdREUYFRRrgxOZ+gPljDIsO2SDZrVZMd4Z/HsxudQbE62OVyVFE8z9BCurfjA=="],
 
+    "@openparty/bluff": ["@openparty/bluff@workspace:games/bluff"],
+
+    "@openparty/bots": ["@openparty/bots@workspace:packages/bots"],
+
+    "@openparty/cli": ["@openparty/cli@workspace:packages/cli"],
+
+    "@openparty/client-utils": ["@openparty/client-utils@workspace:packages/client-utils"],
+
+    "@openparty/config": ["@openparty/config@workspace:packages/config"],
+
+    "@openparty/content": ["@openparty/content@workspace:packages/content"],
+
+    "@openparty/core": ["@openparty/core@workspace:packages/core"],
+
+    "@openparty/crew": ["@openparty/crew@workspace:games/crew"],
+
+    "@openparty/game-client": ["@openparty/game-client@workspace:packages/game-client"],
+
+    "@openparty/game-kit": ["@openparty/game-kit@workspace:packages/game-kit"],
+
+    "@openparty/game-ui": ["@openparty/game-ui@workspace:packages/game-ui"],
+
+    "@openparty/launcher": ["@openparty/launcher@workspace:packages/launcher"],
+
+    "@openparty/rush": ["@openparty/rush@workspace:games/rush"],
+
+    "@openparty/server": ["@openparty/server@workspace:packages/server"],
+
+    "@openparty/shared": ["@openparty/shared@workspace:packages/shared"],
+
+    "@openparty/terminal": ["@openparty/terminal@workspace:packages/terminal"],
+
+    "@openparty/wit-clash": ["@openparty/wit-clash@workspace:games/wit-clash"],
+
     "@oxc-parser/binding-android-arm-eabi": ["@oxc-parser/binding-android-arm-eabi@0.150.0", "", { "os": "android", "cpu": "arm" }, "sha512-oQef2Zu4Prz1KLKznz3HqZzU9uVoA5PMoDZuuLmqms7hKmKSAPzlaMnLllJq3t+rgKmfJJ2siPrpZfFrW06btw=="],
 
     "@oxc-parser/binding-android-arm64": ["@oxc-parser/binding-android-arm64@0.150.0", "", { "os": "android", "cpu": "arm64" }, "sha512-B6ofpoFiAUwIZ0MJ2IgHPvZK8FAtL4qzSZRwOkAKIfxEobE1mQC8nDdiFZj7pUaJiVUVCsfkMsBJKedzO8rZvA=="],
@@ -632,40 +666,6 @@
     "@oxc-resolver/binding-win32-arm64-msvc": ["@oxc-resolver/binding-win32-arm64-msvc@11.24.2", "", { "os": "win32", "cpu": "arm64" }, "sha512-uokJqro2iBqkFvJdKQLP7d8/BUmFwESQFVmIJUQKj1Xn1a/LysJoe1vmeECLF5b3jsV8CAL5sEMJXX6SdK9Nhg=="],
 
     "@oxc-resolver/binding-win32-x64-msvc": ["@oxc-resolver/binding-win32-x64-msvc@11.24.2", "", { "os": "win32", "cpu": "x64" }, "sha512-UqGPmo56KDfLlfXFAFIrNflHT8tFxWGEivWg3Zeyp4Uy2NlKN1FGPr6/BxcLGG3+kZ6Wp14g5Uj+n71boqZfiw=="],
-
-    "@partygame/bluff": ["@partygame/bluff@workspace:games/bluff"],
-
-    "@partygame/bots": ["@partygame/bots@workspace:packages/bots"],
-
-    "@partygame/cli": ["@partygame/cli@workspace:packages/cli"],
-
-    "@partygame/client-utils": ["@partygame/client-utils@workspace:packages/client-utils"],
-
-    "@partygame/config": ["@partygame/config@workspace:packages/config"],
-
-    "@partygame/content": ["@partygame/content@workspace:packages/content"],
-
-    "@partygame/core": ["@partygame/core@workspace:packages/core"],
-
-    "@partygame/crew": ["@partygame/crew@workspace:games/crew"],
-
-    "@partygame/game-client": ["@partygame/game-client@workspace:packages/game-client"],
-
-    "@partygame/game-kit": ["@partygame/game-kit@workspace:packages/game-kit"],
-
-    "@partygame/game-ui": ["@partygame/game-ui@workspace:packages/game-ui"],
-
-    "@partygame/launcher": ["@partygame/launcher@workspace:packages/launcher"],
-
-    "@partygame/rush": ["@partygame/rush@workspace:games/rush"],
-
-    "@partygame/server": ["@partygame/server@workspace:packages/server"],
-
-    "@partygame/shared": ["@partygame/shared@workspace:packages/shared"],
-
-    "@partygame/terminal": ["@partygame/terminal@workspace:packages/terminal"],
-
-    "@partygame/wit-clash": ["@partygame/wit-clash@workspace:games/wit-clash"],
 
     "@rolldown/binding-android-arm-eabi": ["@rolldown/binding-android-arm-eabi@1.2.12", "", { "os": "android", "cpu": "arm" }, "sha512-dB/a1214qKfHMXCpgqR4OZT+jS4kTyEXbQGJPqzobt5EwH5rX080pxE37alt3RzvR1bf1Yz/yGqRfrYAxuPw0A=="],
 

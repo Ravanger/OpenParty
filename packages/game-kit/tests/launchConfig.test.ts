@@ -1,4 +1,4 @@
-import { DemoTable } from "@partygame/bots";
+import { DemoTable } from "@openparty/bots";
 import { describe, expect, it } from "vitest";
 import { buildLaunchConfig, demoTableOptions } from "../src/index.js";
 import { demoBotOptions } from "../src/launchConfig.js";

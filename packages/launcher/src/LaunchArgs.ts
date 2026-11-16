@@ -1,5 +1,5 @@
-import { between, type Parsed } from "@partygame/client-utils";
-import type { BaseGameState } from "@partygame/shared/schema";
+import { between, type Parsed } from "@openparty/client-utils";
+import type { BaseGameState } from "@openparty/shared/schema";
 import type { LaunchConfig } from "./types.js";
 
 const MODES = ["dev", "host", "prod"] as const;

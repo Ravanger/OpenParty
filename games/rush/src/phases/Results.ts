@@ -1,4 +1,4 @@
-import { playAgainAction } from "@partygame/core";
+import { playAgainAction } from "@openparty/core";
 import { ACTION } from "../actions.js";
 import type { RushPhase } from "../private.js";
 import { ScoreEntry } from "../state.js";

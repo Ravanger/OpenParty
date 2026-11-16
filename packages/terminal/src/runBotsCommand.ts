@@ -1,5 +1,5 @@
-import { type BotKit, type BotOptions, type BotPlayer, joinKitBots } from "@partygame/bots";
-import type { BaseGameState } from "@partygame/shared/schema";
+import { type BotKit, type BotOptions, type BotPlayer, joinKitBots } from "@openparty/bots";
+import type { BaseGameState } from "@openparty/shared/schema";
 import { parseBotsArgs } from "./args.js";
 
 /** Options for `runBotsCommand`. */

@@ -1,4 +1,4 @@
-import { type BotOptions, BotPlayer, type BotRoom } from "@partygame/bots";
+import { type BotOptions, BotPlayer, type BotRoom } from "@openparty/bots";
 import { describe, expect, it } from "vitest";
 import {
   __camelName__Bot,

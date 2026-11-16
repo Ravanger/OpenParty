@@ -1,4 +1,4 @@
-import { LOBBY_PHASE, PROTOCOL_VERSION, START_GAME } from "@partygame/shared";
+import { LOBBY_PHASE, PROTOCOL_VERSION, START_GAME } from "@openparty/shared";
 import { z } from "zod";
 import {
   InvalidPrivateStateError,

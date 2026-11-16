@@ -80,7 +80,7 @@ export const FRAMEWORK_VERSION = "0.1.0";
 
 /**
  * Answer to `room.request(ClientMessage.EXPORT_REPLAY)`. The host receives the room's replay bundle —
- * the shape of `ReplayBundleSchema` from `@partygame/core/replay`; a non-host receives a refusal shaped
+ * the shape of `ReplayBundleSchema` from `@openparty/core/replay`; a non-host receives a refusal shaped
  * like a rejected {@link ActionResult} with `ErrorCode.UNAUTHORIZED`.
  */
 export type ExportReplayResponse = { ok: false; error: ServerError } | Record<string, unknown>;

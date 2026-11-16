@@ -8,7 +8,7 @@ import {
   type TestServer,
   testPlayerId,
   waitUntil,
-} from "@partygame/server/testing";
+} from "@openparty/server/testing";
 import { createWitClashGame } from "../../src/game.js";
 import { META } from "../../src/meta.js";
 import { WITCLASH_PUBLIC_FIELDS, WitClashState } from "../../src/state.js";

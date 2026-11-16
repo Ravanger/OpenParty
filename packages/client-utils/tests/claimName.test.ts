@@ -1,4 +1,4 @@
-import { BaseGameState } from "@partygame/shared/schema";
+import { BaseGameState } from "@openparty/shared/schema";
 import { describe, expect, it } from "vitest";
 import { claimName, type SeatRoom } from "../src/index.js";
 

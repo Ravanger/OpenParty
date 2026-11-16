@@ -1,11 +1,11 @@
 {
-  "name": "@partygame/cli",
+  "name": "@openparty/cli",
   "version": "0.1.0",
   "private": true,
   "license": "Apache-2.0",
   "type": "module",
   "bin": {
-    "partygame": "./src/cli.ts"
+    "openparty": "./src/cli.ts"
   },
   "scripts": {
     "test": "vitest run",
@@ -13,7 +13,7 @@
     "smoke": "bun scripts/smoke.ts"
   },
   "devDependencies": {
-    "@partygame/config": "workspace:*",
+    "@openparty/config": "workspace:*",
     "typescript": "^6.0.3",
     "vitest": "^4.1.11"
   }

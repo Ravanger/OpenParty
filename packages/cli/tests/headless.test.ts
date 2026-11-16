@@ -46,20 +46,20 @@ describe("pruneHeadlessGame", () => {
     try {
       pruneHeadlessGame(dir);
       const pkg = await readJson<Manifest>(dir, "package.json");
-      expect(pkg.dependencies["@partygame/game-ui"]).toBeUndefined();
-      expect(pkg.dependencies["@partygame/game-client"]).toBeUndefined();
+      expect(pkg.dependencies["@openparty/game-ui"]).toBeUndefined();
+      expect(pkg.dependencies["@openparty/game-client"]).toBeUndefined();
       for (const kept of [
         "@colyseus/schema",
-        "@partygame/bots",
-        "@partygame/core",
-        "@partygame/game-kit",
-        "@partygame/shared",
-        "@partygame/terminal",
+        "@openparty/bots",
+        "@openparty/core",
+        "@openparty/game-kit",
+        "@openparty/shared",
+        "@openparty/terminal",
         "zod",
       ]) {
         expect(pkg.dependencies[kept], kept).toBeDefined();
       }
-      expect(pkg.devDependencies["@partygame/game-client"]).toBe("workspace:*");
+      expect(pkg.devDependencies["@openparty/game-client"]).toBe("workspace:*");
       for (const dropped of [
         "@sveltejs/vite-plugin-svelte",
         "@testing-library/jest-dom",
@@ -71,7 +71,7 @@ describe("pruneHeadlessGame", () => {
       ]) {
         expect(pkg.devDependencies[dropped], dropped).toBeUndefined();
       }
-      for (const kept of ["@partygame/config", "vitest"]) {
+      for (const kept of ["@openparty/config", "vitest"]) {
         expect(pkg.devDependencies[kept], kept).toBeDefined();
       }
       for (const dropped of ["dev", "build", "test:all"]) {
@@ -83,8 +83,8 @@ describe("pruneHeadlessGame", () => {
       expect(pkg.scripts.demo).toBeDefined();
       // The moved dependency keeps the manifest's alphabetical order.
       const raw = await readFile(join(dir, "package.json"), "utf8");
-      expect(raw.indexOf("@partygame/config")).toBeLessThan(raw.indexOf("@partygame/game-client"));
-      expect(raw.indexOf("@partygame/game-client")).toBeLessThan(raw.indexOf("vitest"));
+      expect(raw.indexOf("@openparty/config")).toBeLessThan(raw.indexOf("@openparty/game-client"));
+      expect(raw.indexOf("@openparty/game-client")).toBeLessThan(raw.indexOf("vitest"));
     } finally {
       await done();
     }
@@ -125,11 +125,11 @@ describe("pruneHeadlessGame", () => {
       expect(agents).toContain("rules and entry points");
       expect(agents).not.toContain("UI screens");
       const mayImport = agents.slice(agents.indexOf("## May import"));
-      expect(mayImport).not.toContain("@partygame/game-ui");
+      expect(mayImport).not.toContain("@openparty/game-ui");
       const runtimeLine = mayImport.split("\n").find((line) => line.startsWith("- Runtime:"));
       expect(runtimeLine).toBeDefined();
-      expect(runtimeLine).not.toContain("@partygame/game-client");
-      expect(mayImport).toContain("- Dev: `@partygame/config`, `@partygame/game-client`");
+      expect(runtimeLine).not.toContain("@openparty/game-client");
+      expect(mayImport).toContain("- Dev: `@openparty/config`, `@openparty/game-client`");
       const entries = agents.split("\n").find((line) => line.includes("Entries:"));
       expect(entries).toBeDefined();
       expect(entries).not.toContain("ui/main.ts");
@@ -154,14 +154,14 @@ describe("pruneHeadlessGame", () => {
     }
   });
 
-  it("throws when the manifest no longer lists @partygame/game-client in dependencies", async () => {
+  it("throws when the manifest no longer lists @openparty/game-client in dependencies", async () => {
     const { dir, done } = await rendered();
     try {
       const pkgPath = join(dir, "package.json");
       const pkg = JSON.parse(await readFile(pkgPath, "utf8")) as {
         dependencies: Record<string, string>;
       };
-      delete pkg.dependencies["@partygame/game-client"];
+      delete pkg.dependencies["@openparty/game-client"];
       await writeFile(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
       expect(() => pruneHeadlessGame(dir)).toThrowError(/package\.json/);
     } finally {

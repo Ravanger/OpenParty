@@ -1,4 +1,4 @@
-import { CLIENT_MESSAGES } from "@partygame/shared";
+import { CLIENT_MESSAGES } from "@openparty/shared";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import Welcome from "../../ui/screens/Welcome.svelte";

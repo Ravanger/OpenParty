@@ -1,6 +1,6 @@
 import { createServer as createHttpServer, type Server as HttpServer } from "node:http";
 import type { Server } from "@colyseus/core";
-import type { Logger } from "@partygame/core";
+import type { Logger } from "@openparty/core";
 import { type ApiRequestInfo, createApiHandler } from "./api/createApiHandler.js";
 import {
   createGameServer,

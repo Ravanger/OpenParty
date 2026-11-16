@@ -1,6 +1,6 @@
 <script lang="ts">
-import type { NameField } from "@partygame/game-ui";
-import { NAME_MAX_LENGTH } from "@partygame/shared";
+import type { NameField } from "@openparty/game-ui";
+import { NAME_MAX_LENGTH } from "@openparty/shared";
 import { getStrings } from "../strings.js";
 import { nextId } from "./uniqueId.js";
 

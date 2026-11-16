@@ -1,4 +1,4 @@
-import { type ActionResult, CLIENT_MESSAGES, CLOSE_CODES, ClientMessage } from "@partygame/shared";
+import { type ActionResult, CLIENT_MESSAGES, CLOSE_CODES, ClientMessage } from "@openparty/shared";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type { TestServer } from "../src/testing/index.js";
 import { collectMessages, waitForOwnEntry, waitUntil } from "../src/testing/index.js";

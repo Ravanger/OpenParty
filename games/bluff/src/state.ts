@@ -1,5 +1,5 @@
 import { type SchemaType, schema, t } from "@colyseus/schema";
-import { BaseGameState } from "@partygame/shared/schema";
+import { BaseGameState } from "@openparty/shared/schema";
 
 export const BluffOption = schema(
   {

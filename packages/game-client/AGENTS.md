@@ -1,4 +1,4 @@
-# @partygame/game-client
+# @openparty/game-client
 
 ## Responsibility
 
@@ -13,8 +13,8 @@ The Svelte 5 SDK a game client uses to connect, join, send actions and read stat
 
 ## May import
 
-- Runtime: `@partygame/client-utils`, `@partygame/shared`
-- Dev: `@partygame/config`, `@partygame/core`, `@partygame/server`
+- Runtime: `@openparty/client-utils`, `@openparty/shared`
+- Dev: `@openparty/config`, `@openparty/core`, `@openparty/server`
 
 ## Public entry points
 

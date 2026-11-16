@@ -21,7 +21,7 @@ describe("renderTemplate", () => {
     const dest = await freshDir("cli-render-");
     await renderTemplate({ templateDir: TEMPLATE, outDir: dest, names: NAMES });
     expect(await readFile(join(dest, "root.txt"), "utf8")).toBe(
-      "name=my-game\npackage=@partygame/my-game\npascal=MyGame\n",
+      "name=my-game\npackage=@openparty/my-game\npascal=MyGame\n",
     );
     expect(await readFile(join(dest, "nested/leaf.txt"), "utf8")).toBe(
       "camel=myGame\nroom=my_game\ndisplay=My Game\n",
@@ -131,9 +131,9 @@ describe("renderTemplate", () => {
     const names = { ...NAMES, displayName: 'Bob "The Builder" \\ \n test' };
     await renderTemplate({ templateDir: SHIPPED_TEMPLATE, outDir: dest, names });
     const parsed = JSON.parse(await readFile(join(dest, "package.json"), "utf8")) as {
-      partygame?: { name?: unknown };
+      openparty?: { name?: unknown };
     };
-    expect(parsed.partygame?.name).toBe(names.displayName);
+    expect(parsed.openparty?.name).toBe(names.displayName);
   });
 
   it("renders a hostile display name escaped in HTML and Markdown contexts", async () => {
@@ -183,7 +183,7 @@ describe("renderTemplate", () => {
 });
 
 describe("shipped template theme", () => {
-  // check:boundaries keeps the cli free of @partygame/* imports, so the required-class list is
+  // check:boundaries keeps the cli free of @openparty/* imports, so the required-class list is
   // read from game-ui's source instead of imported; packages/game-ui/tests/themeContract.test.ts
   // keeps that list in sync with the components' markup.
   const THEME_CONTRACT_TS = fileURLToPath(
@@ -216,7 +216,7 @@ describe("shipped template theme", () => {
 
   it("imports the shared stylesheets, so the base look needs no game CSS", () => {
     // the package name comes from game-ui's manifest, not a literal: check:boundaries scans this
-    // file for @partygame/* specifiers and the cli must depend on none of them
+    // file for @openparty/* specifiers and the cli must depend on none of them
     const { name } = JSON.parse(readFileSync(GAME_UI_PACKAGE_JSON, "utf8")) as { name: string };
     const css = readFileSync(join(SHIPPED_TEMPLATE, "ui", "app.css"), "utf8");
     expect(css).toContain(`@import "${name}/theme-contract.css";`);

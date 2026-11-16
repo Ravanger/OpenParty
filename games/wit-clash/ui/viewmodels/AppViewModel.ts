@@ -1,4 +1,4 @@
-import { AppRouter } from "@partygame/game-ui";
+import { AppRouter } from "@openparty/game-ui";
 import { PHASE } from "../../src/phaseNames.js";
 import type { WitClashState } from "../../src/state.js";
 import type { WitClashManager } from "../manager.js";

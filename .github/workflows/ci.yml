@@ -75,7 +75,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
-      # scripts/ imports package sources by relative path; their @partygame/* imports resolve through dist, so build first
+      # scripts/ imports package sources by relative path; their @openparty/* imports resolve through dist, so build first
       - run: bun run build
       - run: bun run typecheck:scripts
       - run: bun run typecheck
@@ -115,7 +115,8 @@ jobs:
     name: mutation
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    # A repo-wide change (e.g. the OpenParty rename) mutates every source file; Stryker needs ~4h for that.
+    timeout-minutes: 300
     steps:
       - uses: actions/checkout@v7
         with:

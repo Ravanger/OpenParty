@@ -1,4 +1,4 @@
-/* The @partygame/game-ui theme contract: a baseline for every custom property the
+/* The @openparty/game-ui theme contract: a baseline for every custom property the
    framework components read, the main.tv base sizes for TV displays and the .sr-only
    utility. Import it first in your app.css, then override any variable you want to
    change. */

@@ -1,5 +1,5 @@
-import type { GameDefinition } from "@partygame/core";
-import { TestTable } from "@partygame/core/testing";
+import type { GameDefinition } from "@openparty/core";
+import { TestTable } from "@openparty/core/testing";
 import {
   type Category,
   type CategoryRepository,

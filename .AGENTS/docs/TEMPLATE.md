@@ -1,7 +1,7 @@
 # [Library Name] Documentation
 
 ## Overview
-Brief description of the library and its role in the `vibe-coded` party game framework.
+Brief description of the library and its role in the OpenParty framework.
 
 ## Key Concepts
 - **Concept 1:** Description

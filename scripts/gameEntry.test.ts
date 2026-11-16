@@ -19,11 +19,11 @@ import {
 } from "./gameEntry.js";
 
 const alpha = { folder: "alpha", label: "alpha", name: "alpha" };
-const beta = { folder: "beta", label: "Beta Game", name: "@partygame/beta-game" };
+const beta = { folder: "beta", label: "Beta Game", name: "@openparty/beta-game" };
 const manifested = {
   folder: "wit-clash",
   label: "WitClash",
-  name: "@partygame/wit-clash",
+  name: "@openparty/wit-clash",
   description: "A word-prompt party game",
   icon: "🧠",
 };
@@ -32,11 +32,11 @@ const SHIPPED_TEMPLATE = fileURLToPath(new URL("../packages/cli/template", impor
 
 describe("buildArgs", () => {
   it("returns turbo arguments for building package dependencies", () => {
-    expect(buildArgs("@partygame/wit-clash")).toEqual([
+    expect(buildArgs("@openparty/wit-clash")).toEqual([
       "turbo",
       "run",
       "build",
-      "--filter=@partygame/wit-clash^...",
+      "--filter=@openparty/wit-clash^...",
     ]);
   });
 
@@ -48,13 +48,13 @@ describe("buildArgs", () => {
 describe("discoverGames", () => {
   it("keeps folders with a package.json, sorted, labelled by package name without the scope", () => {
     const { games } = discoverGames([
-      { folder: "zed", packageJson: { name: "@partygame/zed-game" } },
+      { folder: "zed", packageJson: { name: "@openparty/zed-game" } },
       { folder: "notes", packageJson: undefined },
       { folder: "alpha", packageJson: { name: "alpha" } },
     ]);
     expect(games).toEqual([
       { folder: "alpha", label: "alpha", name: "alpha" },
-      { folder: "zed", label: "zed-game", name: "@partygame/zed-game" },
+      { folder: "zed", label: "zed-game", name: "@openparty/zed-game" },
     ]);
   });
 
@@ -83,13 +83,13 @@ describe("discoverGames", () => {
 });
 
 describe("discoverGames manifests", () => {
-  it("reads name, description and icon from the partygame key", () => {
+  it("reads name, description and icon from the openparty key", () => {
     const result = discoverGames([
       {
         folder: "wit-clash",
         packageJson: {
-          name: "@partygame/wit-clash",
-          partygame: { name: "WitClash", description: "A word-prompt party game", icon: "🧠" },
+          name: "@openparty/wit-clash",
+          openparty: { name: "WitClash", description: "A word-prompt party game", icon: "🧠" },
         },
       },
     ]);
@@ -102,8 +102,8 @@ describe("discoverGames manifests", () => {
       {
         folder: "wit-clash",
         packageJson: {
-          name: "@partygame/wit-clash",
-          partygame: { name: "N", description: "d", icon: "👨‍👩‍👧" },
+          name: "@openparty/wit-clash",
+          openparty: { name: "N", description: "d", icon: "👨‍👩‍👧" },
         },
       },
     ]);
@@ -122,16 +122,16 @@ describe("discoverGames manifests", () => {
     ["a non-string icon", { name: "N", description: "d", icon: 7 }],
     ["an icon of two graphemes", { name: "N", description: "d", icon: "🧠🧠" }],
     ["an icon that is not an emoji", { name: "N", description: "d", icon: "a" }],
-  ])("reports %s and keeps the package-name label", (_case, partygame) => {
+  ])("reports %s and keeps the package-name label", (_case, openparty) => {
     const result = discoverGames([
-      { folder: "wit-clash", packageJson: { name: "@partygame/wit-clash", partygame } },
+      { folder: "wit-clash", packageJson: { name: "@openparty/wit-clash", openparty } },
     ]);
     expect(result.games).toEqual([
-      { folder: "wit-clash", label: "wit-clash", name: "@partygame/wit-clash" },
+      { folder: "wit-clash", label: "wit-clash", name: "@openparty/wit-clash" },
     ]);
     expect(result.manifestErrors).toHaveLength(1);
     expect(result.manifestErrors[0]?.folder).toBe("wit-clash");
-    expect(result.manifestErrors[0]?.problem).toMatch(/partygame/);
+    expect(result.manifestErrors[0]?.problem).toMatch(/openparty/);
   });
 
   it("falls back to the package name and drops the rest when one manifest field is invalid", () => {
@@ -139,8 +139,8 @@ describe("discoverGames manifests", () => {
       {
         folder: "wit-clash",
         packageJson: {
-          name: "@partygame/wit-clash",
-          partygame: { name: "WitClash", description: "d", icon: "nope" },
+          name: "@openparty/wit-clash",
+          openparty: { name: "WitClash", description: "d", icon: "nope" },
         },
       },
     ]);
@@ -151,8 +151,8 @@ describe("discoverGames manifests", () => {
 
   it("reports manifest errors in folder order, not input order", () => {
     const result = discoverGames([
-      { folder: "zeta", packageJson: { name: "@partygame/zeta", partygame: "text" } },
-      { folder: "alpha", packageJson: { name: "@partygame/alpha", partygame: [1] } },
+      { folder: "zeta", packageJson: { name: "@openparty/zeta", openparty: "text" } },
+      { folder: "alpha", packageJson: { name: "@openparty/alpha", openparty: [1] } },
     ]);
     expect(result.manifestErrors.map((error) => error.folder)).toEqual(["alpha", "zeta"]);
   });
@@ -241,15 +241,15 @@ describe("formatting", () => {
 });
 
 describe("shipped template manifest", () => {
-  it("scaffolds a package.json with a valid partygame manifest named after the display name", async () => {
+  it("scaffolds a package.json with a valid openparty manifest named after the display name", async () => {
     const names = deriveNames("word-war");
     const dest = await mkdtemp(join(tmpdir(), "manifest-"));
     try {
       await renderTemplate({ templateDir: SHIPPED_TEMPLATE, outDir: dest, names });
       const parsed = JSON.parse(await readFile(join(dest, "package.json"), "utf8")) as {
-        partygame?: unknown;
+        openparty?: unknown;
       };
-      expect(GameManifestSchema.parse(parsed.partygame)).toEqual({
+      expect(GameManifestSchema.parse(parsed.openparty)).toEqual({
         name: names.displayName,
         description: "A party game",
         icon: "🎮",

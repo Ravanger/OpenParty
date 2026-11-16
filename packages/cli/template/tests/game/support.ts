@@ -1,4 +1,4 @@
-import { TestTable } from "@partygame/core/testing";
+import { TestTable } from "@openparty/core/testing";
 import { create__PascalName__Game } from "../../src/game.js";
 import { type __PascalName__Options, __PascalName__OptionsSchema } from "../../src/options.js";
 import type { __PascalName__Private } from "../../src/private.js";

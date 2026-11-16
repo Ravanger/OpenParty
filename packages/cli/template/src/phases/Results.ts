@@ -1,4 +1,4 @@
-import { playAgainAction } from "@partygame/core";
+import { playAgainAction } from "@openparty/core";
 import { ACTION } from "../actions.js";
 import type { __PascalName__Context, __PascalName__Phase } from "../private.js";
 

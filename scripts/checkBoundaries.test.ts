@@ -3,7 +3,7 @@ import { checkBoundaries, importsOf, type SourceFile, type Workspace } from "./c
 
 const workspace = (name: string, overrides: Partial<Workspace> = {}): Workspace => ({
   dir: `packages/${name}`,
-  name: `@partygame/${name}`,
+  name: `@openparty/${name}`,
   dependencies: [],
   devDependencies: [],
   exports: ["."],
@@ -15,28 +15,28 @@ const file = (path: string, ...imports: string[]): SourceFile => ({ path, import
 
 const base = (): Workspace[] => [
   workspace("shared"),
-  workspace("core", { dependencies: ["@partygame/shared"] }),
+  workspace("core", { dependencies: ["@openparty/shared"] }),
   workspace("server", {
-    dependencies: ["@partygame/core", "@partygame/shared"],
+    dependencies: ["@openparty/core", "@openparty/shared"],
     exports: [".", "./node"],
   }),
-  workspace("game-client", { dependencies: ["@partygame/shared"] }),
+  workspace("game-client", { dependencies: ["@openparty/shared"] }),
   workspace("game-ui", {
-    dependencies: ["@partygame/game-client", "@partygame/shared"],
+    dependencies: ["@openparty/game-client", "@openparty/shared"],
     exports: [".", "./components"],
   }),
-  workspace("bots", { dependencies: ["@partygame/shared"] }),
+  workspace("bots", { dependencies: ["@openparty/shared"] }),
   workspace("config", { exports: ["./vitest"] }),
   workspace("cli"),
 ];
 
 const withChange = (name: string, overrides: Partial<Workspace>): Workspace[] =>
-  base().map((entry) => (entry.name === `@partygame/${name}` ? { ...entry, ...overrides } : entry));
+  base().map((entry) => (entry.name === `@openparty/${name}` ? { ...entry, ...overrides } : entry));
 
 const game = (overrides: Partial<Workspace> = {}): Workspace => ({
   dir: "games/demo",
-  name: "@partygame/demo",
-  dependencies: ["@partygame/game-ui", "@partygame/game-client", "@partygame/shared"],
+  name: "@openparty/demo",
+  dependencies: ["@openparty/game-ui", "@openparty/game-client", "@openparty/shared"],
   devDependencies: [],
   exports: [],
   files: [],
@@ -80,13 +80,13 @@ describe("checkBoundaries", () => {
   describe("manifest", () => {
     it("rejects a runtime dependency outside the layer", () => {
       const violations = checkBoundaries(
-        withChange("shared", { dependencies: ["@partygame/server"] }),
+        withChange("shared", { dependencies: ["@openparty/server"] }),
       );
       expect(violations).toEqual([
         {
           path: "packages/shared/package.json",
           rule: "manifest",
-          detail: "@partygame/server is not allowed in dependencies",
+          detail: "@openparty/server is not allowed in dependencies",
         },
       ]);
     });
@@ -95,17 +95,17 @@ describe("checkBoundaries", () => {
       expect(
         rules(
           withChange("game-client", {
-            devDependencies: ["@partygame/core", "@partygame/server", "@partygame/config"],
+            devDependencies: ["@openparty/core", "@openparty/server", "@openparty/config"],
           }),
         ),
       ).toEqual([]);
-      expect(rules(withChange("game-client", { dependencies: ["@partygame/core"] }))).toEqual([
+      expect(rules(withChange("game-client", { dependencies: ["@openparty/core"] }))).toEqual([
         "manifest",
       ]);
     });
 
     it("rejects a dev dependency outside runtime plus dev-only", () => {
-      expect(rules(withChange("game-ui", { devDependencies: ["@partygame/core"] }))).toEqual([
+      expect(rules(withChange("game-ui", { devDependencies: ["@openparty/core"] }))).toEqual([
         "manifest",
       ]);
     });
@@ -118,10 +118,10 @@ describe("checkBoundaries", () => {
       expect(
         rules([
           ...base(),
-          game({ dependencies: ["@partygame/server", "@partygame/core", "@partygame/launcher"] }),
+          game({ dependencies: ["@openparty/server", "@openparty/core", "@openparty/launcher"] }),
         ]),
       ).toEqual([]);
-      expect(rules([...base(), game({ devDependencies: ["@partygame/cli"] })])).toEqual([
+      expect(rules([...base(), game({ devDependencies: ["@openparty/cli"] })])).toEqual([
         "manifest",
       ]);
     });
@@ -131,7 +131,7 @@ describe("checkBoundaries", () => {
         {
           path: "packages/mystery/package.json",
           rule: "manifest",
-          detail: "@partygame/mystery has no entry in LAYERS",
+          detail: "@openparty/mystery has no entry in LAYERS",
         },
       ]);
     });
@@ -141,14 +141,14 @@ describe("checkBoundaries", () => {
     it("rejects an undeclared import in src", () => {
       const violations = checkBoundaries(
         withChange("game-ui", {
-          files: [file("packages/game-ui/src/a.ts", "@partygame/server")],
+          files: [file("packages/game-ui/src/a.ts", "@openparty/server")],
         }),
       );
       expect(violations).toEqual([
         {
           path: "packages/game-ui/src/a.ts",
           rule: "declared",
-          detail: "@partygame/server is not in dependencies",
+          detail: "@openparty/server is not in dependencies",
         },
       ]);
     });
@@ -160,8 +160,8 @@ describe("checkBoundaries", () => {
             files: [
               file(
                 "packages/game-ui/src/a.ts",
-                "@partygame/shared",
-                "@partygame/game-ui/components",
+                "@openparty/shared",
+                "@openparty/game-ui/components",
               ),
             ],
           }),
@@ -173,8 +173,8 @@ describe("checkBoundaries", () => {
       expect(
         rules(
           withChange("game-client", {
-            devDependencies: ["@partygame/core"],
-            files: [file("packages/game-client/src/a.ts", "@partygame/core")],
+            devDependencies: ["@openparty/core"],
+            files: [file("packages/game-client/src/a.ts", "@openparty/core")],
           }),
         ),
       ).toEqual(["declared"]);
@@ -184,12 +184,12 @@ describe("checkBoundaries", () => {
       expect(
         rules(
           withChange("game-client", {
-            devDependencies: ["@partygame/core"],
+            devDependencies: ["@openparty/core"],
             files: [
               file(
                 "packages/game-client/tests/a.ts",
-                "@partygame/core",
-                "@partygame/config/vitest",
+                "@openparty/core",
+                "@openparty/config/vitest",
               ),
             ],
           }),
@@ -200,7 +200,7 @@ describe("checkBoundaries", () => {
     it("rejects an undeclared import in tests", () => {
       expect(
         rules(
-          withChange("core", { files: [file("packages/core/tests/a.ts", "@partygame/server")] }),
+          withChange("core", { files: [file("packages/core/tests/a.ts", "@openparty/server")] }),
         ),
       ).toEqual(["declared"]);
     });
@@ -222,8 +222,8 @@ describe("checkBoundaries", () => {
         rules([
           ...base(),
           workspace("launcher", {
-            dependencies: ["@partygame/server", "@partygame/shared", "@partygame/bots"],
-            files: [file("packages/launcher/src/a.ts", "@partygame/server/node")],
+            dependencies: ["@openparty/server", "@openparty/shared", "@openparty/bots"],
+            files: [file("packages/launcher/src/a.ts", "@openparty/server/node")],
           }),
         ]),
       ).toEqual([]);
@@ -232,14 +232,14 @@ describe("checkBoundaries", () => {
     it("rejects a path into src", () => {
       const violations = checkBoundaries(
         withChange("server", {
-          files: [file("packages/server/src/a.ts", "@partygame/core/src/index")],
+          files: [file("packages/server/src/a.ts", "@openparty/core/src/index")],
         }),
       );
       expect(violations).toEqual([
         {
           path: "packages/server/src/a.ts",
           rule: "public-entry",
-          detail: "@partygame/core/src/index is not an export of @partygame/core",
+          detail: "@openparty/core/src/index is not an export of @openparty/core",
         },
       ]);
     });
@@ -249,8 +249,8 @@ describe("checkBoundaries", () => {
         rules([
           ...base(),
           game({
-            dependencies: ["@partygame/ghost"],
-            files: [file("games/demo/src/a.ts", "@partygame/ghost/x")],
+            dependencies: ["@openparty/ghost"],
+            files: [file("games/demo/src/a.ts", "@openparty/ghost/x")],
           }),
         ]),
       ).toEqual([]);
@@ -351,10 +351,10 @@ describe("checkBoundaries", () => {
       expect(
         rules(
           ui(
-            "@partygame/game-ui",
-            "@partygame/game-ui/components",
-            "@partygame/game-client",
-            "@partygame/shared",
+            "@openparty/game-ui",
+            "@openparty/game-ui/components",
+            "@openparty/game-client",
+            "@openparty/shared",
             "svelte",
             "./b.svelte",
             "../../src/state.js",
@@ -370,8 +370,8 @@ describe("checkBoundaries", () => {
         rules([
           ...base(),
           game({
-            dependencies: ["@partygame/core", "@partygame/server"],
-            files: [file("games/demo/ui/a.ts", "@partygame/core", "@partygame/server")],
+            dependencies: ["@openparty/core", "@openparty/server"],
+            files: [file("games/demo/ui/a.ts", "@openparty/core", "@openparty/server")],
           }),
         ]),
       ).toEqual(["game-ui", "game-ui"]);
@@ -392,8 +392,8 @@ describe("checkBoundaries", () => {
         rules([
           ...base(),
           game({
-            dependencies: ["@partygame/core"],
-            files: [file("games/demo/src/a.ts", "@partygame/core")],
+            dependencies: ["@openparty/core"],
+            files: [file("games/demo/src/a.ts", "@openparty/core")],
           }),
         ]),
       ).toEqual([]);
@@ -403,7 +403,7 @@ describe("checkBoundaries", () => {
   describe("game purity", () => {
     const files = (...list: SourceFile[]): Workspace[] => [...base(), game({ files: list })];
 
-    it.each(["@partygame/game-ui", "@partygame/game-client", "svelte", "svelte/store"])(
+    it.each(["@openparty/game-ui", "@openparty/game-client", "svelte", "svelte/store"])(
       "rejects %s in game src",
       (specifier) => {
         expect(rules(files(file("games/demo/src/a.ts", specifier)))).toEqual(["layer-purity"]);
@@ -421,8 +421,8 @@ describe("checkBoundaries", () => {
       const found = checkBoundaries([
         ...base(),
         game({
-          dependencies: ["@partygame/server", "@partygame/core"],
-          files: [file("games/demo/ui/a.ts", "@partygame/server", "@partygame/core")],
+          dependencies: ["@openparty/server", "@openparty/core"],
+          files: [file("games/demo/ui/a.ts", "@openparty/server", "@openparty/core")],
         }),
       ]);
       expect(found.map((violation) => violation.rule)).toEqual(["game-ui", "game-ui"]);
@@ -436,17 +436,17 @@ describe("checkBoundaries", () => {
     ];
 
     it.each(["server", "launch", "gamePackage"])("applies declared to games/demo/%s.ts", (name) => {
-      expect(checkBoundaries(entry(`games/demo/${name}.ts`, "@partygame/core"))).toEqual([
+      expect(checkBoundaries(entry(`games/demo/${name}.ts`, "@openparty/core"))).toEqual([
         {
           path: `games/demo/${name}.ts`,
           rule: "declared",
-          detail: "@partygame/core is not in dependencies",
+          detail: "@openparty/core is not in dependencies",
         },
       ]);
     });
 
     it("applies public-entry to an entry file", () => {
-      const found = checkBoundaries(entry("games/demo/server.ts", "@partygame/shared/src/x"));
+      const found = checkBoundaries(entry("games/demo/server.ts", "@openparty/shared/src/x"));
       expect(found.map((violation) => violation.rule)).toEqual(["public-entry"]);
     });
 
@@ -454,8 +454,8 @@ describe("checkBoundaries", () => {
       const workspaces = [
         ...base(),
         game({
-          devDependencies: ["@partygame/config"],
-          files: [file("games/demo/vite.config.ts", "@partygame/config/vitest")],
+          devDependencies: ["@openparty/config"],
+          files: [file("games/demo/vite.config.ts", "@openparty/config/vitest")],
         }),
       ];
       expect(rules(workspaces)).toEqual([]);
@@ -464,14 +464,14 @@ describe("checkBoundaries", () => {
     it("rejects an undeclared import in a config file", () => {
       const workspaces = [
         ...base(),
-        game({ files: [file("games/demo/vite.config.ts", "@partygame/core")] }),
+        game({ files: [file("games/demo/vite.config.ts", "@openparty/core")] }),
       ];
       expect(rules(workspaces)).toEqual(["declared"]);
     });
 
     it("scans nested package scripts as dev files", () => {
       expect(
-        rules(withChange("cli", { files: [file("packages/cli/scripts/a.ts", "@partygame/core")] })),
+        rules(withChange("cli", { files: [file("packages/cli/scripts/a.ts", "@openparty/core")] })),
       ).toEqual(["declared"]);
     });
   });

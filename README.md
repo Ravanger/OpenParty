@@ -1,4 +1,4 @@
-# Party Game Framework
+# OpenParty
 
 TypeScript framework for multi-device party games. Four reference games under `games/`, built only on the packages below.
 
@@ -40,7 +40,7 @@ Bots answer and vote by themselves; you host and press Start. Ctrl+C stops them.
 | `bots [game] <CODE> [count]` | seat bots in a browser-created room (only games with a bots entry) |
 | `bun run --cwd games/wit-clash demo` | watch an all-bot WitClash game (`--bots=N`) |
 | `new <slug>` | scaffold a tested game under `games/<slug>/` |
-| `games` | list games and their entries, from each game's `partygame` manifest (name, description, icon) in its `package.json` |
+| `games` | list games and their entries, from each game's `openparty` manifest (name, description, icon) in its `package.json` |
 | `test:coverage` | tests, 100% coverage enforced |
 | `typecheck` / `lint` / `verify` | tsc + svelte-check / Biome / all |
 

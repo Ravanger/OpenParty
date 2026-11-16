@@ -1,4 +1,4 @@
-import { leaders, type PodiumStep, podiumSteps, rankRows } from "@partygame/game-ui";
+import { leaders, type PodiumStep, podiumSteps, rankRows } from "@openparty/game-ui";
 import { ACTION } from "../../src/actionNames.js";
 import type { BluffManager } from "../manager.js";
 

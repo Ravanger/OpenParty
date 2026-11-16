@@ -1,4 +1,4 @@
-import { LobbySettingsViewModel as LobbySettingsBase } from "@partygame/game-ui";
+import { LobbySettingsViewModel as LobbySettingsBase } from "@openparty/game-ui";
 import { BluffOptionsSchema, DEFAULT_OPTIONS } from "../../src/options.js";
 import type { BluffState } from "../../src/state.js";
 import type { BluffManager } from "../manager.js";

@@ -1,4 +1,4 @@
-# @partygame/rush
+# @openparty/rush
 
 ## Responsibility
 
@@ -11,8 +11,8 @@ The real-time tap-race party game: a target bounces around a 10x10 grid on the s
 
 ## May import
 
-- Runtime: `@partygame/core`, `@partygame/shared`
-- Dev: `@partygame/config`
+- Runtime: `@openparty/core`, `@openparty/shared`
+- Dev: `@openparty/config`
 
 ## Public entry points
 

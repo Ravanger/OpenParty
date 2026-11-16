@@ -1,6 +1,6 @@
-import { connectedClient, type FetchStub, fakeFetch } from "@partygame/game-client/testing";
-import { CLIENT_MESSAGES, CLOSE_CODES, ROOM_CODE_LENGTH } from "@partygame/shared";
-import { BaseGameState } from "@partygame/shared/schema";
+import { connectedClient, type FetchStub, fakeFetch } from "@openparty/game-client/testing";
+import { CLIENT_MESSAGES, CLOSE_CODES, ROOM_CODE_LENGTH } from "@openparty/shared";
+import { BaseGameState } from "@openparty/shared/schema";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { WelcomeViewModel } from "../src/WelcomeViewModel.svelte.js";
 

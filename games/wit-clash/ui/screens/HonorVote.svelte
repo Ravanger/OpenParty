@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { PhaseTimer, StatusPanel } from "@partygame/game-ui/components";
+  import { PhaseTimer, StatusPanel } from "@openparty/game-ui/components";
   import { untrack } from "svelte";
   import type { WitClashManager } from "../manager.js";
   import { HonorVoteViewModel } from "../viewmodels/HonorVoteViewModel.js";

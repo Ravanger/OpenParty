@@ -3,7 +3,7 @@ import {
   ErrorCode,
   FrameworkError,
   MAX_OPTIONS_JSON_LENGTH,
-} from "@partygame/shared";
+} from "@openparty/shared";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import {
