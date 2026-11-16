@@ -14,6 +14,7 @@ import {
   type RuntimeHost,
   randomSeed,
   required,
+  resolveGameOptions,
   type Seed,
   sfc32,
   type TimerHandle,
@@ -27,10 +28,10 @@ import {
   ClientMessage,
   type CloseCode,
   ErrorCode,
+  FRAMEWORK_OPTION_KEYS,
   FRAMEWORK_VERSION,
   JoinOptionsSchema,
   LOBBY_PHASE,
-  MAX_OPTIONS_JSON_LENGTH,
   PROTOCOL_VERSION,
   type ServerError as ProtocolError,
   RoomOptionsSchema,
@@ -43,7 +44,6 @@ import type { ZodError } from "zod";
 import type { RateLimiter, ResolvedRateLimits, TokenBucket } from "../RateLimiter.js";
 import type { RoomCodeService } from "../services/RoomCodeService.js";
 
-const FRAMEWORK_KEYS = ["playerId", "name", "spectator", "seatSecret", "seats", "protocolVersion"];
 const SPECTATOR_ERROR: ProtocolError = {
   code: ErrorCode.UNAUTHORIZED,
   message: CLIENT_MESSAGES.UNAUTHORIZED,
@@ -158,6 +158,16 @@ export class GameRoom extends Room<{ state: BaseGameState }> {
     return this.closeWith(CLOSE_CODES.INVALID_OPTIONS);
   }
 
+  /**
+   * Re-runs the game-options parse to recover its issues for the server-side log;
+   * `resolveGameOptions` already refused these options, so the re-parse cannot succeed and this
+   * always throws.
+   */
+  private invalidGameOptions(raw: Record<string, unknown>): never {
+    const reparse = required(this.config.definition.options, "options schema").safeParse(raw);
+    throw this.invalidOptions("create", (reparse as { error: ZodError }).error);
+  }
+
   /** One structured line for this room at `level`; the room id is bound here and wins over caller fields. */
   private logLine(level: "info" | "warn" | "error", event: string, fields?: LogFields): void {
     this.config.logger[level](event, { ...(fields ?? {}), roomId: this.roomId });
@@ -192,19 +202,14 @@ export class GameRoom extends Room<{ state: BaseGameState }> {
     this.autoDispose = false;
     this.maxClients = definition.maxPlayers + this.config.audienceSlots;
     const rawOptions = Object.fromEntries(
-      Object.entries(options).filter(([key]) => !FRAMEWORK_KEYS.includes(key)),
+      Object.entries(options).filter(([key]) => !FRAMEWORK_OPTION_KEYS.includes(key)),
     );
-    if (!definition.options && Object.keys(rawOptions).length > 0) {
+    const resolved = resolveGameOptions(definition, rawOptions);
+    if (!resolved.ok) {
+      if (resolved.reason === "invalid") throw this.invalidGameOptions(rawOptions);
       throw this.closeWith(CLOSE_CODES.INVALID_OPTIONS);
     }
-    const optionsResult = definition.options?.safeParse(rawOptions);
-    if (optionsResult && !optionsResult.success) {
-      throw this.invalidOptions("create", optionsResult.error);
-    }
-    const parsedOptions = optionsResult ? optionsResult.data : rawOptions;
-    if (JSON.stringify(parsedOptions).length > MAX_OPTIONS_JSON_LENGTH) {
-      throw this.closeWith(CLOSE_CODES.INVALID_OPTIONS);
-    }
+    const parsedOptions = resolved.options;
 
     const code = roomCodeService.generateAndRegister(this.roomId);
 

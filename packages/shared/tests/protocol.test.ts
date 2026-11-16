@@ -5,6 +5,7 @@ import {
   ClientMessage,
   END_GAME,
   ErrorCode,
+  FRAMEWORK_OPTION_KEYS,
   isActionResult,
   isServerError,
   JOIN_DATA_KEY_MAX_LENGTH,
@@ -263,6 +264,20 @@ describe("JoinOptionsSchema", () => {
     expect(parse({ long: "v".repeat(JOIN_DATA_VALUE_MAX_LENGTH + 1) })).toBe(false);
     expect(parse({ object: {} })).toBe(false);
     expect(parse({ array: [1] })).toBe(false);
+  });
+});
+
+describe("FRAMEWORK_OPTION_KEYS", () => {
+  it("covers exactly the keys of JoinOptionsSchema and RoomOptionsSchema", () => {
+    const expected = new Set([
+      ...Object.keys(JoinOptionsSchema.shape),
+      ...Object.keys(RoomOptionsSchema.shape),
+    ]);
+    expect(new Set(FRAMEWORK_OPTION_KEYS)).toEqual(expected);
+  });
+
+  it("has no duplicates", () => {
+    expect(new Set(FRAMEWORK_OPTION_KEYS).size).toBe(FRAMEWORK_OPTION_KEYS.length);
   });
 });
 

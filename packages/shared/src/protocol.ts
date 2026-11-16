@@ -205,6 +205,15 @@ export const RoomOptionsSchema = z.object({
   protocolVersion: z.number().int().optional(),
 });
 
+/**
+ * The framework-owned keys a client may pass when creating or joining a room. Derived from
+ * {@link JoinOptionsSchema} and {@link RoomOptionsSchema}, so it cannot drift from them; the room
+ * strips these from create options before handing the rest to the game's options schema.
+ */
+export const FRAMEWORK_OPTION_KEYS: readonly string[] = [
+  ...new Set([...JoinOptionsSchema.keyof().options, ...RoomOptionsSchema.keyof().options]),
+];
+
 /** Body of `GET /api/resolve-code`: the room id, or why the code did not resolve. */
 export const ResolveCodeResponseSchema = z.union([
   z.object({ roomId: z.string() }),
