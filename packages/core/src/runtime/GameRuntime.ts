@@ -9,29 +9,25 @@ import {
   ServerMessage,
 } from "@openparty/shared";
 import { createActor } from "xstate";
-import { deepFreeze, newId, required } from "../utils.js";
+import { deepFreeze, newId } from "../utils.js";
 import { DispatchPipeline } from "./DispatchPipeline.js";
-import type { RuntimeHost, TimerHandle } from "./host.js";
+import type { RuntimeHost } from "./host.js";
+import { pickNextHost } from "./hostMigration.js";
 import { Lobby } from "./lobby.js";
 import { type ContextLogger, type Logger, type LogLine, noopLogger } from "./logger.js";
+import { MiddlewareChain } from "./MiddlewareChain.js";
 import { buildPhaseMachine } from "./machineFactory.js";
+import { PhaseTicker } from "./PhaseTicker.js";
 import { type CoreStrings, mergeCoreStrings } from "./strings.js";
 import { type Pending, PhaseLoopError, TransitionQueue } from "./TransitionQueue.js";
 import type {
   ActionDefinition,
   GameContext,
   GameDefinition,
-  MiddlewareContext,
   MiddlewareEvent,
   PhaseDefinition,
-  PhaseMiddleware,
   PhaseState,
-  PlayerInfo,
-  RejectOptions,
 } from "./types.js";
-
-/** `PhaseDefinition.tickMs` when a ticking phase does not set one: 10 Hz. */
-const DEFAULT_TICK_MS = 100;
 
 /** Thrown by the {@link GameRuntime} constructor when `createPrivateState()` returns a non-object. */
 export class InvalidPrivateStateError extends Error {
@@ -77,7 +73,8 @@ export class GameRuntime<TState extends PhaseState, TPrivate, TOptions = Record<
   private readonly lobby: Lobby<TState, TPrivate, TOptions>;
   private readonly builtins: Record<string, ActionDefinition<TState, TPrivate, TOptions, unknown>>;
   private readonly phases: Record<string, PhaseDefinition<TState, TPrivate, TOptions>>;
-  private readonly middleware: PhaseMiddleware<TState, TPrivate, TOptions>[];
+  private readonly chain: MiddlewareChain<TState, TPrivate, TOptions>;
+  private readonly ticker: PhaseTicker<TState, TPrivate, TOptions>;
   private readonly pipeline: DispatchPipeline<TState, TPrivate, TOptions>;
   private readonly actor: PhaseActor;
   private readonly queue = new TransitionQueue();
@@ -88,10 +85,6 @@ export class GameRuntime<TState extends PhaseState, TPrivate, TOptions = Record<
   private current: PhaseDefinition<TState, TPrivate, TOptions>;
   private phaseName: string = LOBBY_PHASE;
   private duration = 0;
-  /** Pending `onTick` timer of the current phase, while it has one. */
-  private tickHandle: TimerHandle | undefined = undefined;
-  /** Ticks fired since entry into the current phase, while it has `onTick`. */
-  private tickCount = 0;
   private stopped = false;
   private hasStarted = false;
   private lobbyReturnFailed = false;
@@ -125,7 +118,20 @@ export class GameRuntime<TState extends PhaseState, TPrivate, TOptions = Record<
       hasStarted: () => this.hasStarted,
       rosterChanged: () => this.rosterChange(),
     });
-    this.middleware = this.spec.middleware ?? [];
+    this.ticker = new PhaseTicker<TState, TPrivate, TOptions>({
+      host: this.host,
+      run: (fn) => this.run(fn),
+      context: () => this.context(),
+    });
+    this.chain = new MiddlewareChain<TState, TPrivate, TOptions>({
+      layers: this.spec.middleware ?? [],
+      context: () => this.context(),
+      rejectionCount: () => this.rejections.length,
+      redactedRejectionCount: () => this.redactedRejections,
+      ticks: () => (this.current.onTick !== undefined ? this.ticker.count : undefined),
+      reject: (senderId, actionType, code, message, redactPayload) =>
+        this.reject(senderId, actionType, code, message, redactPayload),
+    });
     this.builtins = {
       [KICK_PLAYER]: this.lobby.kickAction(),
       [END_GAME]: this.lobby.endGameAction(),
@@ -143,7 +149,7 @@ export class GameRuntime<TState extends PhaseState, TPrivate, TOptions = Record<
       filterLevel: () => this.spec.filterLevel?.(this.options) ?? "off",
       audienceOnce: (audienceKey, scope) => this.host.audienceOnce(audienceKey, scope),
       reject: (playerId, action, code, message) => this.reject(playerId, action, code, message),
-      chain: (event, inner) => this.chain(event, () => this.rejectThrown(event, inner)),
+      chain: (event, inner) => this.chain.run(event, () => this.rejectThrown(event, inner)),
     });
     this.current = this.phases[LOBBY_PHASE] as PhaseDefinition<TState, TPrivate, TOptions>;
     this.actor = createActor(
@@ -152,7 +158,7 @@ export class GameRuntime<TState extends PhaseState, TPrivate, TOptions = Record<
         enter: (name) =>
           this.enter(name, this.phases[name] as PhaseDefinition<TState, TPrivate, TOptions>),
         timeout: () =>
-          this.chain({ kind: "timeout" }, () => this.current.onTimeout?.(this.context())),
+          this.chain.run({ kind: "timeout" }, () => this.current.onTimeout?.(this.context())),
         duration: () => this.duration,
         guard: (fn) => this.guarded(fn),
       }),
@@ -183,16 +189,7 @@ export class GameRuntime<TState extends PhaseState, TPrivate, TOptions = Record<
    * with `NOT_ALLOWED`.
    */
   dispatch(playerId: string, rawAction: unknown): ServerError | undefined {
-    if (this.stopped) return this.stoppedError();
-    this.rejections.length = 0;
-    this.redactedRejections = 0;
-    try {
-      this.run(() => this.handle(playerId, rawAction), true);
-    } catch (error) {
-      if (!(error instanceof FrameworkError)) throw error;
-      return this.recordFrameworkError(playerId, error);
-    }
-    return this.rejections[0];
+    return this.dispatchTo(playerId, rawAction, (id, raw) => this.pipeline.run(id, raw));
   }
 
   /**
@@ -202,14 +199,23 @@ export class GameRuntime<TState extends PhaseState, TPrivate, TOptions = Record<
    * {@link GameRuntime.stop} every action fails with `NOT_ALLOWED`.
    */
   dispatchAudience(audienceKey: string, rawAction: unknown): ServerError | undefined {
+    return this.dispatchTo(audienceKey, rawAction, (id, raw) => this.pipeline.runAudience(id, raw));
+  }
+
+  /** The shared dispatch path: reset the rejection bookkeeping, run one pipeline step, answer with the first rejection. */
+  private dispatchTo(
+    senderId: string,
+    rawAction: unknown,
+    handle: (senderId: string, rawAction: unknown) => void,
+  ): ServerError | undefined {
     if (this.stopped) return this.stoppedError();
     this.rejections.length = 0;
     this.redactedRejections = 0;
     try {
-      this.run(() => this.handleAudience(audienceKey, rawAction), true);
+      this.run(() => handle(senderId, rawAction), true);
     } catch (error) {
       if (!(error instanceof FrameworkError)) throw error;
-      return this.recordFrameworkError(audienceKey, error);
+      return this.recordFrameworkError(senderId, error);
     }
     return this.rejections[0];
   }
@@ -231,7 +237,7 @@ export class GameRuntime<TState extends PhaseState, TPrivate, TOptions = Record<
     this.stopped = true;
     this.queue.clear();
     this.actor.stop();
-    this.clearTick();
+    this.ticker.clear();
   }
 
   /**
@@ -278,75 +284,9 @@ export class GameRuntime<TState extends PhaseState, TPrivate, TOptions = Record<
     };
   }
 
-  /**
-   * Runs `inner` through the middleware onion; outermost first. Omitting `next()` skips everything inside.
-   * Each layer's `next()` may be called at most once per event, and a layer that returns a Promise throws —
-   * the chain is synchronous.
-   */
-  private chain(event: MiddlewareEvent, inner: () => void): void {
-    if (this.middleware.length === 0) {
-      inner();
-      return;
-    }
-    const layers = this.middleware;
-    const runLayer = (index: number): void => {
-      const layer = layers[index];
-      if (layer === undefined) {
-        inner();
-        return;
-      }
-      let nexted = false;
-      const result: unknown = layer(this.middlewareContext(event), () => {
-        if (nexted) {
-          throw new Error(`middleware[${index}] called next() twice for one ${event.kind} event`);
-        }
-        nexted = true;
-        runLayer(index + 1);
-      });
-      if (result && typeof (result as PromiseLike<unknown>).then === "function") {
-        throw new Error(
-          `middleware[${index}] returned a Promise; the middleware chain is synchronous`,
-        );
-      }
-    };
-    runLayer(0);
-  }
-
-  private middlewareContext(event: MiddlewareEvent): MiddlewareContext<TState, TPrivate, TOptions> {
-    const rejections = this.rejections;
-    // A getter shorthand binds `this` to the context object, not the runtime.
-    const runtime = this;
-    return {
-      ...this.context(),
-      // Present only while a ticking phase is active, so the action log can record the live tick
-      // count and replay can cap its tick delivery at it (#246).
-      ...(this.current.onTick !== undefined ? { ticks: this.tickCount } : {}),
-      event,
-      get rejectionCount() {
-        return rejections.length;
-      },
-      get redactedRejectionCount() {
-        return runtime.redactedRejections;
-      },
-      reject: (code, message, options) => this.middlewareReject(event, code, message, options),
-    };
-  }
-
-  /** Middleware rejections target the action's sender; other event kinds have no one to tell. */
-  private middlewareReject(
-    event: MiddlewareEvent,
-    code: ErrorCode,
-    message: string,
-    options?: RejectOptions,
-  ): void {
-    if (event.kind !== "action")
-      throw new Error("ctx.reject() is only available for action events");
-    this.reject(event.senderId, event.actionType, code, message, options?.redactPayload);
-  }
-
   private rosterChange(): void {
     this.migrateHost();
-    this.chain({ kind: "roster-change" }, () => this.current.onRosterChange?.(this.context()));
+    this.chain.run({ kind: "roster-change" }, () => this.current.onRosterChange?.(this.context()));
   }
 
   /** Promotes a new host when the current one is not connected, per `hostMigration`. */
@@ -356,22 +296,16 @@ export class GameRuntime<TState extends PhaseState, TPrivate, TOptions = Record<
     const players = this.host.players();
     const host = players.find((p) => p.role === "host");
     if (host?.isConnected) return;
-    const candidates = players.filter((p) => p.isConnected);
-    if (candidates.length === 0) return;
-    const policy = this.spec.hostMigration ?? "next-seated";
-    const nextId =
-      typeof policy === "function"
-        ? policy(candidates, () => this.host.rng())
-        : pickHost(policy, candidates, () => this.host.rng());
+    const nextId = pickNextHost(this.spec.hostMigration ?? "next-seated", players, () =>
+      this.host.rng(),
+    );
     // An id outside the candidates would demote the current host and promote nobody.
-    if (nextId === undefined || !candidates.some((p) => p.id === nextId)) return;
-    setHost(nextId);
+    if (nextId !== undefined) setHost(nextId);
   }
 
   private enter(name: string, phase: PhaseDefinition<TState, TPrivate, TOptions>): void {
-    this.clearTick();
     // Reset before the enter event is observed, so the recorded entry carries 0 ticks.
-    this.tickCount = 0;
+    this.ticker.reset();
     this.phaseName = name;
     this.hasStarted ||= name !== LOBBY_PHASE;
     this.current = phase;
@@ -384,42 +318,8 @@ export class GameRuntime<TState extends PhaseState, TPrivate, TOptions = Record<
         typeof phase.duration === "function" ? phase.duration(this.context()) : phase.duration;
       this.state.phaseEndsAt = this.host.now() + this.duration;
     }
-    this.chain({ kind: "enter" }, () => phase.onEnter?.(this.context()));
-    this.startTicks(phase);
-  }
-
-  /** Cancels the pending `onTick` timer, if the current phase has one. */
-  private clearTick(): void {
-    if (this.tickHandle === undefined) return;
-    this.host.clearTimeout(this.tickHandle);
-    this.tickHandle = undefined;
-  }
-
-  /**
-   * Arms the first `onTick` of a ticking phase, one interval after entry. Each tick reschedules
-   * the next anchored to the entry time, so tick k is due at enter + k·tickMs and a late delivery
-   * is not carried into the next tick (#327). Every fired tick increments {@link GameRuntime.tickCount},
-   * which middleware see as `ctx.ticks` so the action log can record it and replay can cap tick
-   * delivery at the live count (#246). Ticks stop when the phase is left: every transition and
-   * `stop()` clears the pending timer, including one scheduled by a tick that itself queued the
-   * transition.
-   */
-  private startTicks(phase: PhaseDefinition<TState, TPrivate, TOptions>): void {
-    const onTick = phase.onTick;
-    if (onTick === undefined) return;
-    const dtMs = phase.tickMs ?? DEFAULT_TICK_MS;
-    const enterAt = this.host.now();
-    const step = (): void => {
-      this.run(() => {
-        onTick(this.context(), dtMs);
-        ++this.tickCount;
-        this.tickHandle = this.host.setTimeout(
-          step,
-          Math.max(0, enterAt + (this.tickCount + 1) * dtMs - this.host.now()),
-        );
-      });
-    };
-    this.tickHandle = this.host.setTimeout(step, dtMs);
+    this.chain.run({ kind: "enter" }, () => phase.onEnter?.(this.context()));
+    this.ticker.start(phase);
   }
 
   private guarded(fn: () => void): void {
@@ -522,7 +422,7 @@ export class GameRuntime<TState extends PhaseState, TPrivate, TOptions = Record<
   }
 
   private observeTransition(from: string, to: string): void {
-    this.chain({ kind: "transition", from, to }, () => {});
+    this.chain.run({ kind: "transition", from, to }, () => {});
     this.host.notifyTransition(from, to);
   }
 
@@ -542,14 +442,6 @@ export class GameRuntime<TState extends PhaseState, TPrivate, TOptions = Record<
       if (this.phaseName === LOBBY_PHASE) this.host.benchUnreadyPlayers();
       this.actor.send({ type: "GO", phase: next.phase });
     }
-  }
-
-  private handle(playerId: string, rawAction: unknown): void {
-    this.pipeline.run(playerId, rawAction);
-  }
-
-  private handleAudience(audienceKey: string, rawAction: unknown): void {
-    this.pipeline.runAudience(audienceKey, rawAction);
   }
 
   /** Inside the chain, so middleware sees a handler-thrown FrameworkError as a rejection. */
@@ -586,27 +478,5 @@ export class GameRuntime<TState extends PhaseState, TPrivate, TOptions = Record<
     this.rejections.push(error);
     if (redactPayload) ++this.redactedRejections;
     this.host.send(playerId, ServerMessage.ERROR, error);
-  }
-}
-
-/** Named `hostMigration` policies: pick from the connected seats in seat order. */
-function pickHost(
-  policy: "oldest" | "next-seated" | "random" | "none",
-  candidates: PlayerInfo[],
-  rng: () => number,
-): string | undefined {
-  switch (policy) {
-    case "none":
-      return undefined;
-    case "oldest":
-      return required(candidates[0], "host candidate").id;
-    case "random":
-      return required(candidates[Math.floor(rng() * candidates.length)], "host candidate").id;
-    case "next-seated":
-      return (
-        candidates.find((c) => c.isActive && c.isReady)?.id ??
-        candidates.find((c) => c.isReady)?.id ??
-        required(candidates[0], "host candidate").id
-      );
   }
 }

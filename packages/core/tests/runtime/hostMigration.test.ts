@@ -6,7 +6,9 @@ import {
   GameRuntime,
   type HostMigration,
   type PhaseState,
+  type PlayerInfo,
 } from "../../src/index.js";
+import { pickNextHost } from "../../src/runtime/hostMigration.js";
 import { FakeHost } from "../../src/testing/FakeHost.js";
 
 type Spec = GameDefinition<PhaseState>;
@@ -180,5 +182,84 @@ describe("host migration", () => {
     expect(roleOf(host, "p1")).toBe("host");
     expect(roleOf(host, "p2")).toBe("player");
     expect(roleOf(host, "p3")).toBe("player");
+  });
+});
+
+const seat = (id: string, over: Partial<PlayerInfo> = {}): PlayerInfo => ({
+  id,
+  name: id,
+  role: "player",
+  isConnected: true,
+  isReady: true,
+  isActive: true,
+  ...over,
+});
+
+describe("pickNextHost (pure)", () => {
+  it('"oldest" picks the first connected seat regardless of ready or active', () => {
+    const players = [
+      seat("a", { isConnected: false }),
+      seat("b", { isReady: false, isActive: false }),
+      seat("c"),
+    ];
+    expect(pickNextHost("oldest", players, () => 0.5)).toBe("b");
+  });
+
+  it('"next-seated" prefers the first connected seat that is active and ready', () => {
+    const players = [seat("a", { isActive: false }), seat("b"), seat("c")];
+    expect(pickNextHost("next-seated", players, () => 0.5)).toBe("b");
+  });
+
+  it('"next-seated" falls back to the first connected ready seat when none is active', () => {
+    const players = [seat("a", { isActive: false }), seat("b", { isActive: false })];
+    expect(pickNextHost("next-seated", players, () => 0.5)).toBe("a");
+  });
+
+  it('"next-seated" falls back to the first connected seat when none is ready', () => {
+    const players = [seat("a", { isReady: false }), seat("b", { isReady: false })];
+    expect(pickNextHost("next-seated", players, () => 0.5)).toBe("a");
+  });
+
+  it('"random" draws one of the connected seats with the rng', () => {
+    const players = [seat("a"), seat("b")];
+    expect(pickNextHost("random", players, () => 0.9)).toBe("b"); // floor(0.9 * 2) = 1
+    expect(pickNextHost("random", players, () => 0.1)).toBe("a");
+  });
+
+  it('"none" returns undefined and never draws the rng', () => {
+    let draws = 0;
+    const rng = () => {
+      ++draws;
+      return 0.5;
+    };
+    expect(pickNextHost("none", [seat("a")], rng)).toBeUndefined();
+    expect(draws).toBe(0);
+  });
+
+  it("returns undefined when no seat is connected, without consulting the policy", () => {
+    let pickerCalls = 0;
+    const policy: HostMigration = (candidates) => {
+      ++pickerCalls;
+      return candidates[0]?.id;
+    };
+    expect(pickNextHost(policy, [seat("a", { isConnected: false })], () => 0.5)).toBeUndefined();
+    expect(pickerCalls).toBe(0);
+  });
+
+  it("lets a HostPicker choose among the connected seats only", () => {
+    const policy: HostMigration = (candidates) => candidates[0]?.id;
+    expect(pickNextHost(policy, [seat("a", { isConnected: false }), seat("b")], () => 0.5)).toBe(
+      "b",
+    );
+  });
+
+  it("ignores a picker id outside the connected seats", () => {
+    const policy: HostMigration = () => "ghost";
+    expect(pickNextHost(policy, [seat("a"), seat("b")], () => 0.5)).toBeUndefined();
+  });
+
+  it("keeps the current host when a picker returns undefined", () => {
+    const policy: HostMigration = () => undefined;
+    expect(pickNextHost(policy, [seat("a")], () => 0.5)).toBeUndefined();
   });
 });
