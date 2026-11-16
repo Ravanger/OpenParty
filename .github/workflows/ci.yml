@@ -115,7 +115,8 @@ jobs:
     name: mutation
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    # A repo-wide change (e.g. the OpenParty rename) mutates every source file; Stryker needs ~4h for that.
+    timeout-minutes: 300
     steps:
       - uses: actions/checkout@v7
         with:
