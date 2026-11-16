@@ -11,17 +11,16 @@ import {
 import { createActor } from "xstate";
 import { deepFreeze, newId, required } from "../utils.js";
 import { DispatchPipeline } from "./DispatchPipeline.js";
+import type { RuntimeHost, TimerHandle } from "./host.js";
 import { Lobby } from "./lobby.js";
+import { type ContextLogger, type Logger, type LogLine, noopLogger } from "./logger.js";
 import { buildPhaseMachine } from "./machineFactory.js";
 import { type CoreStrings, mergeCoreStrings } from "./strings.js";
 import { type Pending, PhaseLoopError, TransitionQueue } from "./TransitionQueue.js";
 import type {
   ActionDefinition,
-  ContextLogger,
   GameContext,
   GameDefinition,
-  Logger,
-  LogLine,
   MiddlewareContext,
   MiddlewareEvent,
   PhaseDefinition,
@@ -29,10 +28,7 @@ import type {
   PhaseState,
   PlayerInfo,
   RejectOptions,
-  RuntimeHost,
-  TimerHandle,
 } from "./types.js";
-import { noopLogger } from "./types.js";
 
 /** `PhaseDefinition.tickMs` when a ticking phase does not set one: 10 Hz. */
 const DEFAULT_TICK_MS = 100;

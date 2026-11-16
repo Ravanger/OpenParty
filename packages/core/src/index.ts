@@ -21,7 +21,7 @@ export {
   type TextFilterMiddlewareOptions,
   textFilterMiddleware,
   timingMiddleware,
-} from "./middleware.js";
+} from "./middleware/index.js";
 export {
   departedIds,
   endIfBelowMinimum,

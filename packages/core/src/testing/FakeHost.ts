@@ -1,6 +1,7 @@
 import { ServerMessage } from "@openparty/shared";
+import type { RuntimeHost, TimerHandle } from "../runtime/host.js";
+import type { Logger, LogLevel, LogLine } from "../runtime/logger.js";
 import { ManualHost } from "../runtime/ManualHost.js";
-import type { Logger, LogLevel, LogLine, RuntimeHost, TimerHandle } from "../runtime/types.js";
 import { MAX_TIMER_FIRES_PER_ADVANCE, TimerLimitError } from "../timers.js";
 
 /** A message `FakeHost` recorded as sent to one player. */

@@ -1,7 +1,8 @@
 import { AudienceScopes } from "../audienceScopes.js";
 import { TimerQueue } from "../timers.js";
 import { type Seed, seedFromNumber, sfc32 } from "../utils.js";
-import type { PlayerInfo, TimerHandle } from "./types.js";
+import type { TimerHandle } from "./host.js";
+import type { PlayerInfo } from "./types.js";
 
 /**
  * The host machinery shared by the manual-clock hosts (the test and replay hosts): a deterministic

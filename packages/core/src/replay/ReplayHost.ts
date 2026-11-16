@@ -1,5 +1,5 @@
+import type { RuntimeHost } from "../runtime/host.js";
 import { ManualHost } from "../runtime/ManualHost.js";
-import type { RuntimeHost } from "../runtime/types.js";
 import {
   MAX_TIMER_FIRES_PER_ADVANCE,
   MAX_TIMER_FIRES_PER_REPLAY,

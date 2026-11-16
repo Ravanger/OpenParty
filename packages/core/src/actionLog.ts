@@ -1,18 +1,23 @@
 import { LOBBY_PHASE, PROTOCOL_VERSION, START_GAME } from "@openparty/shared";
 import { z } from "zod";
-import {
-  InvalidPrivateStateError,
-  type MiddlewareContext,
-  type PhaseMiddleware,
-  type PhaseState,
-} from "./runtime/index.js";
+import { privStore } from "./privStore.js";
+import type { MiddlewareContext, PhaseMiddleware, PhaseState } from "./runtime/index.js";
 import { deepFreeze, type Seed } from "./utils.js";
 
 /** One log per `ctx.priv` object; the priv itself never gains a framework key. */
-const logs = new WeakMap<object, ActionLog>();
+const logs = privStore<ActionLog>((ctx) => ({
+  header: {
+    seed: ctx.seed,
+    game: ctx.gameName,
+    version: ctx.gameVersion,
+    protocolVersion: PROTOCOL_VERSION,
+    startedAt: ctx.now(),
+  },
+  entries: [],
+}));
 
 /** The middleware instance that created each log; a second instance must fail loudly. */
-const owners = new WeakMap<object, symbol>();
+const owners = new WeakMap<ActionLog, symbol>();
 
 /**
  * Thrown when a second `actionLogMiddleware()` instance records an event for a priv whose log
@@ -175,28 +180,14 @@ export const ActionLogSchema = z.strictObject({
  * priv is not an object).
  */
 export function getActionLog(priv: unknown): ActionLog | undefined {
-  if (typeof priv !== "object" || priv === null) return undefined;
   return logs.get(priv);
 }
 
 function logOf(ctx: MiddlewareContext<PhaseState, unknown, unknown>, instance: symbol): ActionLog {
-  const priv = ctx.priv;
-  if (typeof priv !== "object" || priv === null) throw new InvalidPrivateStateError();
-  let log = logs.get(priv);
-  if (log === undefined) {
-    log = {
-      header: {
-        seed: ctx.seed,
-        game: ctx.gameName,
-        version: ctx.gameVersion,
-        protocolVersion: PROTOCOL_VERSION,
-        startedAt: ctx.now(),
-      },
-      entries: [],
-    };
-    logs.set(priv, log);
-    owners.set(priv, instance);
-  } else if (owners.get(priv) !== instance) {
+  const log = logs.of(ctx);
+  if (owners.get(log) === undefined) {
+    owners.set(log, instance);
+  } else if (owners.get(log) !== instance) {
     throw new DuplicateActionLogMiddlewareError();
   }
   return log;

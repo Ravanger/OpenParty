@@ -1,6 +1,15 @@
 export { actionFactory, defineGame, GameDefinitionError } from "./defineGame.js";
 export { GameRuntime, type GameRuntimeConfig, InvalidPrivateStateError } from "./GameRuntime.js";
+export type { RuntimeHost, TimerHandle } from "./host.js";
 export { evaluateJoin, type JoinGate } from "./join.js";
+export {
+  type ContextLogger,
+  type LogFields,
+  type Logger,
+  type LogLevel,
+  type LogLine,
+  noopLogger,
+} from "./logger.js";
 export {
   type OptionsRejectionReason,
   type ResolvedGameOptions,
@@ -15,15 +24,10 @@ export type {
   AudienceScope,
   CanJoinInput,
   CanJoinResult,
-  ContextLogger,
   GameContext,
   GameDefinition,
   HostMigration,
   HostPicker,
-  LogFields,
-  Logger,
-  LogLevel,
-  LogLine,
   MiddlewareContext,
   MiddlewareEvent,
   PhaseAction,
@@ -33,7 +37,4 @@ export type {
   PlayerInfo,
   PlayerRole,
   RejectOptions,
-  RuntimeHost,
-  TimerHandle,
 } from "./types.js";
-export { noopLogger } from "./types.js";

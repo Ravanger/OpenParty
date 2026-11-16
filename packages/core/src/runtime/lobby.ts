@@ -9,6 +9,7 @@ import {
 } from "@openparty/shared";
 import { z } from "zod";
 import { EmptyPayloadSchema } from "../actions.js";
+import type { RuntimeHost } from "./host.js";
 import { resolveGameOptions } from "./options.js";
 import { type CoreStrings, mergeCoreStrings } from "./strings.js";
 import type {
@@ -17,7 +18,6 @@ import type {
   GameDefinition,
   PhaseDefinition,
   PhaseState,
-  RuntimeHost,
 } from "./types.js";
 
 /** What the {@link Lobby} needs from the runtime that owns it. */
