@@ -280,6 +280,30 @@ describe("serveApi", () => {
     expect((await ask("203.0.113.7")).status).toBe(429); // A's bucket is spent
   });
 
+  it("routes observe-mode limit hits from the default handler to the given logger", async () => {
+    const lines: Array<{ event: string; fields?: LogFields | undefined }> = [];
+    const logger: Logger = {
+      info: () => {},
+      warn: (event, fields) => {
+        lines.push({ event, fields });
+      },
+      error: () => {},
+    };
+    const port = await freePort();
+    servers.push(
+      await serveApi(new RoomCodeService(), {
+        port,
+        host: "127.0.0.1",
+        rateLimits: { resolveCode: { rate: 0, burst: 1 }, mode: "observe" },
+        logger,
+      }),
+    );
+    const url = `http://127.0.0.1:${port}/api/resolve-code?code=ZZZZ`;
+    expect((await fetch(url)).status).toBe(404); // the one token is spent (unknown code)
+    expect((await fetch(url)).status).toBe(404); // over the limit, but observe mode only reports
+    expect(lines.filter((line) => line.event === "rate.limit")).toHaveLength(1);
+  });
+
   it("ignores X-Forwarded-For when trustProxy is off", async () => {
     const port = await freePort();
     servers.push(

@@ -2,7 +2,7 @@ import type { Room } from "@colyseus/core";
 import type { Room as ClientRoom } from "@colyseus/sdk";
 import { ClientMessage, isServerError, type ServerError, ServerMessage } from "@openparty/shared";
 import type { BaseGameState } from "@openparty/shared/schema";
-import type { TestServer } from "./index.js";
+import type { TestServer } from "./TestServer.js";
 import { waitUntil } from "./waitUntil.js";
 
 /** `player-0001` style ids that pass `PlayerIdSchema`. */
