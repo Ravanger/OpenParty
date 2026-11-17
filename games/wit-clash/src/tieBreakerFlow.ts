@@ -1,9 +1,9 @@
 import { awardPoints, ensureMine, required, shuffle } from "@openparty/core";
-import { countVoted, entriesFor, tallyVotes } from "@openparty/core/kits";
+import { entriesFor, tallyVotes } from "@openparty/core/kits";
 import { seatedActiveIds } from "./eligibility.js";
 import { PHASE } from "./phaseNames.js";
 import type { WitClashContext } from "./private.js";
-import { newPlayerPrivate, Round } from "./round.js";
+import { answerAuthor, newPlayerPrivate, Round } from "./round.js";
 import { Answer, Matchup, PromptAssignment } from "./state.js";
 import {
   pickTieBreakerPrompt,
@@ -12,6 +12,7 @@ import {
   tieBreakerVoterIds,
   topScorers,
 } from "./tieBreaker.js";
+import { VotingSync } from "./votingSync.js";
 
 /** The tie-breaker after the final round: who is tied, the prompt, answers, votes and the verdict. */
 export class TieBreakerFlow {
@@ -49,7 +50,7 @@ export class TieBreakerFlow {
   /** Ends the tie-breaker as a shared win when nobody outside the tie can vote; true when it did. */
   endIfNoVoters(): boolean {
     if (this.voterIds().length > 0) return false;
-    this.round.clearTyping();
+    this.ctx.state.typing.clear();
     this.round.toResults();
     return true;
   }
@@ -71,7 +72,7 @@ export class TieBreakerFlow {
     priv.drafts.clear();
     priv.matchupVotes.clear();
     state.progress.clear();
-    this.round.clearTyping();
+    this.ctx.state.typing.clear();
     state.answersPerPlayer = 1;
     const matchup = new Matchup();
     matchup.id = this.ctx.newId();
@@ -99,7 +100,7 @@ export class TieBreakerFlow {
 
   finishAnswering(): void {
     const { priv } = this.ctx;
-    this.round.clearTyping();
+    this.ctx.state.typing.clear();
     const matchup = this.current();
     const answers = entriesFor(matchup.id, priv.assignments, priv.drafts).flatMap((entry) => {
       if (entry.text === undefined) return [];
@@ -139,19 +140,16 @@ export class TieBreakerFlow {
   }
 
   syncVoting(): void {
-    const { state, priv } = this.ctx;
     const eligible = this.voterIds();
+    const contenders = new Set(this.ctx.state.tieBreakerContenders);
     const { answers } = this.current();
-    const active = new Set(this.ctx.activePlayers().map((p) => p.id));
-    for (const player of this.ctx.players()) {
-      if (!active.has(player.id) && !state.mine.has(player.id)) continue;
-      const mine = ensureMine(this.ctx, state.mine, player.id, newPlayerPrivate);
-      mine.canVote = eligible.includes(player.id);
-      mine.isOwnMatchup = state.tieBreakerContenders.includes(player.id);
-      mine.ownAnswerId = answers.find((a) => this.round.authorOf(a.id) === player.id)?.id ?? "";
-    }
-    state.votesExpected = eligible.length;
-    state.votesCast = countVoted(eligible, priv.matchupVotes);
+    new VotingSync(this.ctx, {
+      mayVote: (id) => eligible.includes(id),
+      flags: (id, mine) => {
+        mine.isOwnMatchup = contenders.has(id);
+        mine.ownAnswerId = answers.find((a) => answerAuthor(this.ctx, a.id) === id)?.id ?? "";
+      },
+    }).run();
   }
 
   reveal(): void {
@@ -163,7 +161,7 @@ export class TieBreakerFlow {
     );
     for (const answer of matchup.answers) {
       answer.votes = tally.get(answer.id) ?? 0;
-      answer.authorId = this.round.authorOf(answer.id);
+      answer.authorId = answerAuthor(this.ctx, answer.id);
     }
     this.ctx.priv.roster.remember(this.ctx);
     matchup.isRevealed = true;
@@ -214,7 +212,7 @@ export class TieBreakerFlow {
   private conclude(remaining: readonly string[]): void {
     const [only] = remaining;
     if (only !== undefined) this.win(only);
-    this.round.clearTyping();
+    this.ctx.state.typing.clear();
     this.round.toResults();
   }
 }
