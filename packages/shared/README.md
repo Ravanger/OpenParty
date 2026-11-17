@@ -11,7 +11,7 @@ Client helpers (polling, room-code resolution, share links, argument parsing) li
 
 ## Define your game state
 
-`BaseGameState` carries `phase`, `phaseEndsAt`, `serverNow`, `roomCode`, `canStart`, `minPlayers`, `maxPlayers`, `spectatorCount`, `notice`, `options` (JSON) and `players` (keyed by `playerId`). Extend it with `@colyseus/schema` 5's decorator-free `t.*` fields.
+`BaseGameState` carries `phase`, `phaseEndsAt`, `phaseDurationMs`, `serverNow`, `roomCode`, `canStart`, `minPlayers`, `maxPlayers`, `spectatorCount`, `notice`, `options` (JSON) and `players` (keyed by `playerId`). Extend it with `@colyseus/schema` 5's decorator-free `t.*` fields.
 
 ```ts
 import { type SchemaType, t } from "@colyseus/schema";

@@ -61,7 +61,7 @@ class LTable extends TestTable<S, P, O> {
         },
         middleware: [loggingMiddleware({ log: (line) => lines.push(line) })],
       }),
-      state: { phase: "", phaseEndsAt: 0, canStart: false, log: [] },
+      state: { phase: "", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, log: [] },
       options: { rounds: 2 },
       players: 2,
     });
@@ -125,7 +125,7 @@ class TTable extends TestTable<S, P, O> {
         },
         middleware,
       }),
-      state: { phase: "", phaseEndsAt: 0, canStart: false, log: [] },
+      state: { phase: "", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, log: [] },
       options: { rounds: 2 },
       players: 2,
     });
@@ -137,7 +137,7 @@ const timings = (table: TTable): Record<string, PhaseTimingRecord> =>
 
 /** A hand-built middleware context, for driving a layer with an out-of-contract priv. */
 const rawContext = (priv: unknown): MiddlewareContext<PhaseState, unknown, unknown> => ({
-  state: { phase: "Lobby", phaseEndsAt: 0, canStart: false },
+  state: { phase: "Lobby", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false },
   priv,
   options: {},
   phase: "Lobby",
@@ -221,7 +221,13 @@ describe("timingMiddleware", () => {
     const table = new TTable();
     table.start();
     table.tick(1000);
-    expect(Object.keys(table.state)).toEqual(["phase", "phaseEndsAt", "canStart", "log"]);
+    expect(Object.keys(table.state)).toEqual([
+      "phase",
+      "phaseEndsAt",
+      "phaseDurationMs",
+      "canStart",
+      "log",
+    ]);
   });
 
   it("ignores a transition out of a phase whose enter was skipped", () => {
@@ -298,7 +304,7 @@ class FTable extends TestTable<S, P, O> {
         },
         middleware,
       }),
-      state: { phase: "", phaseEndsAt: 0, canStart: false, log: [] },
+      state: { phase: "", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, log: [] },
       options: { rounds: 2 },
       players: 2,
     });

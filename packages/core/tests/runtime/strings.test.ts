@@ -92,7 +92,7 @@ describe("client-visible core strings through the runtime", () => {
     const host = new FakeHost();
     host.seat("p1");
     host.seat("p2");
-    const state: S = { phase: "Lobby", phaseEndsAt: 0, canStart: false };
+    const state: S = { phase: "Lobby", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false };
     const runtime = new GameRuntime<S, Record<string, never>, Record<string, unknown>>({
       definition: valid(strings),
       state,
@@ -148,7 +148,7 @@ describe("client-visible core strings through the runtime", () => {
     const host = new FakeHost();
     host.seat("p1");
     host.seat("p2");
-    const state: S = { phase: "Lobby", phaseEndsAt: 0, canStart: false };
+    const state: S = { phase: "Lobby", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false };
     const definition = defineGame<S, Record<string, never>, Record<string, unknown>>({
       name: "G",
       version: "1",
@@ -187,7 +187,7 @@ describe("log-only core strings", () => {
   });
 
   const fakeContext = (activePlayers: number): GameContext<S, unknown, unknown> => ({
-    state: { phase: "Lobby", phaseEndsAt: 0, canStart: false },
+    state: { phase: "Lobby", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false },
     priv: {},
     options: {},
     phase: "Lobby",

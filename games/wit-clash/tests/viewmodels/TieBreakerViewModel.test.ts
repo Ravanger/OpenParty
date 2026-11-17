@@ -25,11 +25,12 @@ function tieBreaker(phase: string, seat: SeatConfig = { name: "Me" }) {
   c.state.tieBreakerContenders.push(c.manager.playerId, "zed-12345");
   c.state.serverNow = 1_000_000;
   c.state.phaseEndsAt = 1_000_000 + 30_000;
+  c.state.phaseDurationMs = 30_000;
   return { c, vm: new TieBreakerViewModel(c.manager) };
 }
 
 describe("TieBreakerViewModel clock", () => {
-  it("runs on the option of the phase it is shown in", () => {
+  it("reads the total from the synced phase duration in every phase it is shown in", () => {
     const expected: Record<string, number> = {
       TieBreakerPrompting: 40,
       TieBreakerVoting: 25,
@@ -37,7 +38,7 @@ describe("TieBreakerViewModel clock", () => {
     };
     for (const [phase, seconds] of Object.entries(expected)) {
       const c = connectedClient({}, phase);
-      c.state.options = JSON.stringify({ promptSeconds: 40, voteSeconds: 25, revealSeconds: 6 });
+      c.state.phaseDurationMs = seconds * 1000;
       const vm = new TieBreakerViewModel(c.manager);
       expect(vm.clock.totalSeconds).toBe(seconds);
       expect(vm.clock.announcement).toBe("");

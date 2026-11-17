@@ -82,7 +82,7 @@ class ATable extends TestTable<S, P, O> {
         },
         middleware: [actionLogMiddleware()],
       }),
-      state: { phase: "", phaseEndsAt: 0, canStart: false, log: [] },
+      state: { phase: "", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, log: [] },
       options: { rounds: 2 },
       players: 2,
     });
@@ -95,7 +95,7 @@ class ATable extends TestTable<S, P, O> {
 
 /** A hand-built middleware context, for driving a layer with an out-of-contract priv. */
 const rawContext = (priv: unknown): MiddlewareContext<PhaseState, unknown, unknown> => ({
-  state: { phase: "Lobby", phaseEndsAt: 0, canStart: false },
+  state: { phase: "Lobby", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false },
   priv,
   options: {},
   phase: "Lobby",
@@ -171,7 +171,7 @@ describe("actionLogMiddleware", () => {
         onError: (_ctx, error) => reports.push(error),
         middleware: [actionLogMiddleware(), actionLogMiddleware()],
       }),
-      state: { phase: "", phaseEndsAt: 0, canStart: false },
+      state: { phase: "", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false },
       options: {},
       players: 2,
     });
@@ -306,7 +306,13 @@ describe("action log content, ordering and isolation", () => {
 
   it("never touches ctx.state or priv: no framework keys land in the game's private state", () => {
     const table = scriptedSession();
-    expect(Object.keys(table.state)).toEqual(["phase", "phaseEndsAt", "canStart", "log"]);
+    expect(Object.keys(table.state)).toEqual([
+      "phase",
+      "phaseEndsAt",
+      "phaseDurationMs",
+      "canStart",
+      "log",
+    ]);
     expect(Object.keys(table.priv)).toEqual(["secret"]);
   });
 
@@ -341,7 +347,7 @@ describe("framework data stays out of the game's priv", () => {
         },
         middleware: [actionLogMiddleware(), timingMiddleware()],
       }),
-      state: { phase: "", phaseEndsAt: 0, canStart: false, log: [] },
+      state: { phase: "", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, log: [] },
       options: { rounds: 2 },
       players: 2,
     });
@@ -425,7 +431,7 @@ class RTable extends TestTable<S, P, O> {
         },
         middleware: [actionLogMiddleware(), textFilterMiddleware(redactFilter)],
       }),
-      state: { phase: "", phaseEndsAt: 0, canStart: false, log: [] },
+      state: { phase: "", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, log: [] },
       options: { rounds: 2 },
       players: 2,
     });
@@ -506,7 +512,7 @@ describe("payload immutability", () => {
           },
           middleware: [actionLogMiddleware()],
         }),
-        state: { phase: "", phaseEndsAt: 0, canStart: false, log: [] },
+        state: { phase: "", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, log: [] },
         options: { rounds: 1 },
         players: 1,
       });
@@ -569,7 +575,13 @@ describe("a failed run", () => {
     },
     middleware: [actionLogMiddleware()],
   });
-  const newState = (): S => ({ phase: "", phaseEndsAt: 0, canStart: false, log: [] });
+  const newState = (): S => ({
+    phase: "",
+    phaseEndsAt: 0,
+    phaseDurationMs: 0,
+    canStart: false,
+    log: [],
+  });
   const failing = () =>
     new TestTable<S, P, O>({ definition, state: newState(), options: { rounds: 2 }, players: 2 });
 
@@ -649,7 +661,7 @@ describe("action log tick counts", () => {
           },
           middleware: [actionLogMiddleware()],
         }),
-        state: { phase: "", phaseEndsAt: 0, canStart: false, taps: 0 },
+        state: { phase: "", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, taps: 0 },
         options: {},
         players: 2,
       });

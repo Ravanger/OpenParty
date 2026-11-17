@@ -9,8 +9,7 @@ export class PhaseClock {
   private readonly countdown: Countdown;
 
   constructor(
-    manager: GameConnectionManager<BaseGameState>,
-    private readonly readTotalSeconds: () => number,
+    private readonly manager: GameConnectionManager<BaseGameState>,
     private readonly announceAt: readonly number[] = ANNOUNCE_AT,
   ) {
     this.countdown = manager.countdown();
@@ -32,9 +31,14 @@ export class PhaseClock {
     return this.announceAt.includes(left) ? getStrings().secondsRemaining(left) : "";
   }
 
-  /** How long the phase was set to run, in whole seconds. */
+  /**
+   * How long the phase was set to run, in whole seconds, from the synced `phaseDurationMs`. When
+   * the server published no length (0), the current `secondsLeft` instead — so the bar shows full
+   * and nothing divides by zero.
+   */
   get totalSeconds(): number {
-    return this.readTotalSeconds();
+    const durationMs = this.manager.state?.phaseDurationMs ?? 0;
+    return durationMs > 0 ? Math.ceil(durationMs / 1000) : this.secondsLeft;
   }
 
   /** The share of the phase still running, from 0 to 1; 0 when the phase has no length. */

@@ -46,7 +46,7 @@ interface PhaseActor {
 /** Constructor argument of {@link GameRuntime}. */
 export interface GameRuntimeConfig<TState extends PhaseState, TPrivate, TOptions> {
   definition: GameDefinition<TState, TPrivate, TOptions>;
-  /** The synced state object; the runtime writes `phase` and `phaseEndsAt` into it. */
+  /** The synced state object; the runtime writes `phase`, `phaseEndsAt` and `phaseDurationMs` into it. */
   state: TState;
   /** Room options, already parsed with `definition.options` when the game has one. */
   options: TOptions;
@@ -318,6 +318,7 @@ export class GameRuntime<TState extends PhaseState, TPrivate, TOptions = Record<
         typeof phase.duration === "function" ? phase.duration(this.context()) : phase.duration;
       this.state.phaseEndsAt = this.host.now() + this.duration;
     }
+    this.state.phaseDurationMs = this.duration;
     this.chain.run({ kind: "enter" }, () => phase.onEnter?.(this.context()));
     this.ticker.start(phase);
   }

@@ -1,6 +1,7 @@
 import { Encoder, Reflection, Schema, t } from "@colyseus/schema";
 import { describe, expect, it } from "vitest";
 import { BaseGameState } from "../src/schema/BaseGameState.js";
+import { syncedJsonOf, syncedStateFromJson } from "../src/schema/index.js";
 import { PlayerSchema } from "../src/schema/PlayerSchema.js";
 
 const TestState = BaseGameState.extend({ winner: t.string().default("") }, "TestState");
@@ -11,6 +12,7 @@ describe("BaseGameState", () => {
       phase: "Lobby",
       roomCode: "",
       phaseEndsAt: 0,
+      phaseDurationMs: 0,
       serverNow: 0,
       spectatorCount: 0,
       options: "{}",
@@ -20,6 +22,13 @@ describe("BaseGameState", () => {
       canStart: false,
       players: {},
     });
+  });
+
+  it("keeps the phaseDurationMs default when hydrating state recorded before it existed", () => {
+    const oldJson = syncedJsonOf(new TestState());
+    delete oldJson.phaseDurationMs;
+    const state = syncedStateFromJson(TestState, oldJson);
+    expect(state.phaseDurationMs).toBe(0);
   });
 
   it("registers the base fields on a subclass", () => {

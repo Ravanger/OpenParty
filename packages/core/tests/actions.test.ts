@@ -22,7 +22,7 @@ const definition = defineGame<PhaseState, Record<string, never>, Record<string, 
 const table = (): TestTable<PhaseState, Record<string, never>, Record<string, never>> =>
   new TestTable({
     definition,
-    state: { phase: "", phaseEndsAt: 0, canStart: false },
+    state: { phase: "", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false },
     options: {},
     players: 3,
   });

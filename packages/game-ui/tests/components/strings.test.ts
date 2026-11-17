@@ -225,7 +225,8 @@ describe("PhaseClock", () => {
     const c = connectedClient({ stateClass: BaseGameState });
     c.state.serverNow = 5_000_000;
     c.state.phaseEndsAt = 5_030_000;
-    return new PhaseClock(c.manager, () => 30);
+    c.state.phaseDurationMs = 30_000;
+    return new PhaseClock(c.manager);
   };
 
   it("announces the default English text at the thresholds", () => {

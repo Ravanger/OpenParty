@@ -2,7 +2,6 @@ import { OptionsReader, PhaseClock, TextDraft, TypingReporter } from "@openparty
 import { ACTION, ANSWER_MAX_LENGTH } from "../../src/actionNames.js";
 import type { CastVotePayload, SubmitAnswerPayload } from "../../src/actions.js";
 import { DEFAULT_OPTIONS, type WitClashOptions, WitClashOptionsSchema } from "../../src/options.js";
-import { PHASE } from "../../src/phaseNames.js";
 import type { Matchup } from "../../src/state.js";
 import type { WitClashManager } from "../manager.js";
 import { AnswerProgress } from "./AnswerProgress.js";
@@ -38,7 +37,7 @@ export class TieBreakerViewModel {
       rejectedCount: () => manager.state?.rejectedTexts,
       noun: "answer",
     });
-    this.clock = new PhaseClock(manager, () => this.options.current[this.durationOption()]);
+    this.clock = new PhaseClock(manager);
     this.recap = new MatchupRecap(manager);
     this.typing = new TypingReporter((typing) => {
       void this.manager.sendAction(ACTION.SET_TYPING, { typing });
@@ -53,12 +52,6 @@ export class TieBreakerViewModel {
 
   private get mine() {
     return this.manager.state?.mine.get(this.manager.playerId);
-  }
-
-  private durationOption(): "promptSeconds" | "voteSeconds" | "revealSeconds" {
-    const phase = this.manager.state?.phase;
-    if (phase === PHASE.TieBreakerPrompting) return "promptSeconds";
-    return phase === PHASE.TieBreakerVoting ? "voteSeconds" : "revealSeconds";
   }
 
   get myVoteId(): string {

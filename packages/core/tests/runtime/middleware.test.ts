@@ -89,7 +89,7 @@ class MTable extends TestTable<S, P, O> {
   constructor(middleware: PhaseMiddleware<S, P, O>[] = [], onError?: (error: unknown) => void) {
     super({
       definition: game(middleware, onError),
-      state: { phase: "", phaseEndsAt: 0, canStart: false, log: [] },
+      state: { phase: "", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, log: [] },
       options: { rounds: 2 },
       players: 2,
     });
@@ -563,7 +563,7 @@ describe("MiddlewareContext.reject", () => {
 });
 
 const baseContext = (): GameContext<S, P, O> => ({
-  state: { phase: "", phaseEndsAt: 0, canStart: false, log: [] },
+  state: { phase: "", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, log: [] },
   priv: { secret: "s" },
   options: { rounds: 2 },
   phase: "Play",

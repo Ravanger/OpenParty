@@ -16,7 +16,7 @@ import type {
 type D = ActionDefinition<PhaseState, unknown, unknown, unknown>;
 
 const fakeContext = (): GameContext<PhaseState, unknown, unknown> => ({
-  state: { phase: "Play", phaseEndsAt: 0, canStart: false },
+  state: { phase: "Play", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false },
   priv: {},
   options: {},
   phase: "Play",

@@ -15,7 +15,7 @@ type Spec = GameDefinition<PhaseState>;
 
 function makeTable(hostMigration: Spec["hostMigration"], seed = 0) {
   const host = new FakeHost(seed);
-  const state: PhaseState = { phase: "", phaseEndsAt: 0, canStart: false };
+  const state: PhaseState = { phase: "", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false };
   const spec = defineGame<PhaseState>({
     name: "HostMigration",
     version: "1",

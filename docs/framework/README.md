@@ -101,7 +101,7 @@ if (!result.ok) showToast(result.error.message);
 
 ### Synced state vs private state
 `ctx.state` is synced to every client (a Colyseus schema in production). It always has `phase`, `phaseEndsAt`
-(epoch ms, `0` when the phase has no timer) and `canStart` (true in the Lobby while `START_GAME` would be accepted). `ctx.priv` is server-only: put secrets there (who wrote what, who voted for whom).
+(epoch ms, `0` when the phase has no timer), `phaseDurationMs` (the duration of the active phase in ms, `0` when it has no timer) and `canStart` (true in the Lobby while `START_GAME` would be accepted). `ctx.priv` is server-only: put secrets there (who wrote what, who voted for whom).
 Per-player private data (a hand of cards, your own prompts) belongs in `state`, in a part tagged `.view()`,
 and is revealed with `ctx.showTo(playerId, ref)` / `ctx.hideFrom(playerId, ref)`. Prefer this over sending messages:
 clients stay reactive and the server re-applies the views when a player reconnects.
@@ -189,7 +189,7 @@ canJoin: (input) =>
 ### Timers
 `duration` is milliseconds, or a function of the context. The timer restarts on every entry (including re-entry).
 `onTimeout` is required whenever `duration` is set, fires once, and never fires after the phase was left.
-The server owns the clock: clients render a countdown from `phaseEndsAt`.
+The server owns the clock: clients render a countdown from `phaseEndsAt`. The runtime also writes the active phase's duration to `state.phaseDurationMs` (0 when it has no timer) on every entry, so client clocks and progress bars read it instead of mapping phases back to option names.
 
 A real-time phase declares `onTick(ctx, dtMs)`, called every `tickMs` while the phase is active — default 100 ms (10 Hz); it must be an integer >= 1 and is rejected at definition time without `onTick`.
 `dtMs` is that nominal interval, not wall-clock elapsed time, so integrating state by it (`pos += speed * dtMs / 1000`) is deterministic: tick k is due at enter + k·tickMs.
@@ -779,7 +779,7 @@ Scores live in a `Record<playerId, number>` mutated only through `awardPoints(sc
 
 ## Server
 
-`@openparty/server` hosts any game on Colyseus. Your state class extends `BaseGameState` (`phase`, `phaseEndsAt`, `roomCode`,
+`@openparty/server` hosts any game on Colyseus. Your state class extends `BaseGameState` (`phase`, `phaseEndsAt`, `phaseDurationMs`, `roomCode`,
 `serverNow`, `spectatorCount`, `options` as JSON, `notice` (a message for the room, e.g. why it is back in the lobby; games write it in `onEndGame`/`onReturnToLobby`, and the runtime sets a fixed one when a hook throws and clears it when `START_GAME` begins the next game — see "Errors at runtime"), `minPlayers`, `maxPlayers`, `players` keyed by `playerId`).
 State uses `@colyseus/schema` 5's decorator-free `schema()`; no compiler flags are needed:
 
@@ -797,7 +797,7 @@ type ButtonState = SchemaType<typeof ButtonState>;
 const games = [{ roomName: "button", definition: ButtonGame, stateClass: ButtonState }];
 ```
 
-Reserved field names: `phase`, `roomCode`, `phaseEndsAt`, `serverNow`, `spectatorCount`, `options`, `notice`, `minPlayers`, `maxPlayers`, `canStart`, `players`. Do not reuse them in `BaseGameState.extend(...)`; Colyseus rejects the clash only at schema definition (`Duplicate 'options' definition on '<State>'`), so name a collection of voting or answer choices `choices`, not `options`. `options` stays as the room-options JSON: it is part of the synced shape every client reads, so a rename would be a breaking change with no gain.
+Reserved field names: `phase`, `roomCode`, `phaseEndsAt`, `phaseDurationMs`, `serverNow`, `spectatorCount`, `options`, `notice`, `minPlayers`, `maxPlayers`, `canStart`, `players`. Do not reuse them in `BaseGameState.extend(...)`; Colyseus rejects the clash only at schema definition (`Duplicate 'options' definition on '<State>'`), so name a collection of voting or answer choices `choices`, not `options`. `options` stays as the room-options JSON: it is part of the synced shape every client reads, so a rename would be a breaking change with no gain.
 
 Bun entry point (the only place that imports `bun`):
 
@@ -974,7 +974,7 @@ vitest `setupFiles`: it shims the storages and makes the SDK use `ws` under jsdo
 | `WelcomeViewModel` | The join screen: host, join by room code, watch as a TV, and auto-join from a `?code=` or `?tv=` link (`new WelcomeViewModel(manager, urlCode?, urlTvCode?)`). |
 | `LobbySettingsViewModel` | The host's options form, generated from the game's options schema (`OptionFields` builds the fields). |
 | `OptionsReader` | The published options, parsed once per state change: `new OptionsReader(manager, schema, defaults?)` exposes reactive `current`, falling back to `defaults` or the schema's `.default()`s. |
-| `PhaseClock` | A phase's server countdown plus its configured length: `new PhaseClock(manager, totalSeconds, announceAt?)` exposes `secondsLeft`, `isUrgent`, `announcement` (30/10/5 by default) and your `totalSeconds` getter. |
+| `PhaseClock` | A phase's server countdown plus its configured length: `new PhaseClock(manager, announceAt?)` exposes `secondsLeft`, `isUrgent`, `announcement` (30/10/5 by default) and a `totalSeconds` getter read from `state.phaseDurationMs` (falls back to `secondsLeft` when the phase has no published duration). |
 | `TypingReporter` | One typing message per change: `new TypingReporter(send, idleMs = 2500)`; call `keystroke()` per key and `stop()` on submit or teardown. |
 | `SoundPolicy` | The sound gate: off by default, one persisted toggle (stored under the game's `storagePrefix`), nothing plays before the first tap. `new SoundPolicy({ storage, storagePrefix, target })`; reactive `enabled`, `unlocked`, `canPlay` and `toggle()`; `dispose()` removes the gesture listeners. A throwing or empty storage degrades to off. |
 | `AppRouter` | Routes the connection status and room phase to a screen of your screen table (see below). `createAppRouter(manager, screens)` builds one. |

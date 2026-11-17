@@ -18,7 +18,14 @@ type TickOptions = Record<string, never>;
 type Ticker = PhaseTicker<TickState, TickPriv, TickOptions>;
 type TickPhase = PhaseDefinition<TickState, TickPriv, TickOptions>;
 
-const state = (): TickState => ({ phase: "", phaseEndsAt: 0, canStart: false, calls: 0, dts: [] });
+const state = (): TickState => ({
+  phase: "",
+  phaseEndsAt: 0,
+  phaseDurationMs: 0,
+  canStart: false,
+  calls: 0,
+  dts: [],
+});
 
 const contextOf = (s: TickState): GameContext<TickState, TickPriv, TickOptions> => ({
   state: s,

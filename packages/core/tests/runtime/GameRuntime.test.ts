@@ -32,7 +32,13 @@ interface O {
 
 const action = actionFactory<S, P, O>();
 
-const newState = (): S => ({ phase: "", phaseEndsAt: 0, canStart: false, log: [] });
+const newState = (): S => ({
+  phase: "",
+  phaseEndsAt: 0,
+  phaseDurationMs: 0,
+  canStart: false,
+  log: [],
+});
 
 type Spec = GameDefinition<S, P, O>;
 type Overrides = Partial<Omit<Spec, "options" | "onReturnToLobby" | "onPlayerSync">> & {
@@ -1278,6 +1284,7 @@ describe("timers", () => {
     const { runtime, host, state } = setup2();
     runtime.dispatch("p1", { type: "START_GAME" });
     expect(state.phaseEndsAt).toBe(host.now() + 1000);
+    expect(state.phaseDurationMs).toBe(1000);
     host.advance(999);
     expect(state.log).toEqual(["enter:Play"]);
     host.advance(1);
@@ -1290,6 +1297,7 @@ describe("timers", () => {
     runtime.dispatch("p2", { type: "GUESS", n: 1 });
     const expected = 500 * (state.log.length + 1);
     expect(state.phaseEndsAt).toBe(host.now() + expected);
+    expect(state.phaseDurationMs).toBe(expected);
     host.advance(expected - 1);
     expect(state.log).not.toContain("timeout:Score");
     host.advance(1);
@@ -1322,6 +1330,7 @@ describe("timers", () => {
     const { runtime, host, state } = setup2({ startPhase: "Bare" });
     runtime.dispatch("p1", { type: "START_GAME" });
     expect(state.phaseEndsAt).toBe(0);
+    expect(state.phaseDurationMs).toBe(0);
     expect(host.pendingTimers).toBe(0);
   });
 
@@ -1594,7 +1603,7 @@ describe("runStep", () => {
     let captured: GameContext<RS, Record<string, never>, Record<string, never>> | undefined;
     const host = new FakeHost();
     host.seat("p1");
-    const state: RS = { phase: "", phaseEndsAt: 0, canStart: false, log: [] };
+    const state: RS = { phase: "", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, log: [] };
     const spec = defineGame<RS, Record<string, never>, Record<string, never>>({
       name: "StepDrain",
       version: "1",

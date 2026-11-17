@@ -54,7 +54,7 @@ const definition = defineGame<RosterState, Record<string, never>, Record<string,
 const table = (): TestTable<RosterState, Record<string, never>, Record<string, never>> =>
   new TestTable({
     definition,
-    state: { phase: "", phaseEndsAt: 0, canStart: false, mine: new Map() },
+    state: { phase: "", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, mine: new Map() },
     options: {},
     players: 3,
   });

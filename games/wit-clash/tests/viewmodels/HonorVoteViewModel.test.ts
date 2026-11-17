@@ -23,6 +23,7 @@ function honor(mine?: { canVote?: boolean; honorVote?: string }) {
   c.state.votesExpected = 3;
   c.state.serverNow = 1_000_000;
   c.state.phaseEndsAt = 1_000_000 + 20_000;
+  c.state.phaseDurationMs = 20_000;
   if (mine !== undefined) addMine(c.state, c.manager.playerId, mine);
   return { c, vm: new HonorVoteViewModel(c.manager) };
 }

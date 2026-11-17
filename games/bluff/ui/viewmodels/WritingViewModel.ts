@@ -1,7 +1,6 @@
-import { OptionsReader, PhaseClock, type ProgressRow, roundLabel } from "@openparty/game-ui";
+import { PhaseClock, type ProgressRow, roundLabel } from "@openparty/game-ui";
 import { ErrorCode } from "@openparty/shared";
 import { ACTION } from "../../src/actionNames.js";
-import { type BluffOptions, BluffOptionsSchema, DEFAULT_OPTIONS } from "../../src/options.js";
 import type { BluffManager } from "../manager.js";
 
 /** The prompt, who has written, the server's clock and the submit action. */
@@ -9,8 +8,7 @@ export class WritingViewModel {
   readonly clock: PhaseClock;
 
   constructor(private readonly manager: BluffManager) {
-    const options = new OptionsReader<BluffOptions>(manager, BluffOptionsSchema, DEFAULT_OPTIONS);
-    this.clock = new PhaseClock(manager, () => options.current.writingSeconds);
+    this.clock = new PhaseClock(manager);
   }
 
   get prompt(): string {

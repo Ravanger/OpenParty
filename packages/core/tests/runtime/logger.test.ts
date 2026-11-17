@@ -48,7 +48,7 @@ function started(): {
   const host = new FakeHost();
   host.seat("p1");
   host.seat("p2");
-  const state: S = { phase: "Lobby", phaseEndsAt: 0, canStart: false };
+  const state: S = { phase: "Lobby", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false };
   const runtime = new GameRuntime<S, Record<string, never>, Record<string, unknown>>({
     definition: loggingDefinition(),
     state,
@@ -80,7 +80,7 @@ describe("ctx.log", () => {
     const host = new FakeHost();
     host.seat("p1");
     host.seat("p2");
-    const state: S = { phase: "Lobby", phaseEndsAt: 0, canStart: false };
+    const state: S = { phase: "Lobby", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false };
     const definition = defineGame<S, Record<string, never>, Record<string, unknown>>({
       name: "G",
       version: "1",
@@ -114,7 +114,7 @@ describe("ctx.log", () => {
     const host = new ReplayHost();
     host.seat("p1");
     host.seat("p2");
-    const state: S = { phase: "Lobby", phaseEndsAt: 0, canStart: false };
+    const state: S = { phase: "Lobby", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false };
     const runtime = new GameRuntime<S, Record<string, never>, Record<string, unknown>>({
       definition: loggingDefinition(),
       state,

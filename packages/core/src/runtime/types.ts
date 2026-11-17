@@ -43,6 +43,8 @@ export interface PhaseState {
   phase: string;
   /** Epoch ms at which the current phase times out; 0 when it has no timer. */
   phaseEndsAt: number;
+  /** The evaluated `duration` of the current phase in ms, written next to `phaseEndsAt` on every entry; 0 when the phase has no timer. Clients read this instead of re-deriving the length from options. */
+  phaseDurationMs: number;
   /** True while in the Lobby with enough active players for `START_GAME`; written by the runtime. */
   canStart: boolean;
   /** Set to a fixed message by the runtime's default failure policy when a hook throws (see `GameDefinition.onError`); the runtime clears it when `START_GAME` begins the next game. */

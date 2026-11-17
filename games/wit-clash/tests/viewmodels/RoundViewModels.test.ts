@@ -24,9 +24,10 @@ beforeEach(() => {
 });
 afterEach(() => vi.useRealTimers());
 
-const countdownTo = (c: Client, seconds: number) => {
+const countdownTo = (c: Client, seconds: number, totalSeconds = seconds) => {
   c.state.serverNow = 1_000_000;
   c.state.phaseEndsAt = 1_000_000 + seconds * 1000;
+  c.state.phaseDurationMs = totalSeconds * 1000;
 };
 
 describe("CategoryVoteViewModel", () => {
@@ -37,7 +38,7 @@ describe("CategoryVoteViewModel", () => {
     c.state.totalRounds = 3;
     c.state.votesCast = 3;
     c.state.votesExpected = 4;
-    countdownTo(c, 30);
+    countdownTo(c, 30, 60);
     addMine(c.state, c.manager.playerId, { categoryVote: "b" });
     return { c, vm: new CategoryVoteViewModel(c.manager) };
   }

@@ -18,7 +18,7 @@ Named phases, each with optional `onEnter`, `duration` + `onTimeout`, `onTick(ct
 import { actionFactory, defineGame } from "@openparty/core";
 import { z } from "zod";
 
-interface ButtonState { phase: string; phaseEndsAt: number; canStart: boolean; winner: string }
+interface ButtonState { phase: string; phaseEndsAt: number; phaseDurationMs: number; canStart: boolean; winner: string }
 interface Priv { presses: string[] }
 
 const action = actionFactory<ButtonState, Priv, Record<string, unknown>>();
@@ -106,7 +106,7 @@ class ButtonTable extends TestTable<ButtonState, Priv, Record<string, unknown>> 
   constructor() {
     super({
       definition: ButtonGame,
-      state: { phase: "", phaseEndsAt: 0, canStart: false, winner: "" },
+      state: { phase: "", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, winner: "" },
       options: {},
     });
   }

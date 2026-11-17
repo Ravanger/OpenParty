@@ -59,6 +59,7 @@ export const loggedDefinition = defineGame<LoggedState, LoggedPriv, LoggedOption
 export const newLoggedState = (): LoggedState => ({
   phase: "",
   phaseEndsAt: 0,
+  phaseDurationMs: 0,
   canStart: false,
   pings: [],
 });
