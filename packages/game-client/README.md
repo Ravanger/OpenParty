@@ -113,7 +113,7 @@ const clock = manager.countdown();
 clock.secondsLeft; clock.isUrgent; clock.isExpired; // reactive
 ```
 
-The urgent rule itself is exported as `isUrgent(secondsLeft)`: more than 0 and at most 10 seconds left, so an expired timer (0) is not urgent. `Countdown.isUrgent` and the game-ui `Timer` component both use it, so the threshold is defined once.
+The urgent rule itself is exported as `isUrgent(secondsLeft)`: more than 0 and at most 10 seconds left, so an expired timer (0) is not urgent. `Countdown.isUrgent`, the manager's `urgent` feedback event and the game-ui `Timer` component all use it, so the threshold is defined once.
 
 ## Sound and animation feedback
 

@@ -21,8 +21,11 @@ import { Countdown } from "./countdown.svelte.js";
 import { FeedbackBus } from "./FeedbackBus.js";
 import { CANCELLED, JoinCoordinator } from "./JoinCoordinator.js";
 import { MessageBus } from "./MessageBus.js";
+import { MessageRelay } from "./MessageRelay.js";
 import { PersistedSession } from "./PersistedSession.js";
 import type { RoomLike } from "./RoomLike.js";
+import { parseExportReplay } from "./replayRequest.js";
+import { StateFeedback } from "./StateFeedback.js";
 import { type ClientStrings, defaultClientStrings, resolveClientMessages } from "./strings.js";
 
 /** Where the manager is in its connection lifecycle. */
@@ -80,8 +83,6 @@ const SESSION_CLEARING: ReadonlySet<CloseCode> = new Set([
   CLOSE_CODES.VERSION_MISMATCH,
   CLOSE_CODES.SEAT_TAKEN,
 ]);
-const URGENCY_TICK_MS = 250;
-const URGENCY_WINDOW_MS = 10_000;
 
 /**
  * Connection to one game room: lifecycle, the reactive state, and the player's actions.
@@ -105,13 +106,8 @@ export class GameConnectionManager<
   private readonly messages: Record<ErrorCode, string>;
   private readonly bus = new MessageBus<TState>();
   private readonly coordinator = new JoinCoordinator();
-  private lastPhase: string | undefined;
-  private phaseWatcher: { room: RoomLike<TState>; callback: () => void } | undefined;
-  private urgencyTimer: ReturnType<typeof setInterval> | undefined;
-  private urgentFired = false;
-  private lastServerNow = 0;
-  private lastServerNowAt = 0;
-  private readonly messageRelays = new Map<string, { count: number; off: () => void }>();
+  private readonly stateFeedback: StateFeedback<TState>;
+  private readonly relay: MessageRelay<TState>;
   private spectating = false;
   private notify: (() => void) | undefined;
   private bound: { room: RoomLike<TState>; callback: () => void } | undefined;
@@ -138,7 +134,8 @@ export class GameConnectionManager<
     this.messages = resolveClientMessages(this.strings);
     const matchMedia = options.matchMedia ?? ((query: string) => window.matchMedia(query));
     this.feedback = new FeedbackBus(() => matchMedia("(prefers-reduced-motion: reduce)").matches);
-    this.feedback.onChange(() => this.syncStateWatchers());
+    this.stateFeedback = new StateFeedback(this.feedback, () => this.room);
+    this.relay = new MessageRelay(this.bus, this.feedback);
     this.bus.on(ServerMessage.ERROR, (payload) => this.serverErrorReceived(payload));
   }
 
@@ -305,20 +302,13 @@ export class GameConnectionManager<
   async exportReplay(): Promise<ExportReplayResponse> {
     if (!this.room) return this.fail(ErrorCode.NOT_CONNECTED);
     try {
-      const response = await this.room.request(ClientMessage.EXPORT_REPLAY);
-      if (response === null || typeof response !== "object" || Array.isArray(response)) {
-        return this.fail(ErrorCode.BAD_REPLY);
-      }
-      const reply = response as Record<string, unknown>;
-      if (reply.ok === false) {
-        if (!isServerError(reply.error)) return this.fail(ErrorCode.BAD_REPLY);
+      const reply = parseExportReplay(await this.room.request(ClientMessage.EXPORT_REPLAY));
+      if (reply.kind === "bad-reply") return this.fail(ErrorCode.BAD_REPLY);
+      if (reply.kind === "refused") {
         this.setLastError(reply.error);
         return { ok: false, error: reply.error };
       }
-      if (typeof reply.bundleVersion !== "number" || !Array.isArray(reply.snapshots)) {
-        return this.fail(ErrorCode.BAD_REPLY);
-      }
-      return reply;
+      return reply.bundle;
     } catch (error) {
       (this.options.logger ?? console.warn)(
         `[GameConnectionManager] EXPORT_REPLAY request failed`,
@@ -333,28 +323,7 @@ export class GameConnectionManager<
     type: K,
     callback: (payload: TEvents[K]) => void,
   ): () => void {
-    const offBus = this.bus.on(type, callback as (payload: unknown) => void);
-    let relay = this.messageRelays.get(type);
-    if (relay === undefined) {
-      relay = {
-        count: 0,
-        off: this.bus.on(type, (payload) => this.feedback.emitMessage(type, payload)),
-      };
-      this.messageRelays.set(type, relay);
-    }
-    const registered = relay;
-    registered.count += 1;
-    let done = false;
-    return () => {
-      if (done) return;
-      done = true;
-      offBus();
-      registered.count -= 1;
-      if (registered.count === 0) {
-        registered.off();
-        this.messageRelays.delete(type);
-      }
-    };
+    return this.relay.listen(type, callback as (payload: unknown) => void);
   }
 
   /** Clears `lastServerError`. */
@@ -384,7 +353,7 @@ export class GameConnectionManager<
         this.detach("disconnected");
       }),
     );
-    this.syncStateWatchers();
+    this.stateFeedback.sync();
     this.status = "connected";
     this.rememberToken(room);
     this.rememberRoomCode(room);
@@ -395,6 +364,7 @@ export class GameConnectionManager<
     this.coordinator.cancel();
     const room = this.room;
     this.detach("disconnected");
+    this.stateFeedback.dispose();
     this.bus.clear();
     if (room) this.leaveQuietly(room, false);
   }
@@ -473,74 +443,10 @@ export class GameConnectionManager<
 
   private detach(status?: ConnectionStatus): void {
     this.unbindState();
-    this.stopStateWatchers();
+    this.stateFeedback.stop();
     this.bus.unbind();
     this.room = undefined;
     if (status) this.status = status;
-  }
-
-  /** Starts the phase watcher and urgency timer when someone listens for `phase` or `urgent` events, and stops them when the last such listener leaves. The first observation after starting is the silent baseline, so a late subscriber only sees transitions it actually observed. */
-  private syncStateWatchers(): void {
-    const room = this.room;
-    if (room === undefined) return;
-    if (!this.feedback.hasListeners("phase") && !this.feedback.hasListeners("urgent")) {
-      this.stopStateWatchers();
-      return;
-    }
-    if (this.phaseWatcher !== undefined) return;
-    const watchPhase = () => this.observePhase(room);
-    room.onStateChange(watchPhase);
-    this.phaseWatcher = { room, callback: watchPhase };
-    this.startUrgencyTimer(room);
-    watchPhase();
-  }
-
-  /** Stops the phase watcher and urgency timer and resets the phase baseline so a later (re)start re-establishes it silently. */
-  private stopStateWatchers(): void {
-    this.phaseWatcher?.room.onStateChange.remove(this.phaseWatcher.callback);
-    this.phaseWatcher = undefined;
-    this.lastPhase = undefined;
-    this.stopUrgencyTimer();
-  }
-
-  /** Emits a phase event when `state.phase` changes; the first observation after connecting is the silent baseline. */
-  private observePhase(room: RoomLike<TState>): void {
-    const phase = room.state.phase;
-    const from = this.lastPhase;
-    this.lastPhase = phase;
-    if (from === undefined || from === phase) return;
-    this.urgentFired = false;
-    this.feedback.emitPhase(from, phase);
-  }
-
-  private startUrgencyTimer(room: RoomLike<TState>): void {
-    this.stopUrgencyTimer();
-    this.urgentFired = false;
-    this.lastServerNow = 0;
-    this.lastServerNowAt = 0;
-    this.urgencyTimer = setInterval(() => this.observeUrgency(room), URGENCY_TICK_MS);
-  }
-
-  private stopUrgencyTimer(): void {
-    if (this.urgencyTimer !== undefined) clearInterval(this.urgencyTimer);
-    this.urgencyTimer = undefined;
-  }
-
-  /** Fires the once-per-phase urgent event while the phase's countdown is in its last ten seconds, skew-corrected like `Countdown`. */
-  private observeUrgency(room: RoomLike<TState>): void {
-    const state = room.state;
-    const ends = state.phaseEndsAt;
-    if (state.serverNow !== this.lastServerNow) {
-      this.lastServerNow = state.serverNow;
-      this.lastServerNowAt = Date.now();
-    }
-    if (!ends || !this.lastServerNow) return;
-    const estimatedNow = this.lastServerNow + (Date.now() - this.lastServerNowAt);
-    const remainingMs = ends - estimatedNow;
-    if (!this.urgentFired && remainingMs > 0 && remainingMs <= URGENCY_WINDOW_MS) {
-      this.urgentFired = true;
-      this.feedback.emitUrgent();
-    }
   }
 
   private bindState(): void {

@@ -1,6 +1,6 @@
 import { tick } from "svelte";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Countdown, isUrgent } from "../src/countdown.svelte.js";
+import { Countdown, isUrgent, URGENT_SECONDS } from "../src/countdown.svelte.js";
 import { observe } from "./observe.svelte.js";
 
 describe("Countdown", () => {
@@ -169,5 +169,9 @@ describe("isUrgent", () => {
     expect(isUrgent(1)).toBe(true);
     expect(isUrgent(10)).toBe(true);
     expect(isUrgent(11)).toBe(false);
+  });
+
+  it("keeps the shared threshold at ten seconds", () => {
+    expect(URGENT_SECONDS).toBe(10);
   });
 });
