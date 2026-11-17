@@ -1,7 +1,9 @@
 import { type NodeServerHandle, startNodeServer } from "@openparty/server/node";
 import { GameClient } from "@openparty/terminal";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { botsCli, defineGamePackage, hostedGame } from "../src/index.js";
+import { botsCli } from "../src/botsCli.js";
+import { hostedGame } from "../src/hostedGame.js";
+import { defineGamePackage } from "../src/index.js";
 import { fakeIo } from "./fixtures/fakeIo.js";
 import { TAP_PUBLIC_FIELDS, TAP_ROOM, TapGame, TapState, tapKit } from "./fixtures/tapGame.js";
 

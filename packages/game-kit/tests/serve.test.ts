@@ -2,7 +2,8 @@ import type { TextFilter } from "@openparty/content/filter";
 import { type NodeServerHandle, startNodeServer } from "@openparty/server/node";
 import { freePort, ServerProbe } from "@openparty/server/probe";
 import { describe, expect, it } from "vitest";
-import { defineGamePackage, type GameKitIo, type ServeOptions, serve } from "../src/index.js";
+import { defineGamePackage, type GameKitIo, type ServeOptions } from "../src/index.js";
+import { serve } from "../src/serve.js";
 import { fakeIo } from "./fixtures/fakeIo.js";
 import { TAP_PUBLIC_FIELDS, TAP_ROOM, TapGame, TapState, tapKit } from "./fixtures/tapGame.js";
 

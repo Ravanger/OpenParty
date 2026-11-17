@@ -17,7 +17,12 @@ The dev-side game declaration: `defineGamePackage` plus the entry functions (`se
 
 ## Public entry points
 
-- `.`: `defineGamePackage`, `serve`, `launch`, `botsCli`, `play`, `demoCli`, `buildLaunchConfig`, `demoTableOptions`, `hostedGame`, the declaration and io types.
+- `.`: `defineGamePackage` plus the declaration and io types (`DemoCommentator`, `GameDeclaration`, `GameDemoOptions`, `GameKitIo`, `GameMeta`, `ServeOptions`).
+- `./serve`: `serve`, `serveIo`.
+- `./launch`: `launch`, `launchIo`.
+- `./play`: `play`, `playIo`, `readlinePrompter`.
+- `./bots`: `botsCli`, `botsIo`.
+- `./demo`: `demoCli`, `demoIo`.
 
 ## Tests
 

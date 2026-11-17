@@ -1170,7 +1170,7 @@ pass `connector` to any of them, or let it default to `defaultConnector(endpoint
 reuses its connector for the bots it seats. Example: `games/wit-clash/bots/witClashBot.ts`.
 
 A game declares its kit once as the `botKit` field of its declaration (`gamePackage.ts`) and never joins bots by hand:
-the `bun run bots <CODE> [count]` entry is a stub calling `botsCli(gamePackage)` from `@openparty/game-kit`, which seats
+the `bun run bots <CODE> [count]` entry is a stub calling `botsCli(gamePackage)` from `@openparty/game-kit/bots`, which seats
 the bots in a room made elsewhere (usage bounded by `meta.maxPlayers - 1`) and removes them on Ctrl+C.
 
 ## Terminal
@@ -1210,7 +1210,7 @@ export const buttonPackage = defineGamePackage({
 });
 
 // terminal/play.ts
-import { play } from "@openparty/game-kit";
+import { play } from "@openparty/game-kit/play";
 import { buttonPackage } from "../gamePackage.js";
 
 await play(buttonPackage);   // bun run play [--bots=0..7] [--name=You] [--join=ABCD]
@@ -1255,7 +1255,7 @@ demo: {
 },
 
 // terminal/demo.ts
-import { demoCli } from "@openparty/game-kit";
+import { demoCli } from "@openparty/game-kit/demo";
 import { buttonPackage } from "../gamePackage.js";
 
 await demoCli(buttonPackage);   // bun run demo [--bots=1..7]; from the repo root: bun run demo <game>
@@ -1273,13 +1273,13 @@ or opens a demo room. A game does not call it directly: the declaration carries 
 
 ```ts
 import { fileURLToPath } from "node:url";
-import { launch } from "@openparty/game-kit";
+import { launch } from "@openparty/game-kit/launch";
 import { buttonPackage } from "./gamePackage.js";
 
 await launch(buttonPackage, { gameDir: fileURLToPath(new URL(".", import.meta.url)) });
 ```
 
-`launch` builds the config from the declaration (`buildLaunchConfig`) and runs it with `runLauncher`: `name` is `displayName` (or
+`launch` builds the config from the declaration and runs it with `runLauncher`: `name` is `displayName` (or
 `meta.roomName`), `bots` is the declaration's `botKit` capped at `maxPlayers - 1`, and the demo tables run `minPlayers - 1` to
 `maxPlayers - 1` bots plus a host bot, finished by `isFinished`, with the declaration's `demo` extras (kit, room options, host name,
 bot pacing) merged in. The port defaults live in one place — `DEFAULT_PORTS` of `@openparty/launcher`; a test fails if the Vite

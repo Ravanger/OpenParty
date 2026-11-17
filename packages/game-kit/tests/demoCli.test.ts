@@ -1,6 +1,7 @@
 import { ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH } from "@openparty/shared";
 import { describe, expect, it } from "vitest";
-import { demoCli, type GameDeclaration } from "../src/index.js";
+import { demoCli } from "../src/demoCli.js";
+import type { GameDeclaration } from "../src/index.js";
 import { fakeIo } from "./fixtures/fakeIo.js";
 import { TAP_PUBLIC_FIELDS, TAP_ROOM, TapGame, TapState, tapKit } from "./fixtures/tapGame.js";
 

@@ -395,15 +395,58 @@
           "GameKitIo": {},
           "GameMeta": {},
           "ServeOptions": {},
+          "defineGamePackage": {}
+        }
+      },
+      "./bots": {
+        "target": {
+          "types": "./dist/botsCli.d.ts",
+          "default": "./dist/botsCli.js"
+        },
+        "symbols": {
           "botsCli": {},
-          "buildLaunchConfig": {},
-          "defineGamePackage": {},
+          "botsIo": {}
+        }
+      },
+      "./demo": {
+        "target": {
+          "types": "./dist/demoCli.d.ts",
+          "default": "./dist/demoCli.js"
+        },
+        "symbols": {
           "demoCli": {},
-          "demoTableOptions": {},
-          "hostedGame": {},
+          "demoIo": {}
+        }
+      },
+      "./launch": {
+        "target": {
+          "types": "./dist/launch.d.ts",
+          "default": "./dist/launch.js"
+        },
+        "symbols": {
           "launch": {},
+          "launchIo": {}
+        }
+      },
+      "./play": {
+        "target": {
+          "types": "./dist/play.d.ts",
+          "default": "./dist/play.js"
+        },
+        "symbols": {
           "play": {},
-          "serve": {}
+          "playIo": {},
+          "readlinePrompter": {}
+        }
+      },
+      "./serve": {
+        "target": {
+          "types": "./dist/serve.d.ts",
+          "default": "./dist/serve.js"
+        },
+        "symbols": {
+          "serve": {},
+          "serveIo": {}
         }
       }
     },

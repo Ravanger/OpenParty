@@ -3,7 +3,9 @@ import { freePort } from "@openparty/server/probe";
 import type { TerminalStrategy } from "@openparty/terminal";
 import { ScriptedIo } from "@openparty/terminal/testing";
 import { describe, expect, it, vi } from "vitest";
-import { defineGamePackage, hostedGame, play } from "../src/index.js";
+import { hostedGame } from "../src/hostedGame.js";
+import { defineGamePackage } from "../src/index.js";
+import { play } from "../src/play.js";
 import { fakeIo } from "./fixtures/fakeIo.js";
 import { TAP_PUBLIC_FIELDS, TAP_ROOM, TapGame, TapState, tapKit } from "./fixtures/tapGame.js";
 

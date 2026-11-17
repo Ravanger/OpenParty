@@ -2,7 +2,12 @@ import type { BaseGameState } from "@openparty/shared/schema";
 import { DemoRun, parseDemoArgs } from "@openparty/terminal";
 import { failWith } from "./fail.js";
 import { hostedGame } from "./hostedGame.js";
-import { defaultIo } from "./io.js";
+import {
+  processIo,
+  unavailablePrompter,
+  unavailableRunLauncher,
+  unavailableStartServer,
+} from "./io.js";
 import { demoBotOptions } from "./launchConfig.js";
 import { parseOrExit } from "./parseOrExit.js";
 import type { GameDeclaration, GameKitIo, GameMeta } from "./types.js";
@@ -11,10 +16,18 @@ import type { GameDeclaration, GameKitIo, GameMeta } from "./types.js";
 const demoUsage = (meta: GameMeta): string =>
   `Usage: bun run demo [--bots=${meta.minPlayers - 1}..${meta.maxPlayers - 1}] — from the repo root: bun run demo <game>`;
 
+/** The `demo` entry's default io: the real process; it needs no prompter, server starter or launcher. */
+export const demoIo: GameKitIo = {
+  ...processIo(),
+  prompter: unavailablePrompter("demo"),
+  startServer: unavailableStartServer("demo"),
+  runLauncher: unavailableRunLauncher("demo"),
+};
+
 /** The `demo` entry: one all-bot game on its own server, with a PASS/FAIL verdict. */
 export async function demoCli<TState extends BaseGameState, TContent>(
   pkg: GameDeclaration<TState, TContent>,
-  io: GameKitIo = defaultIo(),
+  io: GameKitIo = demoIo,
 ): Promise<void> {
   const demo = pkg.demo;
   const kit = demo?.kit ?? pkg.botKit;

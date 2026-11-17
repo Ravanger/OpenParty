@@ -1,22 +1,41 @@
+import { createInterface } from "node:readline/promises";
 import { DEFAULT_PORTS } from "@openparty/launcher";
 import type { BaseGameState } from "@openparty/shared/schema";
 import {
   PlaySession,
   type PlaySessionOptions,
+  type Prompter,
   parsePlayArgs,
+  ReadlinePrompter,
   TerminalPlayer,
 } from "@openparty/terminal";
 import { failWith } from "./fail.js";
 import { hostedGame } from "./hostedGame.js";
-import { defaultIo } from "./io.js";
+import { processIo, unavailableRunLauncher, unavailableStartServer } from "./io.js";
 import { parseOrExit } from "./parseOrExit.js";
 import { startsServer } from "./startsServer.js";
 import type { GameDeclaration, GameKitIo } from "./types.js";
 
+/** The `play` entry's prompter on the process stdin; `stop` ends the session when the input closes or is interrupted. */
+export const readlinePrompter = (stop: () => void): Prompter => {
+  const lines = createInterface({ input: process.stdin, output: process.stdout });
+  lines.on("SIGINT", stop);
+  lines.on("close", stop);
+  return new ReadlinePrompter(lines);
+};
+
+/** The `play` entry's default io: the real process plus a readline prompter; no launcher import beyond the port defaults. */
+export const playIo: GameKitIo = {
+  ...processIo(),
+  startServer: unavailableStartServer("play"),
+  runLauncher: unavailableRunLauncher("play"),
+  prompter: readlinePrompter,
+};
+
 /** The `play` entry: one human at a terminal, optionally with bots; exit 2 on bad args, 1 on failure. */
 export async function play<TState extends BaseGameState, TContent>(
   pkg: GameDeclaration<TState, TContent>,
-  io: GameKitIo = defaultIo(),
+  io: GameKitIo = playIo,
 ): Promise<void> {
   const meta = pkg.meta;
   const usage = `Usage: bun run play [--bots=0..${meta.maxPlayers - 1}] [--name=You] [--join=ABCD] [--endpoint=ws://host:2567 --api-port=3001]`;

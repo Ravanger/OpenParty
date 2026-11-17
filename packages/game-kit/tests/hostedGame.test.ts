@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { hostedGame } from "../src/index.js";
+import { hostedGame } from "../src/hostedGame.js";
 import { TAP_ROOM, TapGame, TapState, tapKit } from "./fixtures/tapGame.js";
 
 describe("hostedGame", () => {
