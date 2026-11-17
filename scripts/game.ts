@@ -2,8 +2,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { createInterface } from "node:readline/promises";
-import { fileURLToPath } from "node:url";
-import type { CommandError } from "../packages/launcher/src/ProcessGroup.js";
+import type { CommandError } from "@openparty/launcher";
 import {
   buildArgs,
   discoverGames,
@@ -17,8 +16,9 @@ import {
   parseChoice,
   pickGame,
 } from "./gameEntry.js";
+import { repoRoot } from "./repoFiles.js";
 
-const root = fileURLToPath(new URL("..", import.meta.url));
+const root = repoRoot();
 const [command, ...args] = process.argv.slice(2);
 
 const readPackageJson = (folder: string): unknown => {
@@ -90,7 +90,7 @@ if (process.env.OPENPARTY_SKIP_BUILD !== "1") {
   }
 }
 
-const { ProcessGroup } = await import("../packages/launcher/src/ProcessGroup.js");
+const { ProcessGroup } = await import("@openparty/launcher");
 const group = new ProcessGroup((message) => {
   console.error(message);
   group.stop();

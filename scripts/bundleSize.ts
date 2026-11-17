@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { gzipSync } from "node:zlib";
+import { walkFiles } from "./repoFiles.js";
 
 /** One emitted bundle file with its measured sizes. */
 export interface BundleFile {
@@ -29,26 +30,17 @@ export const formatTable = (files: BundleFile[]): string => {
 };
 
 /** Every `.js` and `.css` file under `dir` (recursive), with measured gzip sizes; names are relative to `dir`. */
-export const readBundle = (dir: string): BundleFile[] => {
-  const files: BundleFile[] = [];
-  const walk = (current: string): void => {
-    for (const entry of readdirSync(current, { withFileTypes: true })) {
-      const path = join(current, entry.name);
-      if (entry.isDirectory()) {
-        walk(path);
-      } else if (entry.name.endsWith(".js") || entry.name.endsWith(".css")) {
-        const content = readFileSync(path);
-        files.push({
-          name: relative(dir, path).split(sep).join("/"),
-          bytes: content.length,
-          gzipBytes: gzipSync(content).length,
-        });
-      }
-    }
-  };
-  walk(dir);
-  return files;
-};
+export const readBundle = (dir: string): BundleFile[] =>
+  walkFiles(dir)
+    .filter((path) => path.endsWith(".js") || path.endsWith(".css"))
+    .map((path) => {
+      const content = readFileSync(path);
+      return {
+        name: relative(dir, path).split(sep).join("/"),
+        bytes: content.length,
+        gzipBytes: gzipSync(content).length,
+      };
+    });
 
 /** True when the bundle's gzip total is at or under budget. */
 export const withinBudget = (totalGzipBytes: number, budgetGzipBytes: number): boolean =>
