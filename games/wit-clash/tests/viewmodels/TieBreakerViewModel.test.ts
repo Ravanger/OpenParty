@@ -4,6 +4,7 @@ import {
   addMine,
   addSeat,
   answer,
+  type Client,
   connectedClient,
   matchup,
   prompt,
@@ -258,6 +259,50 @@ describe("TieBreakerViewModel reveal", () => {
         },
       ],
     });
+    vm.destroy();
+  });
+});
+
+function typingMessages(c: Client): boolean[] {
+  return c.room.requests.flatMap((r) => {
+    const payload = r.payload;
+    if (typeof payload !== "object" || payload === null) return [];
+    if (!("type" in payload) || payload.type !== "SET_TYPING") return [];
+    return "typing" in payload ? [payload.typing === true] : [];
+  });
+}
+
+describe("typing reports from the TieBreakerViewModel", () => {
+  function contender() {
+    const c = connectedClient({}, "TieBreakerPrompting");
+    c.state.tieBreakers.push(matchup("tb1", "Name a bird", []));
+    c.state.tieBreakerContenders.push(c.manager.playerId);
+    return { c, vm: new TieBreakerViewModel(c.manager) };
+  }
+
+  it("reports one change per burst of typing", () => {
+    const { c, vm } = contender();
+    vm.setDraft("P");
+    vm.setDraft("Pi");
+    expect(typingMessages(c)).toEqual([true]);
+    vi.advanceTimersByTime(2500);
+    expect(typingMessages(c)).toEqual([true, false]);
+    vm.destroy();
+  });
+
+  it("says false on submit", async () => {
+    const { c, vm } = contender();
+    vm.setDraft("Pigeon");
+    await vm.submit();
+    expect(typingMessages(c)).toEqual([true, false]);
+    vm.destroy();
+  });
+
+  it("exposes the progress of the contenders", () => {
+    const { c, vm } = contender();
+    c.state.answersPerPlayer = 1;
+    c.state.progress.set(c.manager.playerId, 0);
+    expect(vm.progress.rows[0]?.expected).toBe(1);
     vm.destroy();
   });
 });

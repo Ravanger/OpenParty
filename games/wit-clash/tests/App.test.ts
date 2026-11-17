@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from "@testing-library/svelte";
 import { flushSync } from "svelte";
 import { describe, expect, it, vi } from "vitest";
 import App from "../ui/App.svelte";
-import { addMine, addSeat, connectedClient, option } from "./helpers/client.js";
+import { addMine, addSeat, answer, connectedClient, matchup, option } from "./helpers/client.js";
 
 /** The outer overscan band, as a percentage of the viewport. */
 const OVERSCAN_BAND_PCT = 5;
@@ -238,5 +238,42 @@ describe("App", () => {
     flushSync();
     expect(screen.getByRole("button", { name: /host game/i })).toBeInTheDocument();
     expect(screen.getByRole("alert")).toHaveTextContent("Removed by the host");
+  });
+});
+
+describe("Focus on screen change", () => {
+  it("moves focus to the reveal heading once the matchup is revealed", () => {
+    const c = connectedClient({}, "MatchupVoting");
+    render(App, { manager: c.manager });
+    c.state.phase = "MatchupReveal";
+    c.state.matchups.push(
+      matchup(
+        "m1",
+        "Name a fruit",
+        [
+          answer("a1", "Mango", {
+            votes: 2,
+            authorId: "zed-12345",
+            authorName: "Zed",
+            isWinner: true,
+          }),
+        ],
+        { isRevealed: true },
+      ),
+      matchup("m2", "Name a drink", []),
+    );
+    c.state.activeMatchupIndex = 0;
+    c.patch();
+    flushSync();
+    expect(screen.getByRole("heading", { name: /matchup 1 of 2/i })).toHaveFocus();
+  });
+
+  it("moves focus to a heading while waiting for the reveal", () => {
+    const c = connectedClient({}, "MatchupVoting");
+    render(App, { manager: c.manager });
+    c.state.phase = "MatchupReveal";
+    c.patch();
+    flushSync();
+    expect(screen.getByRole("heading", { name: /revealing/i })).toHaveFocus();
   });
 });
