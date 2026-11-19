@@ -33,7 +33,12 @@ const definition = defineGame<PhaseState, Record<string, never>, Record<string, 
   },
 });
 
-const newState = (): PhaseState => ({ phase: "", phaseEndsAt: 0, canStart: false });
+const newState = (): PhaseState => ({
+  phase: "",
+  phaseEndsAt: 0,
+  phaseDurationMs: 0,
+  canStart: false,
+});
 
 /** A deterministic live session: Lobby enter, START_GAME, Tap enter, timeout, Done enter. */
 function liveBundle(): ReplayBundle {

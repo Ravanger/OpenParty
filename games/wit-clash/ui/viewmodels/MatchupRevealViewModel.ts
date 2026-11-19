@@ -1,5 +1,4 @@
-import { OptionsReader, PhaseClock } from "@openparty/game-ui";
-import { DEFAULT_OPTIONS, type WitClashOptions, WitClashOptionsSchema } from "../../src/options.js";
+import { PhaseClock } from "@openparty/game-ui";
 import type { WitClashManager } from "../manager.js";
 import { MatchupRecap, type RevealedMatchup } from "./MatchupRecap.js";
 
@@ -8,12 +7,7 @@ export class MatchupRevealViewModel {
   private readonly recap: MatchupRecap;
 
   constructor(private readonly manager: WitClashManager) {
-    const options = new OptionsReader<WitClashOptions>(
-      manager,
-      WitClashOptionsSchema,
-      DEFAULT_OPTIONS,
-    );
-    this.clock = new PhaseClock(manager, () => options.current.revealSeconds);
+    this.clock = new PhaseClock(manager);
     this.recap = new MatchupRecap(manager);
   }
 

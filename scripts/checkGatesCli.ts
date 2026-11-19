@@ -10,6 +10,7 @@ import {
   scanTree,
   trustedLabels,
 } from "./checkGates.js";
+import { gitDiff } from "./git.js";
 
 const args = process.argv.slice(2);
 const eventPath = process.env.GITHUB_EVENT_PATH;
@@ -21,10 +22,7 @@ const labels =
   eventsPath && owner
     ? trustedLabels(event, JSON.parse(readFileSync(eventsPath, "utf8")), owner)
     : labelsOf(event);
-const diff = execFileSync("git", ["diff", "-U10000", "--no-color", ...diffRange(args)], {
-  encoding: "utf8",
-  maxBuffer: 256 * 1024 * 1024,
-});
+const diff = gitDiff(["-U10000", "--no-color", ...diffRange(args)]);
 
 // Read contents from git, never from disk: a fork's tree can contain symlinks.
 const readFromGit = (path: string): string =>

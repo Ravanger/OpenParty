@@ -1,10 +1,76 @@
-import { render, screen, within } from "@testing-library/svelte";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, within } from "@testing-library/svelte";
+import { describe, expect, it } from "vitest";
 import { Award, BestAnswer, Highlight, HighlightAnswer } from "../../src/state.js";
-import Prompting from "../../ui/screens/Prompting.svelte";
 import Results from "../../ui/screens/Results.svelte";
-import TieBreakerPrompting from "../../ui/screens/TieBreakerPrompting.svelte";
-import { addMine, addSeat, connectedClient, matchup, prompt, scoreRow } from "../helpers/client.js";
+import { answer, connectedClient, matchup, scoreRow } from "../helpers/client.js";
+
+describe("Results screen", () => {
+  function results(role: "host" | "player", isFinalRound: boolean) {
+    const c = connectedClient({ role }, "Results");
+    c.state.isFinalRound = isFinalRound;
+    c.state.roundNumber = isFinalRound ? 3 : 1;
+    c.state.totalRounds = 3;
+    c.state.scoreboard.push(
+      scoreRow("ann", 500, { name: "Ann", roundPoints: 250, matchupsWon: 1, hadClash: true }),
+      scoreRow("bob", 100, { name: "Bob", hasLeft: true }),
+    );
+    c.state.matchups.push(
+      matchup(
+        "m1",
+        "Name a fruit",
+        [answer("a1", "Mango", { authorName: "Ann", isWinner: true })],
+        {
+          isRevealed: true,
+        },
+      ),
+    );
+    return c;
+  }
+
+  it("shows the round's recap and the scoreboard to a guest who waits for the host", () => {
+    render(Results, { manager: results("player", false).manager });
+    expect(screen.getByRole("heading", { name: "Round 1 of 3 Results" })).toBeInTheDocument();
+    expect(screen.getByText("Name a fruit")).toBeInTheDocument();
+    const rows = screen.getAllByText(/^#\d$/);
+    expect(rows).toHaveLength(2);
+    expect(screen.getByText("Bob (left)")).toBeInTheDocument();
+    expect(screen.getByText("+250")).toBeInTheDocument();
+    expect(screen.getByText("CLASH")).toBeInTheDocument();
+    expect(screen.getByText("Waiting for host to continue...")).toBeInTheDocument();
+  });
+
+  it("lets the host start the next round", async () => {
+    const c = results("host", false);
+    render(Results, { manager: c.manager });
+    await fireEvent.click(screen.getByRole("button", { name: "Next Round" }));
+    expect(c.room.requests).toEqual([{ type: "ACTION", payload: { type: "NEXT_ROUND" } }]);
+  });
+
+  it("announces the winner after the final round and lets the host play again", async () => {
+    const c = results("host", true);
+    render(Results, { manager: c.manager });
+    expect(screen.getByRole("heading", { name: "Game Over!" })).toBeInTheDocument();
+    expect(within(screen.getByText(/wins with/i)).getByText(/Ann/)).toBeInTheDocument();
+    await fireEvent.click(screen.getByRole("button", { name: "Play Again" }));
+    expect(c.room.requests).toEqual([{ type: "ACTION", payload: { type: "PLAY_AGAIN" } }]);
+  });
+
+  it("names joint winners, and waits for the host to restart", () => {
+    const c = results("player", true);
+    c.state.scoreboard.push(scoreRow("cy", 500, { name: "Cy" }));
+    c.state.scoreboard.sort((a, b) => b.score - a.score);
+    render(Results, { manager: c.manager });
+    expect(screen.getByText(/Ann & Cy win with 500 points/)).toBeInTheDocument();
+    expect(screen.getByText("Waiting for host to start a new game...")).toBeInTheDocument();
+  });
+
+  it("shows no banner when nobody has scored", () => {
+    const c = connectedClient({}, "Results");
+    c.state.isFinalRound = true;
+    render(Results, { manager: c.manager });
+    expect(screen.queryByText(/wins with/i)).not.toBeInTheDocument();
+  });
+});
 
 describe("Results podium and awards", () => {
   function finale() {
@@ -149,98 +215,5 @@ describe("Results podium and awards", () => {
     expect(within(section).getByText("1.2 s")).toBeInTheDocument();
     expect(within(section).getByText("Bob & Cy")).toBeInTheDocument();
     expect(within(section).getByText("3 votes")).toBeInTheDocument();
-  });
-});
-
-describe("Results on a TV", () => {
-  afterEach(() => vi.useRealTimers());
-
-  function tvFinale(bestCount: number) {
-    vi.useFakeTimers();
-    const c = connectedClient({}, "Results");
-    c.state.players.delete(c.manager.playerId);
-    c.state.isFinalRound = true;
-    c.state.scoreboard.push(scoreRow("ann", 500, { name: "Ann" }));
-    for (let i = 0; i < bestCount; ++i) {
-      c.state.bestAnswers.push(
-        Object.assign(new BestAnswer(), {
-          text: `Answer ${i}`,
-          authorId: "ann",
-          authorName: "Ann",
-        }),
-      );
-    }
-    return c;
-  }
-
-  it("takes turns showing the podium and the best answers instead of scrolling", async () => {
-    const { container } = render(Results, { manager: tvFinale(2).manager });
-    const podium = container.querySelector(".podium-panel");
-    const best = screen.getByLabelText("Shared best answer");
-    expect(podium).not.toHaveClass("faded");
-    expect(best).toHaveClass("faded");
-    await vi.advanceTimersByTimeAsync(8000);
-    expect(podium).toHaveClass("faded");
-    expect(best).not.toHaveClass("faded");
-  });
-
-  it("keeps the podium in view when there is no best answer", async () => {
-    const { container } = render(Results, { manager: tvFinale(0).manager });
-    await vi.advanceTimersByTimeAsync(8000);
-    expect(container.querySelector(".podium-panel")).not.toHaveClass("faded");
-  });
-
-  it("shows phones everything at once", async () => {
-    vi.useFakeTimers();
-    const c = connectedClient({ name: "Ann" }, "Results");
-    c.state.bestAnswers.push(Object.assign(new BestAnswer(), { text: "Mango", authorId: "x" }));
-    const { container } = render(Results, { manager: c.manager });
-    await vi.advanceTimersByTimeAsync(8000);
-    expect(container.querySelectorAll(".faded")).toHaveLength(0);
-  });
-});
-
-describe("Answer progress and typing", () => {
-  it("shows every player's progress, a done tick and who is typing while prompting", () => {
-    const c = connectedClient({ name: "Me" }, "Prompting");
-    addSeat(c.state, "zed-12345", { name: "Zed" });
-    addSeat(c.state, "amy-12345", { name: "Amy" });
-    addMine(c.state, c.manager.playerId).prompts.push(prompt("m1", "Q"));
-    c.state.answersPerPlayer = 2;
-    c.state.progress.set(c.manager.playerId, 1);
-    c.state.progress.set("zed-12345", 2);
-    c.state.progress.set("amy-12345", 0);
-    c.state.typing.set("amy-12345", true);
-    render(Prompting, { manager: c.manager });
-    const list = within(screen.getByLabelText("Answer progress"));
-    expect(list.getByText("1/2")).toBeInTheDocument();
-    expect(list.getByText("2/2")).toBeInTheDocument();
-    expect(list.getByRole("img", { name: "Done" })).toBeInTheDocument();
-    expect(list.getAllByText("typing…")).toHaveLength(1);
-  });
-
-  it("shows it to a TV without a seat, and nothing before anyone is answering", () => {
-    const c = connectedClient({}, "Prompting");
-    const { unmount } = render(Prompting, { manager: c.manager });
-    expect(screen.queryByLabelText("Answer progress")).not.toBeInTheDocument();
-    unmount();
-    c.state.progress.set("zed-12345", 0);
-    c.state.answersPerPlayer = 2;
-    c.state.players.delete(c.manager.playerId);
-    render(Prompting, { manager: c.manager });
-    expect(screen.getByLabelText("Answer progress")).toBeInTheDocument();
-  });
-
-  it("shows the contenders' progress during the tie-breaker", () => {
-    const c = connectedClient({ name: "Me" }, "TieBreakerPrompting");
-    c.state.tieBreakers.push(matchup("tb1", "Name a bird", []));
-    c.state.tieBreakerContenders.push(c.manager.playerId);
-    c.state.answersPerPlayer = 1;
-    c.state.progress.set(c.manager.playerId, 0);
-    c.state.typing.set(c.manager.playerId, true);
-    render(TieBreakerPrompting, { manager: c.manager });
-    const list = within(screen.getByLabelText("Answer progress"));
-    expect(list.getByText("0/1")).toBeInTheDocument();
-    expect(list.getByText("typing…")).toBeInTheDocument();
   });
 });

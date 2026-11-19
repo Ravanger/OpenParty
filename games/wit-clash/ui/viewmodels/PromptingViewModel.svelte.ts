@@ -38,7 +38,7 @@ export class PromptingViewModel {
       rejectedCount: () => manager.state?.rejectedTexts,
       noun: "answer",
     });
-    this.clock = new PhaseClock(manager, () => this.options.current.promptSeconds);
+    this.clock = new PhaseClock(manager);
     this.typing = new TypingReporter((typing) => {
       void this.manager.sendAction(ACTION.SET_TYPING, { typing });
     });

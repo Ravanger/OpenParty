@@ -24,7 +24,8 @@ describe("PhaseTimer", () => {
     const c = connectedClient({ stateClass: BaseGameState });
     c.state.serverNow = 1_000_000;
     c.state.phaseEndsAt = 1_000_000 + 30_000;
-    const { container } = render(PhaseTimer, { clock: new PhaseClock(c.manager, () => 90) });
+    c.state.phaseDurationMs = 90_000;
+    const { container } = render(PhaseTimer, { clock: new PhaseClock(c.manager) });
 
     expect(screen.getByText("30")).toBeInTheDocument();
     expect(tip(container)).toBeCloseTo(START + LENGTH / 3);

@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { gitDiff } from "./git.js";
 import { codeChanged, mutateTargets, strykerArgs } from "./mutateChanged.js";
 
 const [flag, ref] = process.argv.slice(2);
@@ -8,9 +9,7 @@ if (flag !== "--base" || !ref) {
   process.exit(2);
 }
 
-const output = execFileSync("git", ["diff", "--name-only", "--diff-filter=d", `${ref}...HEAD`], {
-  encoding: "utf8",
-});
+const output = gitDiff(["--name-only", "--diff-filter=d", `${ref}...HEAD`]);
 const mergeBase = execFileSync("git", ["merge-base", ref, "HEAD"], { encoding: "utf8" }).trim();
 const baseSource = (path: string): string | undefined => {
   try {

@@ -1,8 +1,9 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { checkAgentsFiles, type PackageDescription } from "./checkAgentsFiles.js";
+import { packageDirs, repoRoot } from "./repoFiles.js";
 
-const root = join(import.meta.dirname, "..");
+const root = repoRoot();
 const read = (path: string): string | undefined =>
   existsSync(path) ? readFileSync(path, "utf8") : undefined;
 
@@ -13,10 +14,10 @@ const rootJson = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as
 const packages: PackageDescription[] = [];
 for (const glob of rootJson.workspaces) {
   const parent = glob.replace(/\/\*$/, "");
-  for (const entry of readdirSync(join(root, parent), { withFileTypes: true })) {
-    const dir = `${parent}/${entry.name}`;
+  for (const name of packageDirs(parent)) {
+    const dir = `${parent}/${name}`;
     const json = read(join(root, dir, "package.json"));
-    if (!entry.isDirectory() || json === undefined) continue;
+    if (json === undefined) continue;
     packages.push({
       dir,
       packageJson: JSON.parse(json),

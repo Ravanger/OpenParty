@@ -1,17 +1,14 @@
 import { createServer as createHttpServer, type Server as HttpServer } from "node:http";
 import type { Server } from "@colyseus/core";
 import type { Logger } from "@openparty/core";
-import { type ApiRequestInfo, createApiHandler } from "./api/createApiHandler.js";
-import {
-  createGameServer,
-  createResolveCodeThrottle,
-  type GameServerOptions,
-} from "./createGameServer.js";
-import { listenGameServer } from "./gameTransport.js";
+import type { ApiRequestInfo } from "./api/createApiHandler.js";
+import { buildApiEntry } from "./apiEntry.js";
+import { bootGameServer } from "./bootGameServer.js";
+import type { GameServerOptions } from "./createGameServer.js";
+import { toFetchRequest, writeNodeResponse } from "./nodeHttpAdapter.js";
 import { closeHttpServer, freePort } from "./probe.js";
 import type { RateLimits } from "./RateLimiter.js";
-import { hostFrom, parseAllowedOrigins, trustProxyFrom } from "./resolveStartOptions.js";
-import { RoomCodeService } from "./services/RoomCodeService.js";
+import type { RoomCodeService } from "./services/RoomCodeService.js";
 
 /** Options for `serveApi`. */
 export interface ServeApiOptions {
@@ -26,7 +23,7 @@ export interface ServeApiOptions {
   trustProxy?: boolean;
   /** Where observe-mode limit hits are logged; `console.warn` when omitted. */
   logger?: Logger;
-  /** Test seam: replaces the default handler. */
+  /** Replaces the default handler, which `buildApiEntry` builds from the other options. */
   handler?: (req: Request, info?: ApiRequestInfo) => Response;
 }
 
@@ -40,50 +37,33 @@ export async function serveApi(
   codes: RoomCodeService,
   options: ServeApiOptions,
 ): Promise<HttpServer> {
-  const { limiter, bucket } = createResolveCodeThrottle(options.rateLimits, options.logger);
   const handler =
     options.handler ??
-    createApiHandler(codes, {
-      ...(options.allowedOrigins !== undefined ? { allowedOrigins: options.allowedOrigins } : {}),
-      ...(options.trustProxy !== undefined ? { trustProxy: options.trustProxy } : {}),
-      limiter,
-      resolveCode: bucket,
-    });
+    buildApiEntry(
+      {
+        roomCodeService: codes,
+        ...(options.allowedOrigins !== undefined ? { allowedOrigins: options.allowedOrigins } : {}),
+        ...(options.trustProxy !== undefined ? { trustProxy: options.trustProxy } : {}),
+        ...(options.rateLimits !== undefined ? { rateLimits: options.rateLimits } : {}),
+        ...(options.logger !== undefined ? { logger: options.logger } : {}),
+      },
+      {},
+    ).handler;
   const api = createHttpServer(async (req, res) => {
     const fail = (status: number, message: string): void => {
       res.writeHead(status, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ error: message }));
     };
     try {
-      // Node's parser never leaves a present header value undefined; the assertion drops it from the type.
-      const rawHeaders = req.headers as Record<string, string | string[]>;
-      const headers = new Headers();
-      for (const [name, value] of Object.entries(rawHeaders)) {
-        if (Array.isArray(value)) {
-          for (const one of value) headers.append(name, one);
-        } else {
-          headers.set(name, value);
-        }
-      }
-      // A connection that reached this handler has a peer address and a request method; the assertions keep those branches out of coverage.
+      // A connection that reached this handler has a peer address; the assertion keeps that branch out of coverage.
       const remoteAddress = req.socket.remoteAddress as string;
-      let request: Request;
-      try {
-        request = new Request(`http://127.0.0.1${req.url}`, {
-          method: req.method as string,
-          headers,
-        });
-      } catch {
-        // Node's parser accepts methods the Request constructor forbids (TRACE, TRACK); refuse them.
+      const request = toFetchRequest(req);
+      if (request === undefined) {
         fail(405, "Method not allowed");
         return;
       }
       const response = handler(request, { remoteAddress });
-      // Read the body before any header goes out: a body that fails to read must still reach the
-      // catch with unsent headers so it can answer with the fixed 500.
-      const body = await response.text();
-      res.writeHead(response.status, Object.fromEntries(response.headers));
-      res.end(body);
+      await writeNodeResponse(res, response);
     } catch (error) {
       // A throwing handler must not take the process down with an unhandled rejection: a fixed
       // body goes to the client and the exception to the log, never its text to the wire.
@@ -152,41 +132,30 @@ export async function startNodeServer(
   /** Test seam: overrides how free ports are discovered. */
   hooks?: { freePort?: () => Promise<number> },
 ): Promise<NodeServerHandle> {
-  const {
-    port: wantedPort,
-    apiPort: wantedApiPort,
-    host: optionHost,
-    allowedOrigins: optionAllowedOrigins,
-    trustProxy: optionTrustProxy,
-    ...serverOptions
-  } = options;
+  const { port: wantedPort, apiPort: wantedApiPort, ...serverOptions } = options;
   if (wantedPort !== undefined && wantedPort === wantedApiPort) {
     throw new Error("The game server and the code API need different ports");
   }
-  const roomCodeService = options.roomCodeService ?? new RoomCodeService();
-  // Unset options fall back to the environment, so a launcher can steer the bind with HOST/ALLOWED_ORIGINS/TRUST_PROXY.
-  const host = optionHost ?? hostFrom(process.env.HOST);
-  const allowedOrigins = optionAllowedOrigins ?? parseAllowedOrigins(process.env.ALLOWED_ORIGINS);
-  const trustProxy = optionTrustProxy ?? trustProxyFrom(process.env.TRUST_PROXY);
+  // One entry builds the service, the handler and the bind options; unset bind options fall back to the environment, so a launcher can steer the bind with HOST/ALLOWED_ORIGINS/TRUST_PROXY.
+  const entry = buildApiEntry(serverOptions, process.env);
   const discoverFreePort = hooks?.freePort ?? freePort;
   for (let attempt = 1; ; ++attempt) {
     const port = wantedPort ?? (await discoverFreePort());
     const apiPort = wantedApiPort ?? (await discoverFreePort());
     let api: HttpServer | undefined;
     try {
-      api = await serveApi(roomCodeService, {
+      api = await serveApi(entry.roomCodeService, {
         port: apiPort,
-        ...(host !== undefined ? { host } : {}),
-        ...(allowedOrigins !== undefined ? { allowedOrigins } : {}),
-        ...(trustProxy !== undefined ? { trustProxy } : {}),
-        ...(options.rateLimits !== undefined ? { rateLimits: options.rateLimits } : {}),
-        ...(options.logger !== undefined ? { logger: options.logger } : {}),
+        ...(entry.host !== undefined ? { host: entry.host } : {}),
+        handler: entry.handler,
       });
-      const server = createGameServer({ ...serverOptions, roomCodeService });
-      // A failed bind shuts the server down itself; only the API needs closing here.
-      await listenGameServer(server, port);
-      return new NodeServerHandle(server, api, roomCodeService, port, apiPort);
+      const server = await bootGameServer(
+        { ...serverOptions, roomCodeService: entry.roomCodeService },
+        port,
+      );
+      return new NodeServerHandle(server, api, entry.roomCodeService, port, apiPort);
     } catch (error) {
+      // A failed bind shuts the game server down itself; only the API needs closing here.
       if (api !== undefined) {
         const openApi = api;
         openApi.closeAllConnections();

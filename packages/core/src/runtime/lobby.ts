@@ -3,13 +3,14 @@ import {
   ErrorCode,
   FrameworkError,
   LOBBY_PHASE,
-  MAX_OPTIONS_JSON_LENGTH,
   PlayerIdSchema,
   SET_OPTIONS,
   START_GAME,
 } from "@openparty/shared";
 import { z } from "zod";
 import { EmptyPayloadSchema } from "../actions.js";
+import type { RuntimeHost } from "./host.js";
+import { resolveGameOptions } from "./options.js";
 import { type CoreStrings, mergeCoreStrings } from "./strings.js";
 import type {
   ActionDefinition,
@@ -17,7 +18,6 @@ import type {
   GameDefinition,
   PhaseDefinition,
   PhaseState,
-  RuntimeHost,
 } from "./types.js";
 
 /** What the {@link Lobby} needs from the runtime that owns it. */
@@ -115,23 +115,27 @@ export class Lobby<TState extends PhaseState, TPrivate, TOptions> {
       payload: z.looseObject({}),
       handler: (ctx) => {
         const { type: _type, ...partial } = ctx.payload;
-        if (!definition.options && Object.keys(partial).length > 0) {
+        if (!definition.options) {
+          // A game without an options schema has fixed options: extra keys are refused and an
+          // empty SET_OPTIONS republishes the unchanged value. The no-schema guard stays here
+          // (not in resolveGameOptions) because it is the sent keys that are refused, while the
+          // merge can carry non-empty current options.
+          if (Object.keys(partial).length > 0) {
+            ctx.reject(ErrorCode.INVALID_ACTION, CLIENT_MESSAGES.INVALID_ACTION);
+            return;
+          }
+          const merged = { ...options.get(), ...partial };
+          options.set(merged as TOptions);
+          host.publishOptions(merged);
+          return;
+        }
+        const resolved = resolveGameOptions(definition, { ...options.get(), ...partial });
+        if (!resolved.ok) {
           ctx.reject(ErrorCode.INVALID_ACTION, CLIENT_MESSAGES.INVALID_ACTION);
           return;
         }
-        const merged = { ...options.get(), ...partial };
-        const parsed = definition.options ? definition.options.safeParse(merged) : undefined;
-        if (parsed && !parsed.success) {
-          ctx.reject(ErrorCode.INVALID_ACTION, CLIENT_MESSAGES.INVALID_ACTION);
-          return;
-        }
-        const next = (parsed ? parsed.data : merged) as TOptions;
-        if (JSON.stringify(next).length > MAX_OPTIONS_JSON_LENGTH) {
-          ctx.reject(ErrorCode.INVALID_ACTION, CLIENT_MESSAGES.INVALID_ACTION);
-          return;
-        }
-        options.set(next);
-        host.publishOptions(next);
+        options.set(resolved.options);
+        host.publishOptions(resolved.options);
       },
     };
   }

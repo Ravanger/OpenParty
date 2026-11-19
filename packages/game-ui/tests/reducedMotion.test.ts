@@ -185,7 +185,8 @@ describe("reduced motion", () => {
           const c = connectedClient({ stateClass: BaseGameState });
           c.state.serverNow = 1_000_000;
           c.state.phaseEndsAt = 1_000_000 + 30_000;
-          return render(PhaseBar, { clock: new PhaseClock(c.manager, () => 90) });
+          c.state.phaseDurationMs = 90_000;
+          return render(PhaseBar, { clock: new PhaseClock(c.manager) });
         },
       ],
       ["PlayerSticker", () => render(PlayerSticker, { name: "maya", playerId: "p-1" })],

@@ -10,7 +10,8 @@ describe("PhaseBar", () => {
     const c = connectedClient({ stateClass: BaseGameState });
     c.state.serverNow = 1_000_000;
     c.state.phaseEndsAt = 1_000_000 + seconds * 1000;
-    return render(PhaseBar, { clock: new PhaseClock(c.manager, () => total) });
+    c.state.phaseDurationMs = total * 1000;
+    return render(PhaseBar, { clock: new PhaseClock(c.manager) });
   }
 
   const width = (container: HTMLElement) =>
@@ -22,10 +23,10 @@ describe("PhaseBar", () => {
     expect(width(container)).toBe("50%");
   });
 
-  it("stays on the track, and is empty without a total", () => {
+  it("stays on the track, and shows full without a published duration", () => {
     const over = bar(9, 6);
     expect(width(over.container)).toBe("100%");
     const none = bar(2, 0);
-    expect(width(none.container)).toBe("0%");
+    expect(width(none.container)).toBe("100%");
   });
 });

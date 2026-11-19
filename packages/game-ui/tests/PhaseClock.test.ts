@@ -10,11 +10,12 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 describe("PhaseClock", () => {
-  function clock(seconds: number, total = 90) {
+  function clock(seconds: number, totalSeconds = 90) {
     const c = connectedClient({ stateClass: BaseGameState });
     c.state.serverNow = 1_000_000;
     c.state.phaseEndsAt = 1_000_000 + seconds * 1000;
-    return new PhaseClock(c.manager, () => total);
+    c.state.phaseDurationMs = totalSeconds * 1000;
+    return new PhaseClock(c.manager);
   }
 
   it("counts down and goes urgent in the last ten seconds", () => {
@@ -43,18 +44,23 @@ describe("PhaseClock", () => {
     expect(clock(0, 30).fraction).toBe(0);
   });
 
-  it("has a zero fraction when the phase has no total", () => {
-    expect(clock(30, 0).fraction).toBe(0);
+  it("shows the bar full when the server published no length", () => {
+    const running = clock(30, 0);
+    expect(running.totalSeconds).toBe(30);
+    expect(running.fraction).toBe(1);
+    const expired = clock(0, 0);
+    expect(expired.totalSeconds).toBe(0);
+    expect(expired.fraction).toBe(0);
   });
 
-  it("reads the phase length from the supplied getter on every read", () => {
-    let total = 90;
+  it("reads the phase length from the synced state on every read", () => {
     const c = connectedClient({ stateClass: BaseGameState });
     c.state.serverNow = 1_000_000;
     c.state.phaseEndsAt = 1_000_000 + 30_000;
-    const subject = new PhaseClock(c.manager, () => total);
+    c.state.phaseDurationMs = 90_000;
+    const subject = new PhaseClock(c.manager);
     expect(subject.totalSeconds).toBe(90);
-    total = 45;
+    c.state.phaseDurationMs = 45_000;
     expect(subject.totalSeconds).toBe(45);
   });
 
@@ -62,7 +68,8 @@ describe("PhaseClock", () => {
     const c = connectedClient({ stateClass: BaseGameState });
     c.state.serverNow = 1_000_000;
     c.state.phaseEndsAt = 1_000_000 + 7 * 1000;
-    const subject = new PhaseClock(c.manager, () => 30, [7]);
+    c.state.phaseDurationMs = 30_000;
+    const subject = new PhaseClock(c.manager, [7]);
     expect(subject.announcement).toBe("7 seconds remaining");
   });
 });

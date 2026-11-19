@@ -1,17 +1,30 @@
 import { ROOM_CODE_LENGTH } from "@openparty/shared";
 import type { BaseGameState } from "@openparty/shared/schema";
 import { BadBotsArgsError, runBotsCommand } from "@openparty/terminal";
-import { defaultIo } from "./io.js";
+import {
+  processIo,
+  unavailablePrompter,
+  unavailableRunLauncher,
+  unavailableStartServer,
+} from "./io.js";
 import type { GameDeclaration, GameKitIo, GameMeta } from "./types.js";
 
 /** The usage line for the `bots` command, bounded by the game's seats. */
 const botsUsage = (meta: GameMeta): string =>
   `Usage: bun run bots <CODE> [count=3] [--endpoint ws://localhost:2567] [--api-port 3001]\nCODE is ${ROOM_CODE_LENGTH} letters; count is 1 to ${meta.maxPlayers - 1}.`;
 
+/** The `bots` entry's default io: the real process; it needs no prompter, server starter or launcher. */
+export const botsIo: GameKitIo = {
+  ...processIo(),
+  prompter: unavailablePrompter("bots"),
+  startServer: unavailableStartServer("bots"),
+  runLauncher: unavailableRunLauncher("bots"),
+};
+
 /** The `bots <CODE> [count]` entry: seats bots in a room made elsewhere; the SIGINT handler removes them and exits 0. */
 export async function botsCli<TState extends BaseGameState, TContent>(
   pkg: GameDeclaration<TState, TContent>,
-  io: GameKitIo = defaultIo(),
+  io: GameKitIo = botsIo,
 ): Promise<void> {
   const kit = pkg.botKit;
   if (kit === undefined) {

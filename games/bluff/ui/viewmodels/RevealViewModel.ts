@@ -1,5 +1,4 @@
-import { OptionsReader, PhaseClock, roundLabel } from "@openparty/game-ui";
-import { type BluffOptions, BluffOptionsSchema, DEFAULT_OPTIONS } from "../../src/options.js";
+import { PhaseClock, roundLabel } from "@openparty/game-ui";
 import type { BluffManager } from "../manager.js";
 
 export interface RevealChoiceRow {
@@ -23,8 +22,7 @@ export class RevealViewModel {
   readonly clock: PhaseClock;
 
   constructor(private readonly manager: BluffManager) {
-    const options = new OptionsReader<BluffOptions>(manager, BluffOptionsSchema, DEFAULT_OPTIONS);
-    this.clock = new PhaseClock(manager, () => options.current.revealSeconds);
+    this.clock = new PhaseClock(manager);
   }
 
   get roundLabel(): string {

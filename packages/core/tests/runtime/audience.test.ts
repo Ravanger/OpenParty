@@ -85,7 +85,14 @@ const definition = defineGame<S, Priv, Opt>({
   },
 });
 
-const newState = (): S => ({ phase: "", phaseEndsAt: 0, canStart: false, votes: {}, log: [] });
+const newState = (): S => ({
+  phase: "",
+  phaseEndsAt: 0,
+  phaseDurationMs: 0,
+  canStart: false,
+  votes: {},
+  log: [],
+});
 
 function setup() {
   const host = new FakeHost();

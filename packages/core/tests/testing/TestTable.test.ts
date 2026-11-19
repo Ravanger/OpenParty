@@ -48,6 +48,7 @@ const makeDefinition = (minPlayers = 2) =>
 const newState = (): TapState => ({
   phase: "",
   phaseEndsAt: 0,
+  phaseDurationMs: 0,
   canStart: false,
   taps: 0,
   rosterCalls: 0,

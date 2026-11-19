@@ -1,20 +1,12 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
-import { fileURLToPath } from "node:url";
+import { basename, join, relative } from "node:path";
 import { checkBoundaries, importsOf, type SourceFile, type Workspace } from "./checkBoundaries.js";
+import { packageDirs, repoRoot, walkFiles } from "./repoFiles.js";
 
-const root = fileURLToPath(new URL("..", import.meta.url));
+const root = repoRoot();
 const SOURCE_DIRS = ["src", "tests", "ui", "bots", "terminal", "scripts"];
 const SOURCE = /\.(ts|svelte)$/;
 const SKIPPED = new Set(["node_modules", "dist", "coverage"]);
-
-const walk = (dir: string): string[] =>
-  readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    if (SKIPPED.has(entry.name)) return [];
-    const path = join(dir, entry.name);
-    if (entry.isDirectory()) return walk(path);
-    return SOURCE.test(entry.name) ? [path] : [];
-  });
 
 const isDirectory = (path: string): boolean => {
   try {
@@ -44,7 +36,7 @@ const readWorkspace = (dir: string): Workspace | undefined => {
     .map((entry) => join(root, dir, entry.name));
   const files: SourceFile[] = SOURCE_DIRS.map((sub) => join(root, dir, sub))
     .filter(isDirectory)
-    .flatMap(walk)
+    .flatMap((sub) => walkFiles(sub, SKIPPED).filter((path) => SOURCE.test(basename(path))))
     .concat(rootFiles)
     .map((path) => ({
       path: relative(root, path).replaceAll("\\", "/"),
@@ -61,11 +53,7 @@ const readWorkspace = (dir: string): Workspace | undefined => {
 };
 
 const workspaces = ["packages", "games"]
-  .flatMap((parent) =>
-    readdirSync(join(root, parent), { withFileTypes: true })
-      .filter((entry) => entry.isDirectory())
-      .map((entry) => readWorkspace(`${parent}/${entry.name}`)),
-  )
+  .flatMap((parent) => packageDirs(parent).map((name) => readWorkspace(`${parent}/${name}`)))
   .filter((workspace): workspace is Workspace => workspace !== undefined);
 
 const violations = checkBoundaries(workspaces);

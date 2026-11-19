@@ -109,7 +109,13 @@ const definition = defineGame<S, { marker: string }, Record<string, never>>({
   },
 });
 
-const newState = (): S => ({ phase: "", phaseEndsAt: 0, canStart: false, taps: 0 });
+const newState = (): S => ({
+  phase: "",
+  phaseEndsAt: 0,
+  phaseDurationMs: 0,
+  canStart: false,
+  taps: 0,
+});
 
 const liveTable = () =>
   new TestTable({
@@ -139,7 +145,13 @@ const rollDefinition = defineGame<RollState, Record<string, never>, Record<strin
   },
 });
 
-const newRollState = (): RollState => ({ phase: "", phaseEndsAt: 0, canStart: false, roll: 0 });
+const newRollState = (): RollState => ({
+  phase: "",
+  phaseEndsAt: 0,
+  phaseDurationMs: 0,
+  canStart: false,
+  roll: 0,
+});
 
 describe("replayLog", () => {
   it("re-drives a logged session and returns one snapshot per step plus the initial state", () => {
@@ -157,13 +169,13 @@ describe("replayLog", () => {
     });
     expect(states).toEqual([
       // construction at header.startedAt (1_000_000), before any entry
-      { phase: "Lobby", phaseEndsAt: 0, canStart: true, taps: 0 },
+      { phase: "Lobby", phaseEndsAt: 0, phaseDurationMs: 0, canStart: true, taps: 0 },
       // after START_GAME: entered Tap, timer to 1_001_000
-      { phase: "Tap", phaseEndsAt: 1_001_000, canStart: false, taps: 0 },
+      { phase: "Tap", phaseEndsAt: 1_001_000, phaseDurationMs: 1000, canStart: false, taps: 0 },
       // after TAP by p2 with by: 3
-      { phase: "Tap", phaseEndsAt: 1_001_000, canStart: false, taps: 3 },
+      { phase: "Tap", phaseEndsAt: 1_001_000, phaseDurationMs: 1000, canStart: false, taps: 3 },
       // after the Tap timeout: entered Done (no timer)
-      { phase: "Done", phaseEndsAt: 0, canStart: false, taps: 3 },
+      { phase: "Done", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, taps: 3 },
     ]);
     expect(states).toHaveLength(4);
   });
@@ -296,7 +308,13 @@ describe("replayLog", () => {
     // p3 joined the Lobby before start, so the recorded roster already includes it; the recorded
     // roster wins and init.players (3 here) is ignored
     const { states } = replayLog(definition, log, { state: newState(), options: {}, players: 3 });
-    expect(states.at(-1)).toEqual({ phase: "Done", phaseEndsAt: 0, canStart: false, taps: 0 });
+    expect(states.at(-1)).toEqual({
+      phase: "Done",
+      phaseEndsAt: 0,
+      phaseDurationMs: 0,
+      canStart: false,
+      taps: 0,
+    });
   });
 
   it("replays an auto-started session that recorded no roster to the same final state", () => {
@@ -395,10 +413,10 @@ describe("replayLog", () => {
       players: 2,
     });
     expect(states).toEqual([
-      { phase: "Lobby", phaseEndsAt: 0, canStart: true, taps: 0 },
+      { phase: "Lobby", phaseEndsAt: 0, phaseDurationMs: 0, canStart: true, taps: 0 },
       // the replayed timer expires at the logged timeout time, not enter + duration
-      { phase: "Tap", phaseEndsAt: 1_000_995, canStart: false, taps: 0 },
-      { phase: "Done", phaseEndsAt: 0, canStart: false, taps: 0 },
+      { phase: "Tap", phaseEndsAt: 1_000_995, phaseDurationMs: 995, canStart: false, taps: 0 },
+      { phase: "Done", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, taps: 0 },
     ]);
   });
 
@@ -422,7 +440,13 @@ describe("replayLog", () => {
       options: {},
       players: 2,
     });
-    expect(states.at(-1)).toEqual({ phase: "Done", phaseEndsAt: 0, canStart: false, taps: 10 });
+    expect(states.at(-1)).toEqual({
+      phase: "Done",
+      phaseEndsAt: 0,
+      phaseDurationMs: 0,
+      canStart: false,
+      taps: 10,
+    });
   });
 
   it("keeps the original duration for enters without a logged timeout", () => {
@@ -432,7 +456,13 @@ describe("replayLog", () => {
     live.act("p1", "SKIP"); // Staged leaves early too, so neither enter is paired with a timeout
     const log = getActionLog(live.priv) as ActionLog;
     const { states } = replayLog(definition, log, { state: newState(), options: {}, players: 2 });
-    expect(states.at(-1)).toEqual({ phase: "Done", phaseEndsAt: 0, canStart: false, taps: 0 });
+    expect(states.at(-1)).toEqual({
+      phase: "Done",
+      phaseEndsAt: 0,
+      phaseDurationMs: 0,
+      canStart: false,
+      taps: 0,
+    });
   });
 
   it("falls back to the nominal duration when a timeout has no matching enter", () => {
@@ -450,7 +480,13 @@ describe("replayLog", () => {
       options: {},
       players: 2,
     });
-    expect(states.at(-1)).toEqual({ phase: "Done", phaseEndsAt: 0, canStart: false, taps: 0 });
+    expect(states.at(-1)).toEqual({
+      phase: "Done",
+      phaseEndsAt: 0,
+      phaseDurationMs: 0,
+      canStart: false,
+      taps: 0,
+    });
   });
 
   it("pairs each enter of a self-reentering timed phase with its own timeout", () => {
@@ -473,15 +509,15 @@ describe("replayLog", () => {
       players: 2,
     });
     expect(states).toEqual([
-      { phase: "Lobby", phaseEndsAt: 0, canStart: true, taps: 0 },
-      { phase: "Tap", phaseEndsAt: 1_001_000, canStart: false, taps: 0 },
+      { phase: "Lobby", phaseEndsAt: 0, phaseDurationMs: 0, canStart: true, taps: 0 },
+      { phase: "Tap", phaseEndsAt: 1_001_000, phaseDurationMs: 1000, canStart: false, taps: 0 },
       // the first Loop enter expires at the skewed logged time
-      { phase: "Loop", phaseEndsAt: 1_000_295, canStart: false, taps: 0 },
+      { phase: "Loop", phaseEndsAt: 1_000_295, phaseDurationMs: 295, canStart: false, taps: 0 },
       // re-entry after the first timeout; its timer expires at the second logged timeout
-      { phase: "Loop", phaseEndsAt: 1_000_600, canStart: false, taps: 0 },
+      { phase: "Loop", phaseEndsAt: 1_000_600, phaseDurationMs: 305, canStart: false, taps: 0 },
       // the third enter has no logged timeout (UNLOOP leaves early): nominal duration
-      { phase: "Loop", phaseEndsAt: 1_000_900, canStart: false, taps: 0 },
-      { phase: "Done", phaseEndsAt: 0, canStart: false, taps: 0 },
+      { phase: "Loop", phaseEndsAt: 1_000_900, phaseDurationMs: 300, canStart: false, taps: 0 },
+      { phase: "Done", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, taps: 0 },
     ]);
   });
 
@@ -533,10 +569,10 @@ describe("replayLog", () => {
     };
     const { states } = replayLog(definition, renamed, { state: newState(), options: {} });
     expect(states).toEqual([
-      { phase: "Lobby", phaseEndsAt: 0, canStart: true, taps: 0 },
-      { phase: "Tap", phaseEndsAt: 1_001_000, canStart: false, taps: 0 },
-      { phase: "Tap", phaseEndsAt: 1_001_000, canStart: false, taps: 3 },
-      { phase: "Done", phaseEndsAt: 0, canStart: false, taps: 3 },
+      { phase: "Lobby", phaseEndsAt: 0, phaseDurationMs: 0, canStart: true, taps: 0 },
+      { phase: "Tap", phaseEndsAt: 1_001_000, phaseDurationMs: 1000, canStart: false, taps: 0 },
+      { phase: "Tap", phaseEndsAt: 1_001_000, phaseDurationMs: 1000, canStart: false, taps: 3 },
+      { phase: "Done", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, taps: 3 },
     ]);
   });
 
@@ -585,7 +621,13 @@ describe("replayLog", () => {
       options: {},
       players: 2,
     });
-    expect(states.at(-1)).toEqual({ phase: "Done", phaseEndsAt: 0, canStart: false, taps: 3 });
+    expect(states.at(-1)).toEqual({
+      phase: "Done",
+      phaseEndsAt: 0,
+      phaseDurationMs: 0,
+      canStart: false,
+      taps: 3,
+    });
   });
 });
 
@@ -859,6 +901,7 @@ describe("replay restores recorded seat flags", () => {
   const newBenchState = (): BenchState => ({
     phase: "",
     phaseEndsAt: 0,
+    phaseDurationMs: 0,
     canStart: false,
     activeAtEnter: 0,
   });
@@ -885,6 +928,7 @@ describe("replay restores recorded seat flags", () => {
     expect(states.at(-1)).toEqual({
       phase: "Play",
       phaseEndsAt: 0,
+      phaseDurationMs: 0,
       canStart: false,
       activeAtEnter: 2,
     });
@@ -905,6 +949,7 @@ describe("replay restores recorded seat flags", () => {
     expect(states.at(-1)).toEqual({
       phase: "Play",
       phaseEndsAt: 0,
+      phaseDurationMs: 0,
       canStart: false,
       activeAtEnter: 2,
     });
@@ -959,6 +1004,7 @@ describe("replay round-trip", () => {
   const newSpinState = (): SpinState => ({
     phase: "",
     phaseEndsAt: 0,
+    phaseDurationMs: 0,
     canStart: false,
     spins: 0,
     roll: 0,
@@ -1059,7 +1105,13 @@ describe("redacted entries", () => {
     },
     middleware: [actionLogMiddleware(), textFilterMiddleware(redactFilter)],
   });
-  const newState = (): RS => ({ phase: "", phaseEndsAt: 0, canStart: false, log: [] });
+  const newState = (): RS => ({
+    phase: "",
+    phaseEndsAt: 0,
+    phaseDurationMs: 0,
+    canStart: false,
+    log: [],
+  });
 
   it("skips redacted entries and reproduces the live final state", () => {
     const table = new TestTable<RS, { secret: string }, Record<string, never>>({
@@ -1111,7 +1163,13 @@ describe("replayLog input bounds", () => {
     },
   });
 
-  const newCapState = (): CapState => ({ phase: "", phaseEndsAt: 0, canStart: false, taps: 0 });
+  const newCapState = (): CapState => ({
+    phase: "",
+    phaseEndsAt: 0,
+    phaseDurationMs: 0,
+    canStart: false,
+    taps: 0,
+  });
 
   /** A hand-built log: start at T+100, then `taps` TAPs each `gapMs` later. */
   const capLog = (gapMs: number, taps: number): ActionLog => {
@@ -1238,6 +1296,7 @@ describe("replayLog tick quantization", () => {
   const newQState = (): QState => ({
     phase: "",
     phaseEndsAt: 0,
+    phaseDurationMs: 0,
     canStart: false,
     taps: 0,
     marks: [],
@@ -1458,6 +1517,7 @@ describe("replay of an adversarial session", () => {
   const newRideState = (): RideState => ({
     phase: "",
     phaseEndsAt: 0,
+    phaseDurationMs: 0,
     canStart: false,
     roll: 0,
     d1: 0,
@@ -1542,6 +1602,7 @@ describe("replay of an adversarial session", () => {
   const freshDur = (): DurState => ({
     phase: "",
     phaseEndsAt: 0,
+    phaseDurationMs: 0,
     canStart: false,
     roll: 0,
     roll2: 0,
@@ -1673,6 +1734,7 @@ describe("replay clock", () => {
     expect(states.at(-1)).toEqual({
       phase: "Score",
       phaseEndsAt: 0,
+      phaseDurationMs: 0,
       canStart: false,
       pings: [1, 2],
     });

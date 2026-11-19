@@ -1,9 +1,9 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import { checkConventions, type TextFile } from "./checkConventions.js";
+import { repoRoot } from "./repoFiles.js";
 
-const root = fileURLToPath(new URL("..", import.meta.url));
+const root = repoRoot();
 const tracked = execFileSync("git", ["ls-files", "-z"], { cwd: root, encoding: "utf8" })
   .split("\0")
   .filter((path) => path !== "");

@@ -1,5 +1,5 @@
-import { execFileSync } from "node:child_process";
 import { checkPaths, parseNameStatus } from "./checkPaths.js";
+import { gitDiff } from "./git.js";
 
 const [flag, ref] = process.argv.slice(2);
 const range =
@@ -9,7 +9,7 @@ if (range.length === 0) {
   process.exit(2);
 }
 
-const output = execFileSync("git", ["diff", "--name-status", ...range], { encoding: "utf8" });
+const output = gitDiff(["--name-status", ...range]);
 const violations = checkPaths(parseNameStatus(output));
 for (const v of violations) {
   console.error(`${v.path}: ${v.message}`);

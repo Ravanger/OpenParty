@@ -15,7 +15,7 @@ describe("VotingViewModel", () => {
     expect(vm.votesExpected).toBe(0);
     expect(vm.voted).toBe(false);
     expect(vm.clock.secondsLeft).toBe(0);
-    expect(vm.clock.totalSeconds).toBe(30);
+    expect(vm.clock.totalSeconds).toBe(0);
   });
 
   it("marks the choice the player wrote", () => {

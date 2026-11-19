@@ -28,12 +28,12 @@ const portFrom = (name: string, raw: string | undefined, fallback: number): numb
 };
 
 /** `HOST` from the environment: an interface to bind, or undefined (the loopback default) when unset or empty. */
-export function hostFrom(raw: string | undefined): string | undefined {
+function hostFrom(raw: string | undefined): string | undefined {
   return raw === undefined || raw === "" ? undefined : raw;
 }
 
 /** `ALLOWED_ORIGINS` from the environment: a comma-separated origin list, `"*"` for all origins, or undefined (the loopback default) when unset or blank. */
-export function parseAllowedOrigins(raw: string | undefined): string[] | "*" | undefined {
+function parseAllowedOrigins(raw: string | undefined): string[] | "*" | undefined {
   if (raw === undefined) return undefined;
   const origins = raw
     .split(",")
@@ -44,8 +44,23 @@ export function parseAllowedOrigins(raw: string | undefined): string[] | "*" | u
 }
 
 /** `TRUST_PROXY` from the environment: true only for the exact string `"true"` — anything else leaves it off. */
-export function trustProxyFrom(raw: string | undefined): boolean | undefined {
+function trustProxyFrom(raw: string | undefined): boolean | undefined {
   return raw === "true" ? true : undefined;
+}
+
+/** `host`, `allowedOrigins` and `trustProxy` from options or the environment, in one place for every entry. */
+export function resolveBindOptions(
+  options: { host?: string; allowedOrigins?: string[] | "*"; trustProxy?: boolean },
+  env: Record<string, string | undefined>,
+): { host?: string; allowedOrigins?: string[] | "*"; trustProxy?: boolean } {
+  const host = options.host ?? hostFrom(env.HOST);
+  const allowedOrigins = options.allowedOrigins ?? parseAllowedOrigins(env.ALLOWED_ORIGINS);
+  const trustProxy = options.trustProxy ?? trustProxyFrom(env.TRUST_PROXY);
+  return {
+    ...(host !== undefined ? { host } : {}),
+    ...(allowedOrigins !== undefined ? { allowedOrigins } : {}),
+    ...(trustProxy !== undefined ? { trustProxy } : {}),
+  };
 }
 
 /** Fills in the ports, the bind interface and the shared room-code service for `startServer`. */
@@ -60,15 +75,10 @@ export function resolveStartOptions(
   allowedOrigins?: string[] | "*";
   trustProxy?: boolean;
 } {
-  const host = options.host ?? hostFrom(env.HOST);
-  const allowedOrigins = options.allowedOrigins ?? parseAllowedOrigins(env.ALLOWED_ORIGINS);
-  const trustProxy = options.trustProxy ?? trustProxyFrom(env.TRUST_PROXY);
   return {
+    ...resolveBindOptions(options, env),
     port: options.port ?? portFrom("PORT", env.PORT, 2567),
     apiPort: options.apiPort ?? portFrom("API_PORT", env.API_PORT, 3001),
     roomCodeService: options.roomCodeService ?? new RoomCodeService(),
-    ...(host !== undefined ? { host } : {}),
-    ...(allowedOrigins !== undefined ? { allowedOrigins } : {}),
-    ...(trustProxy !== undefined ? { trustProxy } : {}),
   };
 }

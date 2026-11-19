@@ -65,7 +65,14 @@ const definition = defineGame<S, Record<string, never>, FuzzOptions>({
   },
 });
 
-const newState = (): S => ({ phase: "", phaseEndsAt: 0, canStart: false, taps: 0, rolls: [] });
+const newState = (): S => ({
+  phase: "",
+  phaseEndsAt: 0,
+  phaseDurationMs: 0,
+  canStart: false,
+  taps: 0,
+  rolls: [],
+});
 
 const pick = <T>(rng: () => number, items: readonly T[]): T => {
   const item = items[Math.floor(rng() * items.length)];

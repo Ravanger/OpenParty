@@ -59,7 +59,14 @@ const definition = defineGame<S, Record<string, never>, Record<string, never>>({
   },
 });
 
-const newState = (): S => ({ phase: "", phaseEndsAt: 0, canStart: false, taps: 0, rolls: [] });
+const newState = (): S => ({
+  phase: "",
+  phaseEndsAt: 0,
+  phaseDurationMs: 0,
+  canStart: false,
+  taps: 0,
+  rolls: [],
+});
 
 const step = fc.oneof(
   fc.record({

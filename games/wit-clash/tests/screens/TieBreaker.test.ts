@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/svelte";
+import { fireEvent, render, screen, within } from "@testing-library/svelte";
 import { describe, expect, it, vi } from "vitest";
 import TieBreakerPrompting from "../../ui/screens/TieBreakerPrompting.svelte";
 import TieBreakerReveal from "../../ui/screens/TieBreakerReveal.svelte";
@@ -141,5 +141,20 @@ describe("Tie-breaker reveal screen", () => {
   it("waits until it is revealed", () => {
     render(TieBreakerReveal, { manager: tieBreaker("TieBreakerReveal").manager });
     expect(screen.getByText("Revealing...")).toBeInTheDocument();
+  });
+});
+
+describe("Answer progress and typing", () => {
+  it("shows the contenders' progress during the tie-breaker", () => {
+    const c = connectedClient({ name: "Me" }, "TieBreakerPrompting");
+    c.state.tieBreakers.push(matchup("tb1", "Name a bird", []));
+    c.state.tieBreakerContenders.push(c.manager.playerId);
+    c.state.answersPerPlayer = 1;
+    c.state.progress.set(c.manager.playerId, 0);
+    c.state.typing.set(c.manager.playerId, true);
+    render(TieBreakerPrompting, { manager: c.manager });
+    const list = within(screen.getByLabelText("Answer progress"));
+    expect(list.getByText("0/1")).toBeInTheDocument();
+    expect(list.getByText("typing…")).toBeInTheDocument();
   });
 });

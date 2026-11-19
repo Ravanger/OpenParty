@@ -1,9 +1,9 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { fileURLToPath } from "node:url";
 import { buildCurrent, checkExports, type Snapshot } from "./checkExports.js";
+import { repoRoot } from "./repoFiles.js";
 
-const root = fileURLToPath(new URL("..", import.meta.url));
+const root = repoRoot();
 const snapshotPath = join(root, "scripts", "exports.snapshot.json");
 
 const previous: Snapshot = existsSync(snapshotPath)

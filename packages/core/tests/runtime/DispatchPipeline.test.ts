@@ -2,21 +2,21 @@ import { CLIENT_MESSAGES, ErrorCode, FrameworkError, type ServerError } from "@o
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { DispatchPipeline } from "../../src/runtime/DispatchPipeline.js";
+import { noopLogger } from "../../src/runtime/logger.js";
 import { defaultCoreStrings } from "../../src/runtime/strings.js";
-import {
-  type ActionContext,
-  type ActionDefinition,
-  type GameContext,
-  type MiddlewareEvent,
-  noopLogger,
-  type PhaseState,
-  type PlayerInfo,
+import type {
+  ActionContext,
+  ActionDefinition,
+  GameContext,
+  MiddlewareEvent,
+  PhaseState,
+  PlayerInfo,
 } from "../../src/runtime/types.js";
 
 type D = ActionDefinition<PhaseState, unknown, unknown, unknown>;
 
 const fakeContext = (): GameContext<PhaseState, unknown, unknown> => ({
-  state: { phase: "Play", phaseEndsAt: 0, canStart: false },
+  state: { phase: "Play", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false },
   priv: {},
   options: {},
   phase: "Play",

@@ -4,6 +4,7 @@ import {
   addMine,
   addSeat,
   answer,
+  type Client,
   connectedClient,
   matchup,
   prompt,
@@ -25,11 +26,12 @@ function tieBreaker(phase: string, seat: SeatConfig = { name: "Me" }) {
   c.state.tieBreakerContenders.push(c.manager.playerId, "zed-12345");
   c.state.serverNow = 1_000_000;
   c.state.phaseEndsAt = 1_000_000 + 30_000;
+  c.state.phaseDurationMs = 30_000;
   return { c, vm: new TieBreakerViewModel(c.manager) };
 }
 
 describe("TieBreakerViewModel clock", () => {
-  it("runs on the option of the phase it is shown in", () => {
+  it("reads the total from the synced phase duration in every phase it is shown in", () => {
     const expected: Record<string, number> = {
       TieBreakerPrompting: 40,
       TieBreakerVoting: 25,
@@ -37,7 +39,7 @@ describe("TieBreakerViewModel clock", () => {
     };
     for (const [phase, seconds] of Object.entries(expected)) {
       const c = connectedClient({}, phase);
-      c.state.options = JSON.stringify({ promptSeconds: 40, voteSeconds: 25, revealSeconds: 6 });
+      c.state.phaseDurationMs = seconds * 1000;
       const vm = new TieBreakerViewModel(c.manager);
       expect(vm.clock.totalSeconds).toBe(seconds);
       expect(vm.clock.announcement).toBe("");
@@ -257,6 +259,50 @@ describe("TieBreakerViewModel reveal", () => {
         },
       ],
     });
+    vm.destroy();
+  });
+});
+
+function typingMessages(c: Client): boolean[] {
+  return c.room.requests.flatMap((r) => {
+    const payload = r.payload;
+    if (typeof payload !== "object" || payload === null) return [];
+    if (!("type" in payload) || payload.type !== "SET_TYPING") return [];
+    return "typing" in payload ? [payload.typing === true] : [];
+  });
+}
+
+describe("typing reports from the TieBreakerViewModel", () => {
+  function contender() {
+    const c = connectedClient({}, "TieBreakerPrompting");
+    c.state.tieBreakers.push(matchup("tb1", "Name a bird", []));
+    c.state.tieBreakerContenders.push(c.manager.playerId);
+    return { c, vm: new TieBreakerViewModel(c.manager) };
+  }
+
+  it("reports one change per burst of typing", () => {
+    const { c, vm } = contender();
+    vm.setDraft("P");
+    vm.setDraft("Pi");
+    expect(typingMessages(c)).toEqual([true]);
+    vi.advanceTimersByTime(2500);
+    expect(typingMessages(c)).toEqual([true, false]);
+    vm.destroy();
+  });
+
+  it("says false on submit", async () => {
+    const { c, vm } = contender();
+    vm.setDraft("Pigeon");
+    await vm.submit();
+    expect(typingMessages(c)).toEqual([true, false]);
+    vm.destroy();
+  });
+
+  it("exposes the progress of the contenders", () => {
+    const { c, vm } = contender();
+    c.state.answersPerPlayer = 1;
+    c.state.progress.set(c.manager.playerId, 0);
+    expect(vm.progress.rows[0]?.expected).toBe(1);
     vm.destroy();
   });
 });

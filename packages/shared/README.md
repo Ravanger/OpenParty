@@ -4,14 +4,14 @@ Wire protocol (message names, error codes, zod schemas), limits and browser-safe
 
 | Import | What |
 |---|---|
-| `@openparty/shared` | `ClientMessage`, `ServerMessage`, `ErrorCode`, `ActionResult`, `ServerError`, `isActionResult`, `isServerError`, `LOBBY_PHASE`, `PROTOCOL_VERSION`, zod schemas (`PlayerIdSchema`, `RoomCodeSchema`, `JoinOptionsSchema`, ...), `NAME_MAX_LENGTH`, `MAX_SEATS`, `MAX_OPTIONS_JSON_LENGTH`, `ROOM_CODE_LENGTH`, `ROOM_CODE_ALPHABET`, `sanitizeRoomCode`, error model (`FrameworkError`, `CLOSE_CODES`, `closeCodeEntry`, `CLIENT_MESSAGES`) |
+| `@openparty/shared` | `ClientMessage`, `ServerMessage`, `ErrorCode`, `ActionResult`, `ServerError`, `isActionResult`, `isServerError`, `LOBBY_PHASE`, `PROTOCOL_VERSION`, zod schemas (`PlayerIdSchema`, `RoomCodeSchema`, `JoinOptionsSchema`, ...), `FRAMEWORK_OPTION_KEYS` (the framework-owned create/join keys, derived from `JoinOptionsSchema` and `RoomOptionsSchema`), `NAME_MAX_LENGTH`, `MAX_SEATS`, `MAX_OPTIONS_JSON_LENGTH`, `ROOM_CODE_LENGTH`, `ROOM_CODE_ALPHABET`, `sanitizeRoomCode`, error model (`FrameworkError`, `CLOSE_CODES`, `closeCodeEntry`, `CLIENT_MESSAGES`) |
 | `@openparty/shared/schema` | `BaseGameState`, `PlayerSchema`: extend these in your game state; `assertSyncedFields(stateClass, allow)` (fail loudly when a state field is neither allow-listed nor `.view()`-tagged); `syncedJsonOf` (plain JSON of a synced state, `.view()` fields dropped) and its inverse `syncedStateFromJson` (a fresh instance filled from that JSON) |
 
 Client helpers (polling, room-code resolution, share links, argument parsing) live in [`@openparty/client-utils`](../client-utils/README.md).
 
 ## Define your game state
 
-`BaseGameState` carries `phase`, `phaseEndsAt`, `serverNow`, `roomCode`, `canStart`, `minPlayers`, `maxPlayers`, `spectatorCount`, `notice`, `options` (JSON) and `players` (keyed by `playerId`). Extend it with `@colyseus/schema` 5's decorator-free `t.*` fields.
+`BaseGameState` carries `phase`, `phaseEndsAt`, `phaseDurationMs`, `serverNow`, `roomCode`, `canStart`, `minPlayers`, `maxPlayers`, `spectatorCount`, `notice`, `options` (JSON) and `players` (keyed by `playerId`). Extend it with `@colyseus/schema` 5's decorator-free `t.*` fields.
 
 ```ts
 import { type SchemaType, t } from "@colyseus/schema";
@@ -47,7 +47,7 @@ Other codes: `INVALID_ACTION`, `UNKNOWN_ACTION`, `WRONG_PHASE`, `UNAUTHORIZED`, 
 
 `LOBBY_PHASE`, `START_GAME`, `KICK_PLAYER`, `END_GAME` and `SET_OPTIONS` name the built-ins. `NAME_MAX_LENGTH` caps player names; `MAX_SEATS` caps the `seats` room option; `MAX_OPTIONS_JSON_LENGTH` caps serialized options at room creation and in `SET_OPTIONS`. `ROOM_CODE_LENGTH` and `ROOM_CODE_ALPHABET` define the room-code format that `RoomCodeSchema` enforces; `sanitizeRoomCode` cleans user input to it.
 
-`ACTION_NAME_PATTERN` validates custom action names (SCREAMING_SNAKE_CASE, at most 64 characters); `ActionEnvelopeSchema` is the minimal envelope every client message passes before the phase's own payload schema; `RoomOptionsSchema` covers the framework keys a client may pass when creating a room (`seats` makes the room watch-only for everyone else: only the listed playerIds can take a seat, spectators still join).
+`ACTION_NAME_PATTERN` validates custom action names (SCREAMING_SNAKE_CASE, at most 64 characters); `ActionEnvelopeSchema` is the minimal envelope every client message passes before the phase's own payload schema; `RoomOptionsSchema` covers the framework keys a client may pass when creating a room (`seats` makes the room watch-only for everyone else: only the listed playerIds can take a seat, spectators still join). `FRAMEWORK_OPTION_KEYS` is the union of the keys of `JoinOptionsSchema` and `RoomOptionsSchema`, derived from them so it cannot drift; the room strips these from create options before handing the rest to the game's options schema.
 
 Depends on: `@colyseus/schema`, `zod`
 

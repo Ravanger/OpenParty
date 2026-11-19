@@ -101,7 +101,7 @@ if (!result.ok) showToast(result.error.message);
 
 ### Synced state vs private state
 `ctx.state` is synced to every client (a Colyseus schema in production). It always has `phase`, `phaseEndsAt`
-(epoch ms, `0` when the phase has no timer) and `canStart` (true in the Lobby while `START_GAME` would be accepted). `ctx.priv` is server-only: put secrets there (who wrote what, who voted for whom).
+(epoch ms, `0` when the phase has no timer), `phaseDurationMs` (the duration of the active phase in ms, `0` when it has no timer) and `canStart` (true in the Lobby while `START_GAME` would be accepted). `ctx.priv` is server-only: put secrets there (who wrote what, who voted for whom).
 Per-player private data (a hand of cards, your own prompts) belongs in `state`, in a part tagged `.view()`,
 and is revealed with `ctx.showTo(playerId, ref)` / `ctx.hideFrom(playerId, ref)`. Prefer this over sending messages:
 clients stay reactive and the server re-applies the views when a player reconnects.
@@ -147,7 +147,7 @@ The runtime handles these host-only actions for you; do not declare them (`defin
 
 - `START_GAME` (Lobby), see Lobby below.
 - `KICK_PLAYER { playerId }`: any phase, not yourself; `playerId` is validated as a player id (a malformed or oversized one gets `INVALID_ACTION`, an unknown but well-formed one the "no such player" refusal). The host implementation removes the seat, then `onRosterChange` runs. The ban is per `playerId` and per the kicked seat's secret hash: a kicked client that rejoins with a fresh id but its stored secret is refused with `KICKED_REJOIN` too (IPs are not used — they are shared on a LAN). A player who leaves normally can rejoin.
-- `SET_OPTIONS { ...partial }`: Lobby only. If the game declares no `definition.options` schema, it rejects any key but `type` (`INVALID_ACTION`); a room for such a game also refuses create options. Otherwise the partial is merged into the current options and validated, then published; a failed parse or a result whose JSON is longer than `MAX_OPTIONS_JSON_LENGTH` is `INVALID_ACTION` and keeps the previous options. `ctx.options` reflects the new value.
+- `SET_OPTIONS { ...partial }`: Lobby only. If the game declares no `definition.options` schema, it rejects any key but `type` (`INVALID_ACTION`); a room for such a game also refuses create options. Otherwise the partial is merged into the current options and validated, then published; a failed parse or a result whose JSON is longer than `MAX_OPTIONS_JSON_LENGTH` is `INVALID_ACTION` and keeps the previous options. `ctx.options` reflects the new value. When the game declares an options schema, both paths resolve through core's `resolveGameOptions(definition, raw)` — the one options contract, returning `{ ok: true, options }` or `{ ok: false, reason: "unexpected" | "invalid" | "too-large" }`; each caller keeps its own failure channel (create closes with `INVALID_OPTIONS`, `SET_OPTIONS` rejects the action). For a schema-less game the no-keys guard stays inline in `Lobby.setOptions` against the **sent** keys (the merge can carry non-empty current options), while create reaches it through the resolver.
 - `END_GAME`: any phase but the Lobby (`WRONG_PHASE` there). It runs `onEndGame(ctx)`, where a game can set a notice for the players, and then returns everyone to the Lobby as `ctx.returnToLobby()` does (`onReturnToLobby` runs, waiting joiners are let in). The hook cannot veto it.
 
 The first seat of a room is host by acquisition. After that, when the current host is not connected — or no seat holds the role any more (their seat was removed) — the runtime migrates it to one of the connected seats, in seat order, per `definition.hostMigration`:
@@ -189,7 +189,7 @@ canJoin: (input) =>
 ### Timers
 `duration` is milliseconds, or a function of the context. The timer restarts on every entry (including re-entry).
 `onTimeout` is required whenever `duration` is set, fires once, and never fires after the phase was left.
-The server owns the clock: clients render a countdown from `phaseEndsAt`.
+The server owns the clock: clients render a countdown from `phaseEndsAt`. The runtime also writes the active phase's duration to `state.phaseDurationMs` (0 when it has no timer) on every entry, so client clocks and progress bars read it instead of mapping phases back to option names.
 
 A real-time phase declares `onTick(ctx, dtMs)`, called every `tickMs` while the phase is active — default 100 ms (10 Hz); it must be an integer >= 1 and is rejected at definition time without `onTick`.
 `dtMs` is that nominal interval, not wall-clock elapsed time, so integrating state by it (`pos += speed * dtMs / 1000`) is deterministic: tick k is due at enter + k·tickMs.
@@ -779,7 +779,7 @@ Scores live in a `Record<playerId, number>` mutated only through `awardPoints(sc
 
 ## Server
 
-`@openparty/server` hosts any game on Colyseus. Your state class extends `BaseGameState` (`phase`, `phaseEndsAt`, `roomCode`,
+`@openparty/server` hosts any game on Colyseus. Your state class extends `BaseGameState` (`phase`, `phaseEndsAt`, `phaseDurationMs`, `roomCode`,
 `serverNow`, `spectatorCount`, `options` as JSON, `notice` (a message for the room, e.g. why it is back in the lobby; games write it in `onEndGame`/`onReturnToLobby`, and the runtime sets a fixed one when a hook throws and clears it when `START_GAME` begins the next game — see "Errors at runtime"), `minPlayers`, `maxPlayers`, `players` keyed by `playerId`).
 State uses `@colyseus/schema` 5's decorator-free `schema()`; no compiler flags are needed:
 
@@ -797,7 +797,7 @@ type ButtonState = SchemaType<typeof ButtonState>;
 const games = [{ roomName: "button", definition: ButtonGame, stateClass: ButtonState }];
 ```
 
-Reserved field names: `phase`, `roomCode`, `phaseEndsAt`, `serverNow`, `spectatorCount`, `options`, `notice`, `minPlayers`, `maxPlayers`, `canStart`, `players`. Do not reuse them in `BaseGameState.extend(...)`; Colyseus rejects the clash only at schema definition (`Duplicate 'options' definition on '<State>'`), so name a collection of voting or answer choices `choices`, not `options`. `options` stays as the room-options JSON: it is part of the synced shape every client reads, so a rename would be a breaking change with no gain.
+Reserved field names: `phase`, `roomCode`, `phaseEndsAt`, `phaseDurationMs`, `serverNow`, `spectatorCount`, `options`, `notice`, `minPlayers`, `maxPlayers`, `canStart`, `players`. Do not reuse them in `BaseGameState.extend(...)`; Colyseus rejects the clash only at schema definition (`Duplicate 'options' definition on '<State>'`), so name a collection of voting or answer choices `choices`, not `options`. `options` stays as the room-options JSON: it is part of the synced shape every client reads, so a rename would be a breaking change with no gain.
 
 Bun entry point (the only place that imports `bun`):
 
@@ -974,7 +974,7 @@ vitest `setupFiles`: it shims the storages and makes the SDK use `ws` under jsdo
 | `WelcomeViewModel` | The join screen: host, join by room code, watch as a TV, and auto-join from a `?code=` or `?tv=` link (`new WelcomeViewModel(manager, urlCode?, urlTvCode?)`). |
 | `LobbySettingsViewModel` | The host's options form, generated from the game's options schema (`OptionFields` builds the fields). |
 | `OptionsReader` | The published options, parsed once per state change: `new OptionsReader(manager, schema, defaults?)` exposes reactive `current`, falling back to `defaults` or the schema's `.default()`s. |
-| `PhaseClock` | A phase's server countdown plus its configured length: `new PhaseClock(manager, totalSeconds, announceAt?)` exposes `secondsLeft`, `isUrgent`, `announcement` (30/10/5 by default) and your `totalSeconds` getter. |
+| `PhaseClock` | A phase's server countdown plus its configured length: `new PhaseClock(manager, announceAt?)` exposes `secondsLeft`, `isUrgent`, `announcement` (30/10/5 by default) and a `totalSeconds` getter read from `state.phaseDurationMs` (falls back to `secondsLeft` when the phase has no published duration). |
 | `TypingReporter` | One typing message per change: `new TypingReporter(send, idleMs = 2500)`; call `keystroke()` per key and `stop()` on submit or teardown. |
 | `SoundPolicy` | The sound gate: off by default, one persisted toggle (stored under the game's `storagePrefix`), nothing plays before the first tap. `new SoundPolicy({ storage, storagePrefix, target })`; reactive `enabled`, `unlocked`, `canPlay` and `toggle()`; `dispose()` removes the gesture listeners. A throwing or empty storage degrades to off. |
 | `AppRouter` | Routes the connection status and room phase to a screen of your screen table (see below). `createAppRouter(manager, screens)` builds one. |
@@ -1170,7 +1170,7 @@ pass `connector` to any of them, or let it default to `defaultConnector(endpoint
 reuses its connector for the bots it seats. Example: `games/wit-clash/bots/witClashBot.ts`.
 
 A game declares its kit once as the `botKit` field of its declaration (`gamePackage.ts`) and never joins bots by hand:
-the `bun run bots <CODE> [count]` entry is a stub calling `botsCli(gamePackage)` from `@openparty/game-kit`, which seats
+the `bun run bots <CODE> [count]` entry is a stub calling `botsCli(gamePackage)` from `@openparty/game-kit/bots`, which seats
 the bots in a room made elsewhere (usage bounded by `meta.maxPlayers - 1`) and removes them on Ctrl+C.
 
 ## Terminal
@@ -1210,7 +1210,7 @@ export const buttonPackage = defineGamePackage({
 });
 
 // terminal/play.ts
-import { play } from "@openparty/game-kit";
+import { play } from "@openparty/game-kit/play";
 import { buttonPackage } from "../gamePackage.js";
 
 await play(buttonPackage);   // bun run play [--bots=0..7] [--name=You] [--join=ABCD]
@@ -1255,7 +1255,7 @@ demo: {
 },
 
 // terminal/demo.ts
-import { demoCli } from "@openparty/game-kit";
+import { demoCli } from "@openparty/game-kit/demo";
 import { buttonPackage } from "../gamePackage.js";
 
 await demoCli(buttonPackage);   // bun run demo [--bots=1..7]; from the repo root: bun run demo <game>
@@ -1273,13 +1273,13 @@ or opens a demo room. A game does not call it directly: the declaration carries 
 
 ```ts
 import { fileURLToPath } from "node:url";
-import { launch } from "@openparty/game-kit";
+import { launch } from "@openparty/game-kit/launch";
 import { buttonPackage } from "./gamePackage.js";
 
 await launch(buttonPackage, { gameDir: fileURLToPath(new URL(".", import.meta.url)) });
 ```
 
-`launch` builds the config from the declaration (`buildLaunchConfig`) and runs it with `runLauncher`: `name` is `displayName` (or
+`launch` builds the config from the declaration and runs it with `runLauncher`: `name` is `displayName` (or
 `meta.roomName`), `bots` is the declaration's `botKit` capped at `maxPlayers - 1`, and the demo tables run `minPlayers - 1` to
 `maxPlayers - 1` bots plus a host bot, finished by `isFinished`, with the declaration's `demo` extras (kit, room options, host name,
 bot pacing) merged in. The port defaults live in one place — `DEFAULT_PORTS` of `@openparty/launcher`; a test fails if the Vite
@@ -1379,9 +1379,9 @@ export { svelteConfig as default } from "@openparty/config/svelte";
 
 | Import | What |
 |---|---|
-| `@openparty/shared` | `NAME_MAX_LENGTH`: the cap `SET_NAME` enforces on player names; `MAX_SEATS`: the most playerIds a room's `seats` option may list; `MAX_OPTIONS_JSON_LENGTH`: the cap on serialized options at room creation and in `SET_OPTIONS`; `ROOM_CODE_LENGTH` and `ROOM_CODE_ALPHABET`: the shape of a room code; `sanitizeRoomCode(raw)`: uppercases, drops other characters and cuts to the code length (for a code input); `FRAMEWORK_VERSION`: recorded in exported replay bundles |
+| `@openparty/shared` | `NAME_MAX_LENGTH`: the cap `SET_NAME` enforces on player names; `MAX_SEATS`: the most playerIds a room's `seats` option may list; `MAX_OPTIONS_JSON_LENGTH`: the cap on serialized options at room creation and in `SET_OPTIONS`; `FRAMEWORK_OPTION_KEYS`: the framework-owned create/join keys, derived from `JoinOptionsSchema` and `RoomOptionsSchema` so it cannot drift from them; `ROOM_CODE_LENGTH` and `ROOM_CODE_ALPHABET`: the shape of a room code; `sanitizeRoomCode(raw)`: uppercases, drops other characters and cuts to the code length (for a code input); `FRAMEWORK_VERSION`: recorded in exported replay bundles |
 | `@openparty/client-utils` | `Parsed<T>` (`{ ok: true, value } \| { ok: false, error }`) and `between(value, min, max)` for argument parsing; `waitFor(predicate, what, timeoutMs)` poll loop; `resolveRoomCode(apiBase, code)` (rejects with `RoomCodeError`, `reason` `"not-found"` or `"bad-reply"`); `joinUrl(base, code)` / `tvUrl(base, code)` share links; `claimName(room, playerId, name, timeoutMs?)` (type `SeatRoom`), `apiBaseOf(endpoint, apiPort)` |
-| `@openparty/core` | `EmptyPayloadSchema` (the payload of an action with no fields), `playAgainAction()` (host-only return-to-lobby action for a game's own end phase); `shuffle(items, rng)`, `weightedSample(items, count, rng, weightOf)` (a weighted draw without replacement: a weight of 0 is never picked, equal weights deal a uniform shuffle, and there is no default rng), `required(value, what)`; roster guards: `seatedCount(ctx)` (active and ready seats, counting briefly disconnected ones), `isBelowMinimum(ctx, min)`, `departedIds(ids, ctx)` — they only report; `endIfBelowMinimum(ctx, min, notice)` sets the notice and queues the return to the lobby instead; `RosterLedger` (a private-state ledger: `remember(ctx)`, `nameOf(ctx, id)`, `participantIds`, `rememberedNames`, `drop(id)`, `clear()`); synced per-player entry helpers `ensureMine(ctx, mine, playerId, create)`, `resetMine(ctx, mine)`, `pruneMine(ctx, mine, ids)` |
+| `@openparty/core` | `EmptyPayloadSchema` (the payload of an action with no fields), `playAgainAction()` (host-only return-to-lobby action for a game's own end phase); `shuffle(items, rng)`, `weightedSample(items, count, rng, weightOf)` (a weighted draw without replacement: a weight of 0 is never picked, equal weights deal a uniform shuffle, and there is no default rng), `required(value, what)`; options resolution `resolveGameOptions(definition, raw)` → `{ ok: true, options } | { ok: false, reason: "unexpected" | "invalid" | "too-large" }` (the one room-options contract — no schema means no keys, then the schema parse, then the `MAX_OPTIONS_JSON_LENGTH` cap; Zod text never reaches the result); roster guards: `seatedCount(ctx)` (active and ready seats, counting briefly disconnected ones), `isBelowMinimum(ctx, min)`, `departedIds(ids, ctx)` — they only report; `endIfBelowMinimum(ctx, min, notice)` sets the notice and queues the return to the lobby instead; `RosterLedger` (a private-state ledger: `remember(ctx)`, `nameOf(ctx, id)`, `participantIds`, `rememberedNames`, `drop(id)`, `clear()`); synced per-player entry helpers `ensureMine(ctx, mine, playerId, create)`, `resetMine(ctx, mine)`, `pruneMine(ctx, mine, ids)` |
 | `@openparty/core/kits` | Phase kits (`@experimental`). collectResponses: `allResponded(slots, responses, presentIds)` (complete when every present author responded to every slot), `entriesFor(slotId, slots, responses)` (one entry per author, `text` undefined when unanswered); types `Slots`, `Responses`. voteAndTally: `tallyVotes(voterIds, votes)`, `allHaveVoted(voterIds, votes)`, `countVoted(voterIds, votes)`, `eligibleVoters(activeIds, excludedIds)` (an empty exclusion list allows self-vote), `leaders(counts)` → `{ top, ids }` (a tie shows up as `ids.length > 1`). drawPool: `drawPool(items, usedIds, needed)` → `{ items, exhausted }` — the unused items when at least `needed` remain, otherwise all items with their ids cleared from the mutable `usedIds` set |
 | `@openparty/server/node` | `startNodeServer({ games, port?, apiPort? })` (a game server and its API in this process; `.stop()`), `serveApi(codes, { port, host? })`: the code API on Node's `http` (the Bun entry serves its own) |
 | `@openparty/server/probe` | `ServerProbe` (`isGameServer(port, apiPort, host?)` — `host` defaults to `localhost` and is used for both the TCP check and the code-API fetch; `canConnect(port)`, `answers(url)`), `freePort()`, `closeHttpServer(server)` (resolves when the server already stopped): port probing without Colyseus |

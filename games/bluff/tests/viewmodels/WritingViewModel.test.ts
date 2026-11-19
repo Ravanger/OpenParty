@@ -12,7 +12,7 @@ describe("WritingViewModel", () => {
     expect(vm.rows).toEqual([]);
     expect(vm.myDone).toBe(false);
     expect(vm.clock.secondsLeft).toBe(0);
-    expect(vm.clock.totalSeconds).toBe(45);
+    expect(vm.clock.totalSeconds).toBe(0);
     expect(vm.clock.announcement).toBe("");
   });
 

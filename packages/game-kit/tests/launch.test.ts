@@ -1,7 +1,8 @@
 import type { LaunchConfig } from "@openparty/launcher";
 import type { BaseGameState } from "@openparty/shared/schema";
 import { describe, expect, it } from "vitest";
-import { defineGamePackage, launch } from "../src/index.js";
+import { defineGamePackage } from "../src/index.js";
+import { launch } from "../src/launch.js";
 import { fakeIo } from "./fixtures/fakeIo.js";
 import { TAP_ROOM, TapGame, TapState, tapKit } from "./fixtures/tapGame.js";
 

@@ -12,7 +12,7 @@ describe("RevealViewModel", () => {
     expect(vm.choices).toEqual([]);
     expect(vm.results).toEqual([]);
     expect(vm.clock.secondsLeft).toBe(0);
-    expect(vm.clock.totalSeconds).toBe(15);
+    expect(vm.clock.totalSeconds).toBe(0);
   });
 
   it("shows every choice with its author, votes and the truth mark", () => {

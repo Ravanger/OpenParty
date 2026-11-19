@@ -44,7 +44,13 @@ const definition = defineGame<S, Record<string, never>, Record<string, never>>({
   },
 });
 
-const newState = (): S => ({ phase: "", phaseEndsAt: 0, canStart: false, taps: 0 });
+const newState = (): S => ({
+  phase: "",
+  phaseEndsAt: 0,
+  phaseDurationMs: 0,
+  canStart: false,
+  taps: 0,
+});
 
 /** One full session with the log middleware: construction enter, START_GAME, a TAP, the timeout. */
 function liveLog(): ActionLog {

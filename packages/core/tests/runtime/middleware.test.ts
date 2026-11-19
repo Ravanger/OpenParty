@@ -3,11 +3,15 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import {
   actionFactory,
+  defaultCoreStrings,
   defineGame,
+  type GameContext,
   type MiddlewareContext,
+  noopLogger,
   type PhaseMiddleware,
   type PhaseState,
 } from "../../src/index.js";
+import { MiddlewareChain, type MiddlewareChainDeps } from "../../src/runtime/MiddlewareChain.js";
 import { TestTable } from "../../src/testing/TestTable.js";
 
 interface S extends PhaseState {
@@ -85,7 +89,7 @@ class MTable extends TestTable<S, P, O> {
   constructor(middleware: PhaseMiddleware<S, P, O>[] = [], onError?: (error: unknown) => void) {
     super({
       definition: game(middleware, onError),
-      state: { phase: "", phaseEndsAt: 0, canStart: false, log: [] },
+      state: { phase: "", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, log: [] },
       options: { rounds: 2 },
       players: 2,
     });
@@ -555,5 +559,185 @@ describe("MiddlewareContext.reject", () => {
     expect(() => table.start()).toThrow("only available for action events");
     expect(errors).toHaveLength(1);
     expect(table.state.notice).toBe("The game stopped because of an unexpected error.");
+  });
+});
+
+const baseContext = (): GameContext<S, P, O> => ({
+  state: { phase: "", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, log: [] },
+  priv: { secret: "s" },
+  options: { rounds: 2 },
+  phase: "Play",
+  players: () => [],
+  activePlayers: () => [],
+  player: () => undefined,
+  activateWaitingPlayers: () => {},
+  send: () => {},
+  broadcast: () => {},
+  showTo: () => {},
+  hideFrom: () => {},
+  transition: () => {},
+  returnToLobby: () => {},
+  rng: () => 0.5,
+  newId: () => "id",
+  now: () => 0,
+  log: noopLogger,
+  gameName: "Mw",
+  gameVersion: "1",
+  seed: [0, 0, 0, 0],
+  strings: defaultCoreStrings,
+});
+
+const makeChain = (
+  overrides: Partial<MiddlewareChainDeps<S, P, O>> = {},
+): MiddlewareChain<S, P, O> =>
+  new MiddlewareChain<S, P, O>({
+    layers: [],
+    context: baseContext,
+    rejectionCount: () => 0,
+    redactedRejectionCount: () => 0,
+    ticks: () => undefined,
+    reject: () => {},
+    ...overrides,
+  });
+
+describe("MiddlewareChain (unit)", () => {
+  it("runs the inner directly when there are no layers, without building a context", () => {
+    let built = 0;
+    const chain = makeChain({
+      context: () => {
+        ++built;
+        return baseContext();
+      },
+    });
+    let ran = false;
+    chain.run({ kind: "enter" }, () => {
+      ran = true;
+    });
+    expect(ran).toBe(true);
+    expect(built).toBe(0);
+  });
+
+  it("runs the layers outermost-first and shares one context object across them", () => {
+    const order: string[] = [];
+    const seen: unknown[] = [];
+    const layer =
+      (name: string): PhaseMiddleware<S, P, O> =>
+      (ctx, next) => {
+        seen.push(ctx);
+        order.push(`${name}-in`);
+        next();
+        order.push(`${name}-out`);
+      };
+    const chain = makeChain({ layers: [layer("a"), layer("b")] });
+    let innerRan = false;
+    chain.run({ kind: "enter" }, () => {
+      innerRan = true;
+    });
+    expect(order).toEqual(["a-in", "b-in", "b-out", "a-out"]);
+    expect(innerRan).toBe(true);
+    expect(seen[1]).toBe(seen[0]);
+  });
+
+  it("throws when a layer calls next() twice for one event, and runs the inner once", () => {
+    let inners = 0;
+    const double: PhaseMiddleware<S, P, O> = (_ctx, next) => {
+      next();
+      next();
+    };
+    const chain = makeChain({ layers: [double] });
+    expect(() => chain.run({ kind: "enter" }, () => ++inners)).toThrow(
+      "middleware[0] called next() twice for one enter event",
+    );
+    expect(inners).toBe(1);
+  });
+
+  it("throws when a layer returns a Promise instead of running synchronously", () => {
+    const slow = async (_ctx: MiddlewareContext<S, P, O>, next: () => void) => {
+      await Promise.resolve();
+      next();
+    };
+    const chain = makeChain({ layers: [smuggle(slow)] });
+    expect(() => chain.run({ kind: "enter" }, () => {})).toThrow(
+      "middleware[0] returned a Promise; the middleware chain is synchronous",
+    );
+  });
+
+  it("lets a layer see rejections recorded inside next()", () => {
+    let rejections = 0;
+    let redacted = 0;
+    const seen: number[] = [];
+    const mw: PhaseMiddleware<S, P, O> = (ctx, next) => {
+      expect(ctx.rejectionCount).toBe(0);
+      next();
+      seen.push(ctx.rejectionCount, ctx.redactedRejectionCount);
+    };
+    const chain = makeChain({
+      layers: [mw],
+      rejectionCount: () => rejections,
+      redactedRejectionCount: () => redacted,
+    });
+    chain.run(
+      { kind: "action", actionType: "PING", senderId: "p2", payload: {}, filterLevel: "off" },
+      () => {
+        rejections = 2;
+        redacted = 1;
+      },
+    );
+    expect(seen).toEqual([2, 1]);
+  });
+
+  it("routes ctx.reject to the action's sender with its code, message and redaction flag", () => {
+    const calls: Array<{
+      senderId: string;
+      actionType: string;
+      code: ErrorCode;
+      message: string;
+      redactPayload?: boolean | undefined;
+    }> = [];
+    const veto: PhaseMiddleware<S, P, O> = (ctx) => {
+      ctx.reject(ErrorCode.NOT_ALLOWED, "no pinging", { redactPayload: true });
+    };
+    const chain = makeChain({
+      layers: [veto],
+      reject: (senderId, actionType, code, message, redactPayload) =>
+        calls.push({ senderId, actionType, code, message, redactPayload }),
+    });
+    chain.run(
+      { kind: "action", actionType: "PING", senderId: "p2", payload: {}, filterLevel: "off" },
+      () => {},
+    );
+    expect(calls).toEqual([
+      {
+        senderId: "p2",
+        actionType: "PING",
+        code: ErrorCode.NOT_ALLOWED,
+        message: "no pinging",
+        redactPayload: true,
+      },
+    ]);
+  });
+
+  it("throws when ctx.reject is used for a non-action event", () => {
+    const veto: PhaseMiddleware<S, P, O> = (ctx) => {
+      ctx.reject(ErrorCode.NOT_ALLOWED, "no");
+    };
+    const chain = makeChain({ layers: [veto] });
+    expect(() => chain.run({ kind: "enter" }, () => {})).toThrow(
+      "only available for action events",
+    );
+  });
+
+  it("exposes the live tick count as ctx.ticks while ticking and omits it otherwise", () => {
+    let liveTicks: number | undefined = 3;
+    const seen: MiddlewareContext<S, P, O>[] = [];
+    const mw: PhaseMiddleware<S, P, O> = (ctx) => {
+      seen.push(ctx);
+    };
+    const chain = makeChain({ layers: [mw], ticks: () => liveTicks });
+    chain.run({ kind: "enter" }, () => {});
+    expect(seen[0]?.ticks).toBe(3);
+    liveTicks = undefined;
+    chain.run({ kind: "enter" }, () => {});
+    expect("ticks" in (seen[1] ?? {})).toBe(false);
   });
 });

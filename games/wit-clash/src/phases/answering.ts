@@ -29,8 +29,8 @@ export function answeringActions(
         }
         const drafts = ctx.priv.drafts.get(ctx.playerId) ?? new Map<string, string>();
         ctx.priv.drafts.set(ctx.playerId, drafts.set(matchupId, answer));
-        // Both answering phases run for promptSeconds, so the phase start is the deadline minus that.
-        const startedAt = ctx.state.phaseEndsAt - ctx.options.promptSeconds * 1000;
+        // The phase start is the deadline minus the published duration, so the time tracks the real window.
+        const startedAt = ctx.state.phaseEndsAt - ctx.state.phaseDurationMs;
         const times = ctx.priv.submitTimes.get(ctx.playerId) ?? new Map<string, number>();
         ctx.priv.submitTimes.set(
           ctx.playerId,

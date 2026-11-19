@@ -1,7 +1,6 @@
-import { OptionsReader, PhaseClock } from "@openparty/game-ui";
+import { PhaseClock } from "@openparty/game-ui";
 import { ACTION } from "../../src/actionNames.js";
 import type { CastVotePayload } from "../../src/actions.js";
-import { DEFAULT_OPTIONS, type WitClashOptions, WitClashOptionsSchema } from "../../src/options.js";
 import type { Matchup } from "../../src/state.js";
 import type { WitClashManager } from "../manager.js";
 
@@ -16,12 +15,7 @@ export class MatchupVoteViewModel {
   readonly clock: PhaseClock;
 
   constructor(private readonly manager: WitClashManager) {
-    const options = new OptionsReader<WitClashOptions>(
-      manager,
-      WitClashOptionsSchema,
-      DEFAULT_OPTIONS,
-    );
-    this.clock = new PhaseClock(manager, () => options.current.voteSeconds);
+    this.clock = new PhaseClock(manager);
   }
 
   private get matchup(): Matchup | undefined {

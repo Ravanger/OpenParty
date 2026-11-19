@@ -117,7 +117,14 @@ function makeDefinition(): TickSpec {
   });
 }
 
-const newState = (): TickState => ({ phase: "", phaseEndsAt: 0, canStart: false, pos: 0, taps: 0 });
+const newState = (): TickState => ({
+  phase: "",
+  phaseEndsAt: 0,
+  phaseDurationMs: 0,
+  canStart: false,
+  pos: 0,
+  taps: 0,
+});
 
 const table = (): TestTable<TickState, TickPriv, Record<string, never>> =>
   new TestTable({ definition: makeDefinition(), state: newState(), options: {}, players: 2 });

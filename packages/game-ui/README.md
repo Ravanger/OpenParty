@@ -142,7 +142,7 @@ Any viewmodel that needs the published options reads them through `OptionsReader
 
 ## Phase clock and typing
 
-`PhaseClock(manager, totalSeconds, announceAt?)` wraps `manager.countdown()`: `secondsLeft`, `isUrgent` (the last ten seconds), `announcement` ("N seconds remaining" at 30/10/5 by default), `fraction` (the share of the phase still running, 0 to 1) and your `totalSeconds` getter — e.g. `() => options.current.promptSeconds` from an `OptionsReader`.
+`PhaseClock(manager, announceAt?)` wraps `manager.countdown()`: `secondsLeft`, `isUrgent` (the last ten seconds), `announcement` ("N seconds remaining" at 30/10/5 by default), `fraction` (the share of the phase still running, 0 to 1) and a `totalSeconds` getter read from the synced `state.phaseDurationMs` — when the server published no length (0), it falls back to the current `secondsLeft`, so the bar shows full instead of dividing by zero.
 
 `roundLabel(round, total)` is the shared "Round 2 of 3" label for round-based screens; pass it the state's `roundNumber` and `totalRounds` (zeros before the first round).
 

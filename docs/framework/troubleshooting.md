@@ -59,6 +59,11 @@ Known traps in this repo, with the cause and the rule that keeps each one fixed.
 - **Rule:** the UI (jsdom) preset resolves `@openparty/server/node`, `@openparty/server/probe` and `@openparty/server/testing` to `dist/`, not source (`JSDOM_DIST_ONLY`). jsdom uses Vite's client pipeline, which rewrites value imports of node: builtins as CJS interop; its remapped v8 items don't line up with the SSR-transformed ones from node projects and leave phantom uncovered lines (e.g. `node.ts` claimPort). A subpath whose source graph value-imports a node: builtin must be added to that list.
 - **Reference:** `packages/config/src/vitest.ts` (`sourceAliases`, `JSDOM_DIST_ONLY`, `nodeTestConfig`), `packages/config/tests/vitest.test.ts`
 
+## `scripts/game.ts` imports the launcher's built `dist/`
+- **Cause:** the root dispatcher (`bun run games` / `launch` / `play` / `bots`) imports `ProcessGroup` and `CommandError` from the `@openparty/launcher` package entry, which resolves to `packages/launcher/dist/`, not source.
+- **Rule:** with `OPENPARTY_SKIP_BUILD=1` (which skips the dispatcher's own build step), run `bun run build` first so the launcher's `dist/` exists; without it the import fails where a deep source import used to work.
+- **Reference:** `scripts/game.ts`, `packages/launcher/package.json` (`exports`)
+
 ## StateView entries must be hidden before they are deleted
 - **Cause:** `GameRoom` remembers every ref passed to `ctx.showTo` and re-adds it to a reconnecting client's view.
 - **Rule:** call `ctx.hideFrom(playerId, entry)` before deleting a `.view()` entry from the state.

@@ -1,7 +1,6 @@
-import { OptionsReader, PhaseClock } from "@openparty/game-ui";
+import { PhaseClock } from "@openparty/game-ui";
 import { ACTION } from "../../src/actionNames.js";
 import type { VoteHonorPayload } from "../../src/actions.js";
-import { DEFAULT_OPTIONS, type WitClashOptions, WitClashOptionsSchema } from "../../src/options.js";
 import type { WitClashManager } from "../manager.js";
 
 export interface HonorChoice {
@@ -16,12 +15,7 @@ export class HonorVoteViewModel {
   readonly clock: PhaseClock;
 
   constructor(private readonly manager: WitClashManager) {
-    const options = new OptionsReader<WitClashOptions>(
-      manager,
-      WitClashOptionsSchema,
-      DEFAULT_OPTIONS,
-    );
-    this.clock = new PhaseClock(manager, () => options.current.voteSeconds);
+    this.clock = new PhaseClock(manager);
   }
 
   private get mine() {

@@ -1,6 +1,5 @@
-import { OptionsReader, PhaseClock, roundLabel } from "@openparty/game-ui";
+import { PhaseClock, roundLabel } from "@openparty/game-ui";
 import { ACTION } from "../../src/actionNames.js";
-import { type BluffOptions, BluffOptionsSchema, DEFAULT_OPTIONS } from "../../src/options.js";
 import type { BluffManager } from "../manager.js";
 
 export interface ChoiceRow {
@@ -15,8 +14,7 @@ export class VotingViewModel {
   readonly clock: PhaseClock;
 
   constructor(private readonly manager: BluffManager) {
-    const options = new OptionsReader<BluffOptions>(manager, BluffOptionsSchema, DEFAULT_OPTIONS);
-    this.clock = new PhaseClock(manager, () => options.current.votingSeconds);
+    this.clock = new PhaseClock(manager);
   }
 
   get prompt(): string {
