@@ -9,11 +9,12 @@ import { describe, expect, it } from "vitest";
  */
 const distDir = fileURLToPath(new URL("../dist/", import.meta.url));
 
-/** Every module specifier a built file imports: static `from` clauses and dynamic `import()` calls. */
+/** Every module specifier a built file imports: static `from` clauses, dynamic `import()` calls and bare side-effect imports. */
 const specifiersOf = (source: string): string[] =>
   [
     ...source.matchAll(/\bfrom\s+["']([^"']+)["']/g),
     ...source.matchAll(/\bimport\(\s*["']([^"']+)["']\s*\)/g),
+    ...source.matchAll(/^\s*import\s+["']([^"']+)["']/gm),
   ].map((match) => match[1] as string);
 
 const packageOf = (specifier: string): string | undefined =>
@@ -51,6 +52,21 @@ const absent = (loaded: Set<string>, entryFile: string, ...forbidden: string[]):
   for (const pkg of forbidden)
     expect(loaded.has(pkg), `${entryFile} must not load ${pkg}`).toBe(false);
 };
+
+describe("specifiersOf", () => {
+  it("catches from clauses, dynamic import() calls and bare side-effect imports", () => {
+    const source = [
+      'import { x } from "@openparty/server";',
+      'const y = await import("@openparty/terminal");',
+      'import "@openparty/bots";',
+    ].join("\n");
+    expect(specifiersOf(source)).toEqual([
+      "@openparty/server",
+      "@openparty/terminal",
+      "@openparty/bots",
+    ]);
+  });
+});
 
 describe("entry module graphs (built files)", () => {
   it("the serve entry loads no terminal, launcher or bots module", () => {
