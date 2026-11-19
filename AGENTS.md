@@ -68,7 +68,7 @@ Each package's README has its API. Each package also has an `AGENTS.md` (respons
 | [`packages/bots`](packages/bots/README.md) | `BotPlayer`, `joinBots`, `BotTable`, `DemoTable`; a game supplies a `BotStrategy` |
 | [`packages/terminal`](packages/terminal/README.md) | `TerminalPlayer`, `PlaySession`, arg parsers, `runBotsCommand`; a game supplies a `TerminalStrategy` |
 | [`packages/launcher`](packages/launcher/README.md) | `runLauncher(config, argv)`: server, API, client and bot tables |
-| [`packages/game-kit`](packages/game-kit/README.md) | one declaration per game: `defineGamePackage`, plus the entry functions `serve`, `launch`, `botsCli`, `play` and `demoCli` over server, launcher, bots and terminal |
+| [`packages/game-kit`](packages/game-kit/README.md) | one declaration per game: the root export is only `defineGamePackage` and types; the entry functions live on subpaths — `serve` (`./serve`), `launch` (`./launch`), `botsCli` (`./bots`), `play` (`./play`) and `demoCli` (`./demo`) over server, launcher, bots and terminal |
 | [`packages/config`](packages/config/README.md) | presets: `/vite`, `/vitest` (source aliases, `JSDOM_DIST_ONLY`), `/svelte`, tsconfigs |
 | [`packages/cli`](packages/cli/README.md) | `bun run new <slug>` scaffolds a tested game from `packages/cli/template/` |
 | [`games/wit-clash`](games/wit-clash/README.md) | reference game: `src/` rules, `ui/` client, `server.ts`, `launch.ts`, `content/` |

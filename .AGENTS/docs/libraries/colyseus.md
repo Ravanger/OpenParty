@@ -36,7 +36,7 @@ Authoritative multiplayer server. `GameRoom` (`packages/server/src/rooms/GameRoo
 ## Reconnection (0.18 flow)
 - **Drop** (any close except `CONSENTED`): `onDrop(client)` marks the seat disconnected and awaits `allowReconnection(client, reconnectMs / 1000).catch(...)` (it also rejects for clients that are not fully joined).
 - **Return with the token:** `onReconnect(client)`. The new `client` has the **same `sessionId`** and inherits the old `client.view`. A kicked player's token is refused by throwing `ServerError` from `onReconnect`.
-- **Expiry or consented leave:** `onLeave(client)` removes the seat. Colyseus calls `onLeave` after a failed reconnection window, so there is no timer to schedule. If a new session with the same `playerId` has taken the seat meanwhile, `playerOf` no longer maps the old session and `onLeave` is a no-op.
+- **Expiry or consented leave:** `onLeave(client)` removes the seat. Colyseus calls `onLeave` after a failed reconnection window, so there is no timer to schedule. If a new session with the same `playerId` has taken the seat meanwhile, `SeatRegistry.playerIdFor` no longer maps the old session and `onLeave` is a no-op.
 - **New session, same `playerId`** (page reload without a valid token): `onJoin` reattaches the seat; the player's registered view refs are re-applied to the new `StateView`.
 - The SDK reconnects **automatically** on close codes 1005/1006/1001/4010 (`room.reconnection`: `maxRetries` 15, backoff 100 ms to 5 s, `minUptime` 5 s). The `Room` object, `room.state`, every `Schema` instance and every state callback survive; the server resends the full state and the client reconciles it in place (asserted in `GameRoom.reconnect.test.ts`).
 

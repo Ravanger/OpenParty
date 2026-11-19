@@ -299,7 +299,6 @@ export class GameRuntime<TState extends PhaseState, TPrivate, TOptions = Record<
     const nextId = pickNextHost(this.spec.hostMigration ?? "next-seated", players, () =>
       this.host.rng(),
     );
-    // An id outside the candidates would demote the current host and promote nobody.
     if (nextId !== undefined) setHost(nextId);
   }
 
