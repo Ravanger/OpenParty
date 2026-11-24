@@ -36,6 +36,7 @@ Bots answer and vote by themselves; you host and press Start. Ctrl+C stops them.
 |---|---|
 | `launch [game]` / `launch:host` / `launch:prod` | dev (Vite 5173) / dev + LAN addresses / built client (3000); game server on 2567, code API on 3001 |
 | `--bots=N` / `--demo=N` | dev launch plus N bots in your room / a watch-only room bots play alone; bounds per game (1 to max players - 1; demo from min players - 1) |
+| `--bot-skill=<0..1>` | how well the bots play, 0 easy to 1 hard (default 0.5); with `launch --bots`, `launch --demo` or the `bots` command |
 | `play [game] [--bots=N]` | play in the terminal (only games with a terminal entry) |
 | `bots [game] <CODE> [count]` | seat bots in a browser-created room (only games with a bots entry) |
 | `bun run --cwd games/wit-clash demo` | watch an all-bot WitClash game (`--bots=N`) |

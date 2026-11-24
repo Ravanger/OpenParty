@@ -85,7 +85,8 @@ describe("botsCli", () => {
     await botsCli(pkg, io);
     expect(log).toEqual([]);
     expect(err).toEqual([
-      "Usage: bun run bots <CODE> [count=3] [--endpoint ws://localhost:2567] [--api-port 3001]\n" +
+      "Usage: bun run bots <CODE> [count=3] [--endpoint ws://localhost:2567] [--api-port 3001] " +
+        "[--bot-skill=0..1]\n" +
         "CODE is 4 letters; count is 1 to 5.",
     ]);
     expect(exits).toEqual([2]);
@@ -115,9 +116,48 @@ describe("botsCli", () => {
     ]);
     await botsCli(pkg, io);
     expect(err).toEqual([
-      "Usage: bun run bots <CODE> [count=3] [--endpoint ws://localhost:2567] [--api-port 3001]\n" +
+      "Usage: bun run bots <CODE> [count=3] [--endpoint ws://localhost:2567] [--api-port 3001] " +
+        "[--bot-skill=0..1]\n" +
         "CODE is 4 letters; count is 1 to 5.",
     ]);
     expect(exits).toEqual([2]);
   });
+
+  it("seats the bots with the skill from --bot-skill", async () => {
+    const skills: number[] = [];
+    const skilled = defineGamePackage({
+      meta: { roomName: TAP_ROOM, minPlayers: 2, maxPlayers: 6 },
+      definition: () => TapGame,
+      stateClass: TapState,
+      publicFields: TAP_PUBLIC_FIELDS,
+      isFinished: (state) => state.done,
+      botKit: {
+        roomName: TAP_ROOM,
+        stateClass: TapState,
+        strategy: { play: (turn) => void skills.push(turn.skill) },
+      },
+    });
+    const host = await new GameClient(handle.endpoint, handle.apiPort, tapKit()).create(
+      crypto.randomUUID(),
+      "Ann",
+    );
+    const { io, log, exits } = fakeIo([
+      host.state.roomCode.toLowerCase(),
+      "1",
+      "--endpoint",
+      handle.endpoint,
+      "--api-port",
+      String(handle.apiPort),
+      "--bot-skill=0.9",
+    ]);
+    await botsCli(skilled, io);
+    expect(log).toEqual([
+      `Bot 1 joined ${host.state.roomCode}`,
+      "Bots are playing. Ctrl+C removes them.",
+    ]);
+    expect(exits).toEqual([]);
+    expect(skills.length).toBeGreaterThan(0);
+    expect(skills.every((skill) => skill === 0.9)).toBe(true);
+    await host.leave(true);
+  }, 30_000);
 });

@@ -129,6 +129,14 @@ describe("demoTableOptions", () => {
     expect(options.bot).toBeUndefined();
   });
 
+  it("forwards the connection's skill under the declared bot options", () => {
+    const options = demoTableOptions(
+      { ...base, botKit: tapKit(), demo: { bot: { thinkMs: [1, 2] } } },
+      { endpoint: "ws://x", apiPort: 1, bots: 1, bot: { skill: 0.8 } },
+    );
+    expect(options.bot).toEqual({ thinkMs: [1, 2], skill: 0.8 });
+  });
+
   it("throws when no kit resolves", () => {
     expect(() => demoTableOptions(base, { endpoint: "ws://x", apiPort: 1, bots: 2 })).toThrowError(
       /no bot kit/,

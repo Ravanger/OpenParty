@@ -69,7 +69,7 @@ lines.close();
 
 ## Wire `bots/cli.ts`
 
-`bun run bots <CODE> [count]` seats bots in a room created in the browser. `runBotsCommand` takes `BotsCommandOptions`; the `BotsCommandHandle` it resolves with controls the seated bots.
+`bun run bots <CODE> [count]` seats bots in a room created in the browser. `parseBotsArgs(argv, { maxBots, usage })` reads the code, the count (default 3), `--endpoint`, `--api-port` and `--bot-skill=<0..1>` — the bots' skill; omitted keeps the default 0.5, and an empty, non-numeric or out-of-range value prints `usage`. `runBotsCommand` takes `BotsCommandOptions`; the flag wins over a `skill` already set in its `bot` options, and the `BotsCommandHandle` it resolves with controls the seated bots.
 
 ```ts
 import { runBotsCommand } from "@openparty/terminal";

@@ -32,6 +32,7 @@ await runLauncher(
 | `--no-browser` | do not open a browser tab |
 | `--bots[=N]` | open a room for you and seat N bots once you have entered your name |
 | `--demo[=N]` | a watch-only room that N bots plus a host bot play alone; the browser opens its TV view. Excludes `--bots` |
+| `--bot-skill=<0..1>` | how well the bots play, 0 easy to 1 hard (default 0.5); applies to the `--bots` or `--demo` table this launch opens and is refused without one |
 
 The launcher refuses to start when a port is taken, stops everything on Ctrl+C or a closed terminal (SIGHUP), kills every spawned process if it crashes or the process exits, and exits 1 if a service dies.
 
@@ -52,7 +53,7 @@ await runLauncher(
 
 ## Enable `--demo`
 
-`create` receives `endpoint`, `apiPort`, `bot` (the launcher's logger) and `bots` (the count, between `min` and `max`); pass them to `DemoTable`.
+`create` receives `endpoint`, `apiPort`, `bot` (the launcher's logger, plus the `--bot-skill` value when given) and `bots` (the count, between `min` and `max`); pass them to `DemoTable`.
 
 ```ts
 import { DemoTable } from "@openparty/bots";

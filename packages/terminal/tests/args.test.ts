@@ -64,6 +64,7 @@ describe("parsePlayArgs", () => {
     ["--rounds=2"],
     ["--nope"],
     ["stray"],
+    ["--bot-skill=0.5"],
   ])("rejects %s with the usage", (flag) => {
     expect(parsePlayArgs([flag], play)).toEqual({ ok: false, error: "Usage: play" });
   });
@@ -102,6 +103,25 @@ describe("parseBotsArgs", () => {
   ])("refuses %j with the usage", (argv) => {
     expect(parseBotsArgs(argv, bots)).toEqual({ ok: false, error: "Usage: bots CODE" });
   });
+
+  it("reads --bot-skill in both forms and keeps it out when omitted", () => {
+    expect(parseBotsArgs(["abcd", "2", "--bot-skill=0.2"], bots)).toEqual({
+      ok: true,
+      value: { code: "ABCD", count: 2, endpoint: "ws://localhost:2567", apiPort: 3001, skill: 0.2 },
+    });
+    const spaced = parseBotsArgs(["abcd", "--bot-skill", "0.9"], bots);
+    expect(spaced.ok && spaced.value.skill).toBe(0.9);
+  });
+
+  it.each([
+    [["abcd", "--bot-skill=1.2"]],
+    [["abcd", "--bot-skill=-0.5"]],
+    [["abcd", "--bot-skill=x"]],
+    [["abcd", "--bot-skill="]],
+    [["abcd", "--bot-skill"]],
+  ])("refuses %j with the usage", (argv) => {
+    expect(parseBotsArgs(argv, bots)).toEqual({ ok: false, error: "Usage: bots CODE" });
+  });
 });
 
 describe("parseDemoArgs", () => {
@@ -132,6 +152,7 @@ describe("parseDemoArgs", () => {
     ["above the range", ["--bots=6"]],
     ["a non-number", ["--bots=x"]],
     ["a fraction", ["--bots=2.5"]],
+    ["the bots-only skill flag", ["--bot-skill=0.5"]],
   ])("rejects %s with the usage", (_name, argv) => {
     expect(parseDemoArgs(argv, demo)).toEqual({ ok: false, error: "Usage: demo" });
   });

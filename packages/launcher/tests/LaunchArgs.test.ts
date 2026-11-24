@@ -57,13 +57,13 @@ describe("parseLaunchArgs", () => {
 
   it("builds the usage from the config's ranges", () => {
     expect(error(["--bots=8"])).toBe(
-      "Usage: launch [dev|host|prod] [--no-browser] [--bots[=1..7] | --demo[=2..7]]",
+      "Usage: launch [dev|host|prod] [--no-browser] [--bots[=1..7] | --demo[=2..7]] [--bot-skill=0..1]",
     );
     expect(error(["--bots=0"], botsOnly)).toBe(
-      "Usage: launch [dev|host|prod] [--no-browser] [--bots[=1..7]]",
+      "Usage: launch [dev|host|prod] [--no-browser] [--bots[=1..7]] [--bot-skill=0..1]",
     );
     expect(error(["x"], demoOnly)).toBe(
-      "Usage: launch [dev|host|prod] [--no-browser] [--demo[=2..7]]",
+      "Usage: launch [dev|host|prod] [--no-browser] [--demo[=2..7]] [--bot-skill=0..1]",
     );
     expect(error(["x"], plain)).toBe("Usage: launch [dev|host|prod] [--no-browser]");
   });
@@ -91,5 +91,31 @@ describe("parseLaunchArgs", () => {
     expect(error(["nope"])).toContain("Usage");
     expect(error(["dev", "host"])).toContain("Usage");
     expect(error(["--verbose"])).toContain("Usage");
+  });
+
+  it("reads --bot-skill with --bots and with --demo, at both ends of the range", () => {
+    expect(value(["--bots", "--bot-skill=0.8"]).skill).toBe(0.8);
+    expect(value(["--demo=2", "--bot-skill=0"]).skill).toBe(0);
+    expect(value(["--bots=7", "--bot-skill=1"]).skill).toBe(1);
+  });
+
+  it("keeps the skill out when --bot-skill is omitted", () => {
+    expect(value(["--bots"]).skill).toBeUndefined();
+    expect(value(["--demo"]).skill).toBeUndefined();
+  });
+
+  it.each([
+    ["above one", "--bot-skill=1.5"],
+    ["below zero", "--bot-skill=-0.1"],
+    ["a non-number", "--bot-skill=x"],
+    ["an empty value", "--bot-skill="],
+    ["a bare flag", "--bot-skill"],
+  ])("refuses %s with the usage", (_name, flag) => {
+    expect(error(["--bots", flag])).toContain("Usage");
+  });
+
+  it("refuses --bot-skill without a bot table and on a game with no bots", () => {
+    expect(error(["--bot-skill=0.5"])).toContain("Usage");
+    expect(error(["--bot-skill=0.5"], plain)).toContain("Usage");
   });
 });

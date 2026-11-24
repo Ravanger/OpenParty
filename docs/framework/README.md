@@ -1322,6 +1322,11 @@ A game declares its kit once as the `botKit` field of its declaration (`gamePack
 the `bun run bots <CODE> [count]` entry is a stub calling `botsCli(gamePackage)` from `@openparty/game-kit/bots`, which seats
 the bots in a room made elsewhere (usage bounded by `meta.maxPlayers - 1`) and removes them on Ctrl+C.
 
+The skill can be chosen per run instead of hard-coded: the launcher's bot tables and the `bots` command take
+`--bot-skill=<0..1>` (`launch --bots=3 --bot-skill=0.8`, `launch --demo --bot-skill=0.8`, `bots <CODE> [count] --bot-skill=0.2`),
+which sets `BotOptions.skill` for the bots they seat; omitted, the bots keep the default 0.5. The launcher refuses the flag
+without a `--bots`/`--demo` table or on a game that declares neither, and both commands refuse a value outside 0..1.
+
 ## Terminal
 
 `@openparty/terminal` lets a human play at a prompt. You write a `TerminalStrategy` (what to ask in each stage); the kit's `play`
@@ -1442,6 +1447,7 @@ preset's copy drifts — and `launch` forwards an optional `ports` (a partial of
 | `--no-browser` | do not open a browser tab |
 | `--bots[=N]` | open a room for you and seat N bots (1 to `bots.max`, default `bots.default` or 3) once you have entered your name |
 | `--demo[=N]` | a watch-only room that N bots plus a host bot play alone; the browser opens its TV view (`demo.min` to `demo.max`). Excludes `--bots` |
+| `--bot-skill=<0..1>` | how well the bots play, 0 easy to 1 hard (default 0.5); applies to the `--bots` or `--demo` table this launch opens and is refused without one |
 
 The launcher refuses to start when a port is taken, stops everything on Ctrl+C or a closed terminal (SIGHUP), kills every spawned process if it crashes or the process exits, and exits 1 if a service dies. Its full config
 (`ports`, `commands`, `readyTimeoutMs`, `openBrowser`, `log`) and pieces (`Launcher`, `parseLaunchArgs`, `ProcessGroup`, `StaticSite`,
