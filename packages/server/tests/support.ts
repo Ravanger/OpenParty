@@ -12,6 +12,7 @@ import {
 import { BUZZER_PUBLIC_FIELDS, BuzzerGame, BuzzerState } from "./fixtures/buzzer.js";
 import { LockedGame } from "./fixtures/locked.js";
 import { POLL_PUBLIC_FIELDS, PollGame, PollState } from "./fixtures/poll.js";
+import { RatedGame } from "./fixtures/rated.js";
 
 /** Waits a fixed time; only for timing windows with no observable condition — prefer `waitUntil`. */
 export const sleep = (ms: number): Promise<void> =>
@@ -55,6 +56,17 @@ const POLL_GAMES = [
 export const bootPoll = (options: Partial<GameServerOptions> = {}): Promise<TestServer> =>
   bootTestServer({ games: POLL_GAMES, ...options });
 
+const RATED_GAMES = [
+  {
+    roomName: "rated",
+    definition: RatedGame,
+    stateClass: BaseGameState,
+  },
+];
+
+export const bootRated = (options: Partial<GameServerOptions> = {}): Promise<TestServer> =>
+  bootTestServer({ games: RATED_GAMES, ...options });
+
 export const stateOf = (room: Room): BuzzerState => room.state as BuzzerState;
 export const lockedStateOf = (room: Room): BaseGameState => room.state as BaseGameState;
 export const pollStateOf = (room: Room): PollState => room.state as PollState;
@@ -93,4 +105,13 @@ export async function startedPoll(t: TestServer) {
   const p1 = await seat(t, room, 1);
   await waitUntil(() => pollStateOf(room).phase === "Play", "game started");
   return { room, p1 };
+}
+
+/** Create a rated room, seat both players (auto-start) and wait for `Play`. */
+export async function startedRated(t: TestServer) {
+  const room = await t.createRoom("rated");
+  const p1 = await seat(t, room, 1);
+  const p2 = await seat(t, room, 2);
+  await waitUntil(() => stateOf(room).phase === "Play", "game started");
+  return { room, p1, p2 };
 }

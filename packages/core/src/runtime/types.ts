@@ -195,6 +195,14 @@ export type PhaseMiddleware<TState extends PhaseState, TPrivate, TOptions> = {
   run(ctx: MiddlewareContext<TState, TPrivate, TOptions>, next: () => void): undefined;
 }["run"];
 
+/** Token-bucket limits for one action's own bucket (`ActionDefinition.rateLimit` / `AudienceActionDefinition.rateLimit`). */
+export interface ActionRateLimit {
+  /** Sustained actions per second; a finite number > 0, at most the server ceiling. */
+  rate: number;
+  /** Burst capacity held at once; an integer >= 1, at most the server ceiling. */
+  burst: number;
+}
+
 /** One client action accepted by a phase. */
 export interface ActionDefinition<TState extends PhaseState, TPrivate, TOptions, TPayload> {
   /** `"player"` means any active player, including the host. */
@@ -203,6 +211,14 @@ export interface ActionDefinition<TState extends PhaseState, TPrivate, TOptions,
   payload: z.ZodType<TPayload>;
   /** Payload fields that hold free text; `textFilterMiddleware` checks exactly these. The framework never guesses. */
   textFields?: readonly string[];
+  /**
+   * Gives this action its own token bucket instead of the room's shared per-player action bucket
+   * (`rateLimits.action`, default 10/s burst 20) — for a fast real-time action such as a tap, which
+   * then does not spend the budget of slower actions. `defineGame` rejects a rate that is not a
+   * finite number > 0, a burst that is not an integer >= 1, and either above the server ceiling
+   * (`ACTION_RATE_LIMIT_CEILING`: 100/s, burst 200).
+   */
+  rateLimit?: ActionRateLimit;
   handler(ctx: ActionContext<TState, TPrivate, TOptions, TPayload>): void;
 }
 
@@ -213,6 +229,8 @@ export interface AudienceActionDefinition<TState extends PhaseState, TPrivate, T
   payload: z.ZodType<TPayload>;
   /** Payload fields that hold free text; `textFilterMiddleware` checks exactly these, as for player actions. The framework never guesses. */
   textFields?: readonly string[];
+  /** Gives this action its own token bucket for each spectator, exactly as {@link ActionDefinition.rateLimit} does for a seat. */
+  rateLimit?: ActionRateLimit;
   handler(ctx: AudienceActionContext<TState, TPrivate, TOptions, TPayload>): void;
 }
 

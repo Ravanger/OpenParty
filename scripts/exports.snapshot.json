@@ -149,6 +149,7 @@
         },
         "symbols": {
           "ACTION_LOG_ENTRY_KINDS": {},
+          "ACTION_RATE_LIMIT_CEILING": {},
           "ActionContext": {},
           "ActionDefinition": {},
           "ActionLog": {},
@@ -156,6 +157,7 @@
           "ActionLogEntryKind": {},
           "ActionLogHeader": {},
           "ActionLogSchema": {},
+          "ActionRateLimit": {},
           "AudienceActionContext": {},
           "AudienceActionDefinition": {},
           "AudienceScope": {},

@@ -51,7 +51,7 @@ export const ButtonGame = defineGame<ButtonState, Priv>({
 });
 ```
 
-`defineGame` throws a `GameDefinitionError` listing every problem; `START_GAME`, `KICK_PLAYER`, `SET_OPTIONS` and `END_GAME` are built-in action names.
+`defineGame` throws a `GameDefinitionError` listing every problem; `START_GAME`, `KICK_PLAYER`, `SET_OPTIONS` and `END_GAME` are built-in action names. An action may declare its own token bucket as `rateLimit: { rate, burst }` (`ActionRateLimit`; rate in actions per second, burst the tokens held at once), which the server keys by action type so a fast action does not spend the room's shared budget; `defineGame` rejects a rate that is not a finite number `> 0`, a burst that is not an integer `>= 1`, or either above `ACTION_RATE_LIMIT_CEILING` (100/s, burst 200).
 
 ## Localisation
 

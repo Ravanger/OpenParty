@@ -9,6 +9,7 @@ import {
 import { mergeCoreStrings } from "./strings.js";
 import type {
   ActionDefinition,
+  ActionRateLimit,
   AudienceActionDefinition,
   GameDefinition,
   PhaseState,
@@ -17,12 +18,39 @@ import type {
 const PHASE_NAME = /^[A-Za-z][A-Za-z0-9_]*$/;
 const RESERVED_ACTIONS: readonly string[] = [START_GAME, KICK_PLAYER, SET_OPTIONS, END_GAME];
 
+/**
+ * The hard ceiling every declared action `rateLimit` is validated against at definition time, so a
+ * game cannot ask the server for an unbounded bucket (10× the default action limit).
+ */
+export const ACTION_RATE_LIMIT_CEILING = { rate: 100, burst: 200 } as const;
+
 /** Thrown by {@link defineGame}; the message lists every problem found. */
 export class GameDefinitionError extends Error {
   constructor(public readonly problems: string[]) {
     super(`Invalid game definition:\n- ${problems.join("\n- ")}`);
     this.name = "GameDefinitionError";
   }
+}
+
+/** Problems with one action's declared `rateLimit`, if any: its shape, then the server ceiling. */
+function rateLimitProblems(action: string, limit: ActionRateLimit | undefined): string[] {
+  if (limit === undefined) return [];
+  const problems: string[] = [];
+  if (!Number.isFinite(limit.rate) || limit.rate <= 0) {
+    problems.push(`action "${action}" has an invalid rateLimit rate (must be a finite number > 0)`);
+  } else if (limit.rate > ACTION_RATE_LIMIT_CEILING.rate) {
+    problems.push(
+      `action "${action}" declares a rateLimit rate above the ceiling (max ${ACTION_RATE_LIMIT_CEILING.rate}/s)`,
+    );
+  }
+  if (!Number.isInteger(limit.burst) || limit.burst < 1) {
+    problems.push(`action "${action}" has an invalid rateLimit burst (must be an integer >= 1)`);
+  } else if (limit.burst > ACTION_RATE_LIMIT_CEILING.burst) {
+    problems.push(
+      `action "${action}" declares a rateLimit burst above the ceiling (max ${ACTION_RATE_LIMIT_CEILING.burst})`,
+    );
+  }
+  return problems;
 }
 
 /**
@@ -66,10 +94,11 @@ export function defineGame<
     if (phase.tickMs !== undefined && (!Number.isInteger(phase.tickMs) || phase.tickMs < 1)) {
       problems.push(`phase "${name}" has an invalid tickMs (must be an integer >= 1)`);
     }
-    for (const action of Object.keys(phase.actions ?? {})) {
+    for (const [action, definition] of Object.entries(phase.actions ?? {})) {
       if (RESERVED_ACTIONS.includes(action)) problems.push(`${action} is reserved and built in`);
       else if (!ACTION_NAME_PATTERN.test(action))
         problems.push(`action name "${action}" is invalid`);
+      problems.push(...rateLimitProblems(action, definition.rateLimit));
     }
   }
   const middleware: unknown = spec.middleware;

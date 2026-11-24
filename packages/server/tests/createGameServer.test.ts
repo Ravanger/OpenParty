@@ -228,3 +228,26 @@ describe("rate limits", () => {
     expect(lines).toEqual([{ event: "rate.limit", fields: { key: "5.6.7.8" } }]);
   });
 });
+
+describe("patch rate", () => {
+  it("sets the configured patchRateMs on the room", async () => {
+    t = await bootTestServer({ games: GAMES, patchRateMs: 16 });
+    const room = await t.createRoom("buzzer");
+    expect(room.patchRate).toBe(16);
+  });
+
+  it("keeps the library default (50 ms, 20 Hz) when patchRateMs is omitted", async () => {
+    t = await bootTestServer({ games: GAMES });
+    const room = await t.createRoom("buzzer");
+    expect(room.patchRate).toBe(50);
+  });
+
+  it("rejects a patchRateMs that is not a whole number from 10 to 1000", () => {
+    const build = (patchRateMs: number): unknown =>
+      createGameServer({ greet: false, gracefullyShutdown: false, games: GAMES, patchRateMs });
+    for (const bad of [9, 1001, 16.5, Number.NaN]) {
+      expect(() => build(bad)).toThrow("patchRateMs must be a whole number from 10 to 1000");
+    }
+    for (const ok of [10, 1000]) expect(build(ok)).toBeDefined();
+  });
+});
