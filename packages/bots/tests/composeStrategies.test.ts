@@ -13,8 +13,10 @@ const stubTurn = (phase: string): BotTurn<State> => {
     state,
     playerId: "bot-0000001",
     name: "Bot 1",
+    skill: 0.5,
     once: () => undefined,
     later: () => undefined,
+    every: () => undefined,
     act: () => undefined,
     pick: () => undefined,
   };

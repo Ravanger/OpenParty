@@ -13,6 +13,22 @@ import type {
 const DEFAULT_THINK: DelayRange = [2000, 6000];
 const DEFAULT_REACT: DelayRange = [500, 2500];
 
+/** The skill a bot plays with when none is set. */
+const DEFAULT_SKILL = 0.5;
+
+/** Clamps `skill` to 0..1; a non-finite value falls back to {@link DEFAULT_SKILL}. */
+const clampSkill = (skill: number): number =>
+  Number.isFinite(skill) ? Math.min(1, Math.max(0, skill)) : DEFAULT_SKILL;
+
+/**
+ * The probability (0..1) that a bot at `skill` makes an error: `(1 - skill) / 2` — half of all
+ * decisions at skill 0, none at skill 1. `skill` is clamped to 0..1 first, and a non-finite value
+ * counts as the default 0.5. A strategy rolls its own random number against this probability.
+ *
+ * @experimental Reflex-round bot API; may change before 1.0.
+ */
+export const mistakeChance = (skill: number): number => (1 - clampSkill(skill)) / 2;
+
 /** `ok` for an accepted action, with the raw answer as `detail`. */
 export const outcomeOf = (bot: string, type: string, result: unknown): BotOutcome => ({
   bot,
@@ -27,6 +43,7 @@ export class BotPlayer<TState extends BaseGameState> {
   private readonly cancels = new Set<() => void>();
   private readonly rng: () => number;
   private readonly schedule: (run: () => void, ms: number) => () => void;
+  private readonly skill: number;
   private phase = "";
   private starting = false;
   private left = false;
@@ -40,6 +57,7 @@ export class BotPlayer<TState extends BaseGameState> {
   ) {
     this.rng = options.rng ?? Math.random;
     this.schedule = options.schedule ?? ((run, ms) => this.timer(run, ms));
+    this.skill = clampSkill(options.skill ?? DEFAULT_SKILL);
     room.onLeave(() => this.stop());
     room.onStateChange(() => this.react());
     this.react();
@@ -78,8 +96,10 @@ export class BotPlayer<TState extends BaseGameState> {
       state: this.room.state,
       playerId: this.playerId,
       name: this.name,
+      skill: this.skill,
       once: (key, run) => this.once(key, run),
       later: (delay, run) => this.later(delay, run),
+      every: (ms, run) => this.every(ms, run),
       act: (type, payload = {}, note = type) => {
         void this.send(type, payload, note);
       },
@@ -145,9 +165,44 @@ export class BotPlayer<TState extends BaseGameState> {
   }
 
   private range(delay: BotSpeed | DelayRange): DelayRange {
-    if (delay === "think") return this.options.thinkMs ?? DEFAULT_THINK;
-    if (delay === "react") return this.options.reactMs ?? DEFAULT_REACT;
+    if (delay === "think") return this.scaled(this.options.thinkMs ?? DEFAULT_THINK);
+    if (delay === "react") return this.scaled(this.options.reactMs ?? DEFAULT_REACT);
     return delay;
+  }
+
+  /** Shrinks a range by the skill factor `1.5 - skill`: 1.5× at skill 0, 1× at the default 0.5, 0.5× at skill 1. */
+  private scaled([min, max]: DelayRange): DelayRange {
+    const factor = 1.5 - this.skill;
+    return [min * factor, max * factor];
+  }
+
+  private every(ms: number, run: () => void): void {
+    let cancel: (() => void) | undefined;
+    const stop = (): void => {
+      if (cancel !== undefined) this.cancels.delete(cancel);
+    };
+    const tick = (): void => {
+      stop();
+      const phase = this.phase;
+      try {
+        run();
+      } catch (error) {
+        this.options.log?.(`${this.name} every callback failed: ${String(error)}`);
+        return;
+      }
+      // A phase change or leave during `run` already cleared the pending cadences.
+      if (this.left || this.phase !== phase) return;
+      cancel = this.schedule(tick, ms);
+      this.cancels.add(cancel);
+    };
+    let fired = false;
+    const first = (): void => {
+      fired = true;
+      tick();
+    };
+    cancel = this.schedule(first, ms);
+    // A scheduler that already ran the callback consumed it: do not track a stale handle.
+    if (!fired) this.cancels.add(cancel);
   }
 
   private cancelPending(): void {

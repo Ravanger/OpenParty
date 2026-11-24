@@ -1270,10 +1270,23 @@ once `canStart` holds and `host.expectedPlayers` seats are named). `turn` has:
 | Member | What |
 |---|---|
 | `state`, `playerId`, `name` | the synced state and this bot |
+| `skill` | this bot's skill, 0..1 (default 0.5) — see below |
 | `once(key, run)` | runs `run` the first time `key` is seen in this phase |
 | `later(speed, run)` | runs `run` after a `"think"`, `"react"` or `[min, max]` ms delay; cancelled on phase change or leave |
+| `every(ms, run)` | runs `run` every `ms` while the phase is unchanged and the bot stays in the room; a throwing `run` stops the cadence (`@experimental`) |
 | `act(type, payload?, note?)` | sends an action; the result goes to `log` and `onOutcome` |
 | `pick(items)` | a random item, `undefined` for an empty list |
+
+**Skill and cadence** (`@experimental`, for reflex rounds). `BotOptions.skill` (0..1, default 0.5) scales how fast a bot plays: the ranges drawn for `later("think")` and `later("react")` are multiplied by `1.5 - skill` — 1.5× at skill 0, unchanged at the default 0.5, 0.5× at skill 1 — while an explicit `[min, max]` range is never scaled. Out-of-range values are clamped to 0..1; a non-finite value falls back to 0.5. Accuracy scales through `mistakeChance(skill)` (`(1 - skill) / 2`, clamped the same way), which a strategy rolls its own random number against:
+
+```ts
+play: (turn) => {
+  if (Math.random() < mistakeChance(turn.skill)) return; // this bot fumbles
+  turn.every(100, () => turn.act("TAP"));
+},
+```
+
+`every` is the repeating form of `later`: it reschedules after each run and its timers are cancelled with everything else on a phase change or when the bot leaves, so a cadence never outlives its phase. A throwing `run` stops the cadence (logged through `log` when one is set) instead of leaving a timer behind.
 
 For a game with round modules (see Round modules), `composeStrategies(base, { [prefix]: strategy })` (`@experimental`) builds one `BotStrategy` from a base brain and one strategy per mount prefix. In a `<prefix>_<Phase>` phase the matching module strategy's `play` runs; any other phase uses the base `play` (the longest matching prefix wins). Both `host` hooks run when present, base first, so the base can keep handling the lobby while a module hosts its own round. Pass the composed strategy as your kit's `strategy`.
 
@@ -1293,7 +1306,8 @@ await demo.finished();                           // rejects if the room closes
 await demo.leave();
 ```
 
-Overridable: `BotOptions` `thinkMs` (default `[2000, 6000]`), `reactMs` (`[500, 2500]`), `rng`, `schedule(run, ms) => cancel`,
+Overridable: `BotOptions` `thinkMs` (default `[2000, 6000]`), `reactMs` (`[500, 2500]`), `skill` (0..1, default 0.5 — see
+Skill and cadence), `rng`, `schedule(run, ms) => cancel`,
 `log`, `onOutcome`, `host.expectedPlayers`; `joinBots` `nameFor(n)` (default `Bot n`, taken names skipped), `playerIds`,
 `timeoutMs` (`BotTable` and `DemoTable` also take `nameFor` and `timeoutMs`); `DemoTable` `hostName`, `roomOptions`, `isFinished`. Every failure leaves the seats it took.
 `joinKitBots({ kit, ... })` is the same seating with the kit passed as `kit` instead of spread.

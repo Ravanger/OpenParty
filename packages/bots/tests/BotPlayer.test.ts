@@ -2,7 +2,7 @@ import { type SchemaType, t } from "@colyseus/schema";
 import { LOBBY_PHASE, START_GAME } from "@openparty/shared";
 import { BaseGameState, PlayerSchema } from "@openparty/shared/schema";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { BotPlayer } from "../src/BotPlayer.js";
+import { BotPlayer, mistakeChance } from "../src/BotPlayer.js";
 import type { BotOptions, BotOutcome, BotRoom, BotStrategy, BotTurn } from "../src/types.js";
 
 const ToyState = BaseGameState.extend({ step: t.number().default(0) }, "ToyState");
@@ -258,6 +258,177 @@ describe("BotPlayer", () => {
     expect(seen).toEqual([5]);
   });
 
+  it("exposes the clamped skill on the turn, defaulting to 0.5", () => {
+    const seen: number[] = [];
+    const strategy: BotStrategy<ToyState> = { play: (turn) => seen.push(turn.skill) };
+    setup(strategy);
+    setup(strategy, { skill: 0.9 });
+    setup(strategy, { skill: -1 });
+    setup(strategy, { skill: 2 });
+    setup(strategy, { skill: NaN });
+    expect(seen).toEqual([0.5, 0.9, 0, 1, 0.5]);
+  });
+
+  it("shortens think and react delays as skill rises", () => {
+    const strategy: BotStrategy<ToyState> = {
+      play: (turn) => {
+        turn.once("a", () => turn.later("think", () => undefined));
+        turn.once("b", () => turn.later("react", () => undefined));
+      },
+    };
+    const delays = (skill?: number): number[] => {
+      const { clock } = setup(strategy, {
+        thinkMs: [100, 300],
+        reactMs: [50, 150],
+        ...(skill !== undefined ? { skill } : {}),
+      });
+      return clock.queue.map((entry) => entry.ms);
+    };
+    expect(delays()).toEqual([100, 50]);
+    expect(delays(1)).toEqual([50, 25]);
+    expect(delays(0)).toEqual([150, 75]);
+  });
+
+  it("does not scale an explicit delay range with skill", () => {
+    const { clock } = setup(
+      { play: (turn) => turn.once("a", () => turn.later([7, 9], () => undefined)) },
+      { skill: 0 },
+    );
+    expect(clock.queue.map((entry) => entry.ms)).toEqual([7]);
+  });
+
+  it("repeats every run while the phase holds", () => {
+    const taps: number[] = [];
+    const { clock } = setup({
+      play: (turn) => turn.once("e", () => turn.every(10, () => taps.push(1))),
+    });
+    expect(clock.queue.map((entry) => entry.ms)).toEqual([10]);
+    clock.flush();
+    clock.flush();
+    expect(taps).toHaveLength(2);
+    expect(clock.queue).toHaveLength(1);
+  });
+
+  it("cancels an every cadence when the phase changes before it runs", () => {
+    const taps: number[] = [];
+    const { room, clock } = setup({
+      // The guard keeps the strategy from arming a fresh cadence in the new phase.
+      play: (turn) => {
+        if (turn.state.phase === "Play") turn.once("e", () => turn.every(10, () => taps.push(1)));
+      },
+    });
+    room.state.phase = "Other";
+    room.changed();
+    clock.flush();
+    expect(taps).toEqual([]);
+    expect(clock.queue).toEqual([]);
+  });
+
+  it("stops an every cadence when the phase changes while running", () => {
+    const taps: number[] = [];
+    const { room, clock } = setup({
+      play: (turn) => {
+        if (turn.state.phase === "Play")
+          turn.once("e", () =>
+            turn.every(10, () => {
+              taps.push(1);
+              room.state.phase = "Other";
+              room.changed();
+            }),
+          );
+      },
+    });
+    clock.flush();
+    expect(taps).toEqual([1]);
+    expect(clock.queue).toEqual([]);
+  });
+
+  it("cancels an every cadence when the bot leaves", async () => {
+    const taps: number[] = [];
+    const { room, clock, bot } = setup({
+      play: (turn) => turn.once("e", () => turn.every(10, () => taps.push(1))),
+    });
+    await bot.leave();
+    clock.flush();
+    expect(taps).toEqual([]);
+    expect(room.left).toBe(true);
+  });
+
+  it("stops an every cadence when the bot leaves while running", () => {
+    let bot: BotPlayer<ToyState> | undefined;
+    const made = setup({
+      play: (turn) => turn.once("e", () => turn.every(10, () => void bot?.leave())),
+    });
+    bot = made.bot;
+    made.clock.flush();
+    expect(made.clock.queue).toEqual([]);
+    expect(made.room.left).toBe(true);
+  });
+
+  it("stops an every cadence when run throws and logs the failure", () => {
+    const { clock, lines } = setup({
+      play: (turn) =>
+        turn.once("e", () =>
+          turn.every(10, () => {
+            throw new Error("boom");
+          }),
+        ),
+    });
+    clock.flush();
+    expect(clock.queue).toEqual([]);
+    expect(lines).toEqual(["Bot 1 every callback failed: Error: boom"]);
+  });
+
+  it("stops an every cadence when run throws without a log", () => {
+    const room = new FakeRoom();
+    room.state.phase = "Play";
+    const clock = new Clock();
+    new BotPlayer(
+      room,
+      ME,
+      "Bot 1",
+      {
+        play: (turn) =>
+          turn.once("e", () =>
+            turn.every(10, () => {
+              throw new Error("boom");
+            }),
+          ),
+      },
+      { rng: () => 0, schedule: clock.schedule },
+    );
+    clock.flush();
+    expect(clock.queue).toEqual([]);
+  });
+
+  it("runs an every callback once when the scheduler invokes it synchronously", () => {
+    const room = new FakeRoom();
+    room.state.phase = "Play";
+    let runs = 0;
+    new BotPlayer(
+      room,
+      ME,
+      "Bot 1",
+      {
+        play: (turn) =>
+          turn.once("e", () =>
+            turn.every(10, () => {
+              runs += 1;
+              throw new Error("stop");
+            }),
+          ),
+      },
+      {
+        rng: () => 0,
+        schedule: (run) => {
+          run();
+          return () => undefined;
+        },
+      },
+    );
+    expect(runs).toBe(1);
+  });
+
   describe("hosting", () => {
     function lobby(
       options: BotOptions,
@@ -348,5 +519,19 @@ describe("BotPlayer", () => {
       await settle();
       expect(room.sent).toEqual([]);
     });
+  });
+});
+
+describe("mistakeChance", () => {
+  it("maps skill to an error probability", () => {
+    expect(mistakeChance(1)).toBe(0);
+    expect(mistakeChance(0.5)).toBe(0.25);
+    expect(mistakeChance(0)).toBe(0.5);
+  });
+
+  it("clamps out-of-range skill and falls back on a non-finite one", () => {
+    expect(mistakeChance(-1)).toBe(0.5);
+    expect(mistakeChance(2)).toBe(0);
+    expect(mistakeChance(NaN)).toBe(0.25);
   });
 });

@@ -1,4 +1,4 @@
-export { BotPlayer, outcomeOf } from "./BotPlayer.js";
+export { BotPlayer, mistakeChance, outcomeOf } from "./BotPlayer.js";
 export { BotTable, type BotTableOptions, type SeatBotsOptions } from "./BotTable.js";
 export { ColyseusConnector, defaultConnector } from "./ColyseusConnector.js";
 export { composeStrategies } from "./composeStrategies.js";

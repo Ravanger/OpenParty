@@ -33,6 +33,9 @@
           "defaultConnector": {},
           "joinBots": {},
           "joinKitBots": {},
+          "mistakeChance": {
+            "experimental": true
+          },
           "outcomeOf": {}
         }
       }

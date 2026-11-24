@@ -4,7 +4,7 @@ Bot players for any game: you write the strategy, the package handles joining, n
 
 | Import | What |
 |---|---|
-| `@openparty/bots` | `joinBots`, `joinKitBots`, `BotTable`, `DemoTable` to seat bots, `BotPlayer` (one named, paced bot), `ColyseusConnector` and `defaultConnector` to open rooms, `composeStrategies` (round modules); types `BotStrategy`, `BotKit`, `BotRoom` for your game; option types `JoinBotsOptions`, `JoinKitBotsOptions`, `BotTableOptions`, `SeatBotsOptions`, `DemoTableOptions`, `BotHostOptions`, `DelayRange` |
+| `@openparty/bots` | `joinBots`, `joinKitBots`, `BotTable`, `DemoTable` to seat bots, `BotPlayer` (one named, paced bot), `ColyseusConnector` and `defaultConnector` to open rooms, `composeStrategies` (round modules), `mistakeChance` (skill → error probability); types `BotStrategy`, `BotKit`, `BotRoom` for your game; option types `JoinBotsOptions`, `JoinKitBotsOptions`, `BotTableOptions`, `SeatBotsOptions`, `DemoTableOptions`, `BotHostOptions`, `DelayRange` |
 
 ## Write a strategy
 
