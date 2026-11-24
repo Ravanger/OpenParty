@@ -6,7 +6,7 @@ Ships Svelte source; consumers need the Svelte plugin — Vite with `@sveltejs/v
 
 | Import | What |
 |---|---|
-| `@openparty/game-ui` | `createAppRouter`, `AppRouter`, `WelcomeViewModel`, `WaitingRoomViewModel`, `LobbySettingsViewModel`, `OptionsReader`, `PhaseClock`, `TypingReporter`, `GameControlsViewModel`, `HowToPlayViewModel`, `JoinNextRoundViewModel`, `NameField`, `ReplayViewModel`, `snapshotManager`, `replayManager`, `SoundPolicy`, `Spotlight`, `TextDraft`; `OptionFields`, `qrCode`, `playerSticker`, `rankRows`, `leaders`, `podiumSteps`, `roundLabel`, `plural`, `downloadReplay`, `mountReplayIfRequested`; `setStrings`, `defaultUiStrings`, `UiStrings`; types `RouterScreen`, `LobbySettingsConfig`, `HowToPlayStep`, `HowToPlayStorage`, `HowToPlayTimer`, `HowToPlayViewModelOptions`, `SoundPolicyOptions`, `StickerShape`, `TextDraftConfig`, `ProgressRow`, `ReplayManager` |
+| `@openparty/game-ui` | `createAppRouter`, `AppRouter`, `WelcomeViewModel`, `WaitingRoomViewModel`, `LobbySettingsViewModel`, `OptionsReader`, `PhaseClock`, `TypingReporter`, `GameControlsViewModel`, `HowToPlayViewModel`, `JoinNextRoundViewModel`, `NameField`, `ReplayViewModel`, `snapshotManager`, `replayManager`, `SoundPolicy`, `Spotlight`, `TextDraft`; `OptionFields`, `qrCode`, `playerSticker`, `rankRows`, `leaders`, `podiumSteps`, `roundLabel`, `plural`, `prefixedScreens`, `downloadReplay`, `mountReplayIfRequested`; `setStrings`, `defaultUiStrings`, `UiStrings`; types `RouterScreen`, `LobbySettingsConfig`, `HowToPlayStep`, `HowToPlayStorage`, `HowToPlayTimer`, `HowToPlayViewModelOptions`, `SoundPolicyOptions`, `StickerShape`, `TextDraftConfig`, `ProgressRow`, `ReplayManager` |
 | `@openparty/game-ui/components` | Svelte 5 source: `GameShell`, `WelcomeScreen`, `StatusPanel`, `Timer`, `PhaseTimer`, `PhaseBar`, `PlayerSticker`, `QrCode`, `ActionBar`, `NameInput`, `SoundToggle`, `LobbySettings`, `GameControls`, `HowToPlay`, `HowToPlayButton`, `Podium`, `Confetti`, `ScreenTitle`, `ProgressStrip`, `ChoiceBoard`, `ExportReplayButton`, `ReplayViewer` |
 | `@openparty/game-ui/testing` | Test-only CSS audits for a game's `ui/` directory: `auditContrast({ uiDir, minChecked, pairs? })` (WCAG AA over same-rule colour/background pairs plus explicit cross-rule pairs; fails on a colour variable defined nowhere and throws when fewer than `minChecked` pairs were checked), `auditReducedMotion({ uiDir, minGuarded, allow? })` (every transition/animation/`scroll-behavior: smooth` inside a no-preference block, no Svelte motion directives outside the allow list; throws below `minGuarded`) and the walkers `cssFiles`, `rules`, `stripComments` |
 
@@ -44,6 +44,21 @@ Viewmodels are typed on `GameConnectionManager<TState>` and read its state react
 ```
 
 A `RouterScreen` is one entry of that table: `component` and an optional `banner`. The router also exposes `banner`, `phase`, `isSpectator`, `isReconnecting`, `roomCode`, `error`, `dismissError()`.
+
+For round modules (`@experimental`), `prefixedScreens(screens, prefix)` re-keys a module-local `{ [Phase]: screen }` table to the host's `<prefix>_<Phase>` names, ready to spread into your screen table:
+
+```ts
+import { prefixedScreens } from "@openparty/game-ui";
+
+const MOD_SCREENS = { Tap: { component: TapScreen, waitingLabel: "Tapping", banner: "" } };
+
+const PHASE_SCREENS = {
+  [LOBBY_PHASE]: { component: WaitingRoom, waitingLabel: "Waiting", banner: "" },
+  ...prefixedScreens(MOD_SCREENS, "MOD"), // key: MOD_Tap
+} satisfies Record<KnownPhase, PhaseScreen>;
+```
+
+The result keeps its literal keys — a module phase left out of `MOD_SCREENS` stays missing from the table, so your `satisfies` exhaustiveness check fails at compile time.
 
 ## App shell
 

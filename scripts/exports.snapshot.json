@@ -27,6 +27,9 @@
           "JoinBotsOptions": {},
           "JoinKitBotsOptions": {},
           "SeatBotsOptions": {},
+          "composeStrategies": {
+            "experimental": true
+          },
           "defaultConnector": {},
           "joinBots": {},
           "joinKitBots": {},
@@ -544,6 +547,9 @@
           "playerSticker": {},
           "plural": {},
           "podiumSteps": {},
+          "prefixedScreens": {
+            "experimental": true
+          },
           "qrCode": {},
           "rankRows": {},
           "replayManager": {},

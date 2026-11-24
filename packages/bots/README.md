@@ -4,7 +4,7 @@ Bot players for any game: you write the strategy, the package handles joining, n
 
 | Import | What |
 |---|---|
-| `@openparty/bots` | `joinBots`, `joinKitBots`, `BotTable`, `DemoTable` to seat bots, `BotPlayer` (one named, paced bot), `ColyseusConnector` and `defaultConnector` to open rooms; types `BotStrategy`, `BotKit`, `BotRoom` for your game; option types `JoinBotsOptions`, `JoinKitBotsOptions`, `BotTableOptions`, `SeatBotsOptions`, `DemoTableOptions`, `BotHostOptions`, `DelayRange` |
+| `@openparty/bots` | `joinBots`, `joinKitBots`, `BotTable`, `DemoTable` to seat bots, `BotPlayer` (one named, paced bot), `ColyseusConnector` and `defaultConnector` to open rooms, `composeStrategies` (round modules); types `BotStrategy`, `BotKit`, `BotRoom` for your game; option types `JoinBotsOptions`, `JoinKitBotsOptions`, `BotTableOptions`, `SeatBotsOptions`, `DemoTableOptions`, `BotHostOptions`, `DelayRange` |
 
 ## Write a strategy
 
@@ -47,6 +47,16 @@ const strategy: BotStrategy<ButtonState> = {
     if (turn.state.phase === "Lobby") turn.once("options", () => turn.act("SET_OPTIONS", { rounds: 3 }));
   },
 };
+```
+
+## Round modules
+
+`composeStrategies(base, { [prefix]: strategy })` (`@experimental`) builds one `BotStrategy` for a game with round modules: the strategy mounted under a prefix plays in its `<prefix>_<Phase>` phases (the longest matching prefix wins), the base plays in every other phase, and both `host` hooks run when present — base first. Use the composed strategy as your kit's `strategy`.
+
+```ts
+import { composeStrategies, type BotStrategy } from "@openparty/bots";
+
+const strategy: BotStrategy<MyState> = composeStrategies(baseBot, { MOD: modBot });
 ```
 
 ## Seat bots in a room

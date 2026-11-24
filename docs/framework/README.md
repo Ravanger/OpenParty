@@ -313,6 +313,21 @@ What a module hook sees. `state` narrowed to its slice, `priv` narrowed to its p
 
 Leaving. Only through `ctx.finish()`: it computes `result(ctx)` from the slice and runs the mount's `onDone(hostCtx, result)` with the host's full context — the host leaves the module from there (queue a transition or return to the lobby). `enter` runs when the module is entered — on entry into its first declared phase, before that phase's `onEnter` — so reset the slice for the run there. Module hooks must not hold per-run state in closures: `replayLog` re-runs the same definition object, so a closure flag would break replay determinism. A module session replays like any other — the log records the prefixed names and `replayLog` re-drives the mounted phases through the same definition.
 
+Screens and bots. The client sees a mounted module's phases under their prefixed names (`<prefix>_<Phase>`), so its screen table must be re-keyed the same way. `prefixedScreens(screens, prefix)` from `@openparty/game-ui` (`@experimental`) re-keys a module-local `{ [Phase]: screen }` table into entries ready to spread into the game's table:
+
+```ts
+import { prefixedScreens } from "@openparty/game-ui";
+
+const MOD_SCREENS = { Tap: { component: TapScreen, waitingLabel: "Tapping", banner: "" } };
+
+export const PHASE_SCREENS = {
+  [LOBBY_PHASE]: { component: WaitingRoom, waitingLabel: "Waiting", banner: "" },
+  ...prefixedScreens(MOD_SCREENS, "MOD"), // key: MOD_Tap
+} satisfies Record<KnownPhase, PhaseScreen>;
+```
+
+The result carries exactly the prefixed literal keys (no string index), so a module phase left out of `MOD_SCREENS` is still missing from the game's table and its `satisfies` check fails at compile time. For bots, `composeStrategies(base, { [prefix]: strategy })` from `@openparty/bots` (`@experimental`, see Bots) returns one strategy: the matching module's `play` runs in a `<prefix>_<Phase>` phase (longest prefix wins), the base `play` elsewhere, and both `host` hooks (base first) where present.
+
 ### Action log and replay
 `actionLogMiddleware()` records everything the middleware sees into an append-only, JSON-serializable log
 kept alongside `ctx.priv` — a server-side record of the whole room session. Register it like any other
@@ -1199,6 +1214,8 @@ once `canStart` holds and `host.expectedPlayers` seats are named). `turn` has:
 | `later(speed, run)` | runs `run` after a `"think"`, `"react"` or `[min, max]` ms delay; cancelled on phase change or leave |
 | `act(type, payload?, note?)` | sends an action; the result goes to `log` and `onOutcome` |
 | `pick(items)` | a random item, `undefined` for an empty list |
+
+For a game with round modules (see Round modules), `composeStrategies(base, { [prefix]: strategy })` (`@experimental`) builds one `BotStrategy` from a base brain and one strategy per mount prefix. In a `<prefix>_<Phase>` phase the matching module strategy's `play` runs; any other phase uses the base `play` (the longest matching prefix wins). Both `host` hooks run when present, base first, so the base can keep handling the lobby while a module hosts its own round. Pass the composed strategy as your kit's `strategy`.
 
 Tables take the kit plus `endpoint`, `apiPort` and optional `bot` (`BotOptions`):
 

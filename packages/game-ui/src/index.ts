@@ -22,6 +22,7 @@ export {
   type StickerShape,
   stickerLetter,
 } from "./playerSticker.js";
+export { prefixedScreens } from "./prefixedScreens.js";
 export type { ProgressRow } from "./progressRow.js";
 export { type QrCode, qrCode } from "./qr.js";
 export {
