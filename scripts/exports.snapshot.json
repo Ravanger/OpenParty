@@ -251,7 +251,25 @@
           "default": "./dist/kits/index.js"
         },
         "symbols": {
+          "MountRoundModuleOptions": {
+            "experimental": true
+          },
           "Responses": {
+            "experimental": true
+          },
+          "RoundModule": {
+            "experimental": true
+          },
+          "RoundModuleAction": {
+            "experimental": true
+          },
+          "RoundModuleActionContext": {
+            "experimental": true
+          },
+          "RoundModuleContext": {
+            "experimental": true
+          },
+          "RoundModulePhase": {
             "experimental": true
           },
           "Slots": {
@@ -266,6 +284,9 @@
           "countVoted": {
             "experimental": true
           },
+          "defineRoundModule": {
+            "experimental": true
+          },
           "drawPool": {
             "experimental": true
           },
@@ -276,6 +297,12 @@
             "experimental": true
           },
           "leaders": {
+            "experimental": true
+          },
+          "mountRoundModule": {
+            "experimental": true
+          },
+          "roundModuleActionFactory": {
             "experimental": true
           },
           "tallyVotes": {

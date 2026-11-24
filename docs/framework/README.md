@@ -253,7 +253,65 @@ outside the chain), no cancelling queued transitions.
 - `loggingMiddleware({ log })` — one line per event, no hardcoded console. Exact formats: `enter <phase>`, `timeout <phase>`, `action <ACTION_TYPE> by <senderId> in <phase>`, `transition <from> -> <to>`. No line for `roster-change`.
 - `timingMiddleware()` — records per-phase durations into a store kept outside `ctx.priv` (keyed by it; read back with `getPhaseTimings(priv)`); each phase gets `{ enteredAt: number, durationsMs: number[] }`. Started on enter (before the hook), closed when a transition out of that phase is observed. The currently open phase has no final duration yet. Never touches `ctx.state` (it is synced to clients) or `ctx.priv`; timing metadata stays server-side.
 - `actionLogMiddleware()` — append-only, JSON-serializable record of every middleware-visible event, kept outside `ctx.priv` (read back with `getActionLog(priv)`); see Action log and replay below.
-- `textFilterMiddleware(filter)` — rejects an action whose declared text fields fail the room's filter level; player and audience actions alike (an audience action declares its `textFields` the same way). Declare which payload fields are free text per action (`textFields: ["..."]` on the action definition; the framework never guesses) and how strict this room is via `filterLevel?: (options) => "off" | "moderate" | "strict"` on the game definition (default `"off"`). For each declared string field it runs `filter.check(value, level)` in declaration order and, on the first failure, rejects with `CONTENT_REJECTED` and a fixed core string (`CoreStrings.contentRejected`, default `CLIENT_MESSAGES.CONTENT_REJECTED`) — always with `redactPayload`, so an action log records the rejection without the offending text — without running the handler. The filter's own reason never reaches a client; it is passed only to `{ onRejected?(ctx, reason) }` (the second argument), which fires after the rejection is recorded; the game can react (e.g. count rejections) but cannot change the outcome. A `TextFilter` comes from `@openparty/content` (`createTextFilter()` is the default English one); at `"off"` the filter is never called, and actions without `textFields` pass untouched.
+- `textFilterMiddleware(filter)` — rejects an action whose declared text fields fail the room's text-filter level; player and audience actions alike (an audience action declares its `textFields` the same way). Declare which payload fields are free text per action (`textFields: ["..."]` on the action definition; the framework never guesses) and how strict this room is via `filterLevel?: (options) => "off" | "moderate" | "strict"` on the game definition (default `"off"`). For each declared string field it runs `filter.check(value, level)` in declaration order and, on the first failure, rejects with `CONTENT_REJECTED` and a fixed core string (`CoreStrings.contentRejected`, default `CLIENT_MESSAGES.CONTENT_REJECTED`) — always with `redactPayload`, so an action log records the rejection without the offending text — without running the handler. The filter's own reason never reaches a client; it is passed only to `{ onRejected?(ctx, reason) }` (the second argument), which fires after the rejection is recorded; the game can react (e.g. count rejections) but cannot change the outcome. A `TextFilter` comes from `@openparty/content` (`createTextFilter()` is the default English one); at `"off"` the filter is never called, and actions without `textFields` pass untouched.
+
+### Round modules
+A round module is a self-contained sub-game: its own phases and actions over a slice of the host's synced state. Define it once with `defineRoundModule`, mount it into a game under a name prefix with `mountRoundModule` (both from `@openparty/core/kits`, `@experimental`) — the mount returns ordinary phase definitions to spread into `GameDefinition.phases`.
+
+```ts
+import { defineRoundModule, mountRoundModule, roundModuleActionFactory } from "@openparty/core/kits";
+import { z } from "zod";
+
+interface TapSlice { taps: Record<string, number> }
+const action = roundModuleActionFactory<TapSlice, {}, { limit: number }>();
+
+export const TapRound = defineRoundModule<TapSlice, {}, { limit: number }, { total: number }>({
+  id: "tap",
+  enter: (ctx) => { ctx.state.taps = {}; }, // per-run setup; runs on entry into the first declared phase
+  phases: {
+    Tap: {
+      duration: 10_000,
+      onTimeout: (ctx) => ctx.finish(),
+      actions: {
+        TAP: action({
+          from: "player",
+          payload: z.object({}),
+          handler: (ctx) => {
+            ctx.state.taps[ctx.playerId] = (ctx.state.taps[ctx.playerId] ?? 0) + 1;
+          },
+        }),
+      },
+    },
+  },
+  result: (ctx) => ({ total: Object.values(ctx.state.taps).reduce((a, b) => a + b, 0) }),
+});
+
+export const MyGame = defineGame<State, Priv>({
+  // ...name, version, player limits as in Minimal game
+  startPhase: "Ready",
+  createPrivateState: () => ({ tap: {} }),
+  phases: {
+    Ready: {}, // the host starts a round by transitioning to the prefixed name, "MOD_Tap"
+    ...mountRoundModule(TapRound, {
+      prefix: "MOD",
+      slice: (state) => state.tap, // the module's slice of the host's synced state
+      priv: (priv) => priv.tap, // its slice of the private state
+      params: { limit: 5 }, // per-run parameters, read as ctx.params in the module
+      onDone: (ctx, result) => { // the host's full context; leave the module from here
+        ctx.state.roundTotal = result.total;
+        ctx.transition("Scored");
+      },
+    }),
+    Scored: {},
+  },
+});
+```
+
+Naming and validation. The module's phases become `<prefix>_<Phase>` and its actions `<PREFIX>__<ACTION>` (the prefix upper-cased), e.g. `MOD_Tap` / `MOD__TAP`; both are validated at mount time against the same name rules as a game, and a `GameDefinitionError` lists every problem. `defineRoundModule` validates the module's own names: phase names follow the game phase rule (`Lobby` stays reserved), action names are SCREAMING_SNAKE_CASE, and none of them may be a reserved built-in — a prefixed name can never equal one, so the module's own name is what gets checked. The same module can be mounted several times in one game under different prefixes; mounting it twice under the same prefix throws at definition time.
+
+What a module hook sees. `state` narrowed to its slice, `priv` narrowed to its private slice, and `params` — the type system keeps it away from the rest of the host's state. `transition` takes a module-local phase name; the mount maps it to the prefixed one, so a module moves between its own phases without knowing the prefix. The context also forwards `returnToLobby`, `rng`, `newId` and `now`, plus the usual `players`/`send`/`broadcast`/`showTo`/`hideFrom`/`log`.
+
+Leaving. Only through `ctx.finish()`: it computes `result(ctx)` from the slice and runs the mount's `onDone(hostCtx, result)` with the host's full context — the host leaves the module from there (queue a transition or return to the lobby). `enter` runs when the module is entered — on entry into its first declared phase, before that phase's `onEnter` — so reset the slice for the run there. Module hooks must not hold per-run state in closures: `replayLog` re-runs the same definition object, so a closure flag would break replay determinism. A module session replays like any other — the log records the prefixed names and `replayLog` re-drives the mounted phases through the same definition.
 
 ### Action log and replay
 `actionLogMiddleware()` records everything the middleware sees into an append-only, JSON-serializable log
@@ -1382,7 +1440,7 @@ export { svelteConfig as default } from "@openparty/config/svelte";
 | `@openparty/shared` | `NAME_MAX_LENGTH`: the cap `SET_NAME` enforces on player names; `MAX_SEATS`: the most playerIds a room's `seats` option may list; `MAX_OPTIONS_JSON_LENGTH`: the cap on serialized options at room creation and in `SET_OPTIONS`; `FRAMEWORK_OPTION_KEYS`: the framework-owned create/join keys, derived from `JoinOptionsSchema` and `RoomOptionsSchema` so it cannot drift from them; `ROOM_CODE_LENGTH` and `ROOM_CODE_ALPHABET`: the shape of a room code; `sanitizeRoomCode(raw)`: uppercases, drops other characters and cuts to the code length (for a code input); `FRAMEWORK_VERSION`: recorded in exported replay bundles |
 | `@openparty/client-utils` | `Parsed<T>` (`{ ok: true, value } \| { ok: false, error }`) and `between(value, min, max)` for argument parsing; `waitFor(predicate, what, timeoutMs)` poll loop; `resolveRoomCode(apiBase, code)` (rejects with `RoomCodeError`, `reason` `"not-found"` or `"bad-reply"`); `joinUrl(base, code)` / `tvUrl(base, code)` share links; `claimName(room, playerId, name, timeoutMs?)` (type `SeatRoom`), `apiBaseOf(endpoint, apiPort)` |
 | `@openparty/core` | `EmptyPayloadSchema` (the payload of an action with no fields), `playAgainAction()` (host-only return-to-lobby action for a game's own end phase); `shuffle(items, rng)`, `weightedSample(items, count, rng, weightOf)` (a weighted draw without replacement: a weight of 0 is never picked, equal weights deal a uniform shuffle, and there is no default rng), `required(value, what)`; options resolution `resolveGameOptions(definition, raw)` → `{ ok: true, options } | { ok: false, reason: "unexpected" | "invalid" | "too-large" }` (the one room-options contract — no schema means no keys, then the schema parse, then the `MAX_OPTIONS_JSON_LENGTH` cap; Zod text never reaches the result); roster guards: `seatedCount(ctx)` (active and ready seats, counting briefly disconnected ones), `isBelowMinimum(ctx, min)`, `departedIds(ids, ctx)` — they only report; `endIfBelowMinimum(ctx, min, notice)` sets the notice and queues the return to the lobby instead; `RosterLedger` (a private-state ledger: `remember(ctx)`, `nameOf(ctx, id)`, `participantIds`, `rememberedNames`, `drop(id)`, `clear()`); synced per-player entry helpers `ensureMine(ctx, mine, playerId, create)`, `resetMine(ctx, mine)`, `pruneMine(ctx, mine, ids)` |
-| `@openparty/core/kits` | Phase kits (`@experimental`). collectResponses: `allResponded(slots, responses, presentIds)` (complete when every present author responded to every slot), `entriesFor(slotId, slots, responses)` (one entry per author, `text` undefined when unanswered); types `Slots`, `Responses`. voteAndTally: `tallyVotes(voterIds, votes)`, `allHaveVoted(voterIds, votes)`, `countVoted(voterIds, votes)`, `eligibleVoters(activeIds, excludedIds)` (an empty exclusion list allows self-vote), `leaders(counts)` → `{ top, ids }` (a tie shows up as `ids.length > 1`). drawPool: `drawPool(items, usedIds, needed)` → `{ items, exhausted }` — the unused items when at least `needed` remain, otherwise all items with their ids cleared from the mutable `usedIds` set |
+| `@openparty/core/kits` | Phase kits (`@experimental`). collectResponses: `allResponded(slots, responses, presentIds)` (complete when every present author responded to every slot), `entriesFor(slotId, slots, responses)` (one entry per author, `text` undefined when unanswered); types `Slots`, `Responses`. voteAndTally: `tallyVotes(voterIds, votes)`, `allHaveVoted(voterIds, votes)`, `countVoted(voterIds, votes)`, `eligibleVoters(activeIds, excludedIds)` (an empty exclusion list allows self-vote), `leaders(counts)` → `{ top, ids }` (a tie shows up as `ids.length > 1`). drawPool: `drawPool(items, usedIds, needed)` → `{ items, exhausted }` — the unused items when at least `needed` remain, otherwise all items with their ids cleared from the mutable `usedIds` set. Round modules (see Round modules): `defineRoundModule(module)` (validates the module's local names), `mountRoundModule(module, { prefix, slice, priv, params, onDone })` → host phases to spread into `GameDefinition.phases` (phases become `<prefix>_<Phase>`, actions `<PREFIX>__<ACTION>`; a duplicate prefix for the same module throws), `roundModuleActionFactory<TSlice, TPriv, TParams>()` (type binding for a module's actions); types `RoundModule`, `RoundModulePhase`, `RoundModuleAction`, `RoundModuleContext`, `RoundModuleActionContext`, `MountRoundModuleOptions` |
 | `@openparty/server/node` | `startNodeServer({ games, port?, apiPort? })` (a game server and its API in this process; `.stop()`), `serveApi(codes, { port, host? })`: the code API on Node's `http` (the Bun entry serves its own) |
 | `@openparty/server/probe` | `ServerProbe` (`isGameServer(port, apiPort, host?)` — `host` defaults to `localhost` and is used for both the TCP check and the code-API fetch; `canConnect(port)`, `answers(url)`), `freePort()`, `closeHttpServer(server)` (resolves when the server already stopped): port probing without Colyseus |
 | `@openparty/content` | `loadJsoncDir(dir, schema, { idOf, label, onInvalid?, maxFiles?, maxFileBytes? })`: a folder of commented JSON files (symlinks ignored), validated; bad files throw by default (`onInvalid: "skip"` warns and skips), caps at 256 files / 1 MiB per file; `loadJsoncFile(file, schema, { label, maxFileBytes? })`: one such file with the same messages — a game's single-file content loader; `stripJsonComments` |
