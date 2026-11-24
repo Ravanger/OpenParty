@@ -254,6 +254,9 @@
           "default": "./dist/kits/index.js"
         },
         "symbols": {
+          "Graph": {
+            "experimental": true
+          },
           "MountRoundModuleOptions": {
             "experimental": true
           },
@@ -314,13 +317,22 @@
           "nextTurn": {
             "experimental": true
           },
+          "reachable": {
+            "experimental": true
+          },
           "roundModuleActionFactory": {
+            "experimental": true
+          },
+          "shortestPath": {
             "experimental": true
           },
           "tallyVotes": {
             "experimental": true
           },
           "teamTotals": {
+            "experimental": true
+          },
+          "validateGraph": {
             "experimental": true
           }
         }

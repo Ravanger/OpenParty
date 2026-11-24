@@ -1,5 +1,6 @@
 export { allResponded, entriesFor, type Responses, type Slots } from "./collectResponses.js";
 export { drawPool } from "./drawPool.js";
+export { type Graph, reachable, shortestPath, validateGraph } from "./graph.js";
 export {
   defineRoundModule,
   type MountRoundModuleOptions,
