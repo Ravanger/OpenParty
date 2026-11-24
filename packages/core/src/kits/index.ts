@@ -11,6 +11,8 @@ export {
   type RoundModulePhase,
   roundModuleActionFactory,
 } from "./roundModule.js";
+export { assignTeams, teamTotals } from "./teams.js";
+export { createTurnOrder, nextTurn } from "./turnOrder.js";
 export {
   allHaveVoted,
   countVoted,

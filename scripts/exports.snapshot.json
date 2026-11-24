@@ -284,7 +284,13 @@
           "allResponded": {
             "experimental": true
           },
+          "assignTeams": {
+            "experimental": true
+          },
           "countVoted": {
+            "experimental": true
+          },
+          "createTurnOrder": {
             "experimental": true
           },
           "defineRoundModule": {
@@ -305,10 +311,16 @@
           "mountRoundModule": {
             "experimental": true
           },
+          "nextTurn": {
+            "experimental": true
+          },
           "roundModuleActionFactory": {
             "experimental": true
           },
           "tallyVotes": {
+            "experimental": true
+          },
+          "teamTotals": {
             "experimental": true
           }
         }
