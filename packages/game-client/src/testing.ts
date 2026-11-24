@@ -41,6 +41,10 @@ export class StubRoom<TState extends BaseGameState> implements RoomLike<TState> 
   readonly sent: Array<{ type: string; payload: unknown }> = [];
   /** What `request` resolves with next; set to a rejected result to test failures. */
   reply: unknown = { ok: true };
+  /** The round-trip time `ping` reports, in ms. */
+  pingRttMs = 0;
+  /** How many times `ping` was called, for tests. */
+  pingCalls = 0;
 
   private readonly stateChange = signal<[TState]>();
   private readonly drop = signal<[]>();
@@ -73,6 +77,12 @@ export class StubRoom<TState extends BaseGameState> implements RoomLike<TState> 
   async request(type: string, payload?: unknown): Promise<unknown> {
     this.requests.push({ type, payload });
     return this.reply;
+  }
+
+  /** Calls back once with `pingRttMs`, as a server round-trip measurement would. */
+  ping(callback: (ms: number) => void): void {
+    ++this.pingCalls;
+    callback(this.pingRttMs);
   }
 
   /** Fires `onLeave` with the consented close code 1000 and resolves with it. */

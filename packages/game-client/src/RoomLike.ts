@@ -14,5 +14,7 @@ export interface RoomLike<TState> {
   onMessage(type: string, callback: (payload: unknown) => void): () => void;
   send(type: string, payload?: unknown): void;
   request(type: string, payload?: unknown): Promise<unknown>;
+  /** Measures the round-trip time once and calls back with it in milliseconds. */
+  ping(callback: (ms: number) => void): void;
   leave(consented?: boolean): Promise<number>;
 }

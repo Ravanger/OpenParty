@@ -26,6 +26,7 @@ import { PersistedSession } from "./PersistedSession.js";
 import type { RoomLike } from "./RoomLike.js";
 import { parseExportReplay } from "./replayRequest.js";
 import { StateFeedback } from "./StateFeedback.js";
+import { ServerClock } from "./serverClock.js";
 import { type ClientStrings, defaultClientStrings, resolveClientMessages } from "./strings.js";
 
 /** Where the manager is in its connection lifecycle. */
@@ -98,6 +99,13 @@ export class GameConnectionManager<
 
   /** Sound and animation events derived from the room's state and registered server broadcasts. */
   readonly feedback: FeedbackBus;
+  /**
+   * A running estimate of the server's current time from the room's `serverNow`, refined by the
+   * measured round-trip time. Attached and detached with the room; use `now()` for motion.
+   *
+   * @experimental Real-time client API; may change before 1.0.
+   */
+  readonly clock: ServerClock<TState>;
   private room: RoomLike<TState> | undefined = $state.raw(undefined);
   private readonly client: Client;
   private readonly session: PersistedSession;
@@ -134,7 +142,8 @@ export class GameConnectionManager<
     this.messages = resolveClientMessages(this.strings);
     const matchMedia = options.matchMedia ?? ((query: string) => window.matchMedia(query));
     this.feedback = new FeedbackBus(() => matchMedia("(prefers-reduced-motion: reduce)").matches);
-    this.stateFeedback = new StateFeedback(this.feedback, () => this.room);
+    this.clock = new ServerClock<TState>();
+    this.stateFeedback = new StateFeedback(this.feedback, () => this.room, this.clock);
     this.relay = new MessageRelay(this.bus, this.feedback);
     this.bus.on(ServerMessage.ERROR, (payload) => this.serverErrorReceived(payload));
   }
@@ -336,6 +345,7 @@ export class GameConnectionManager<
     this.detach();
     this.room = room;
     this.bindState();
+    this.clock.attach(room);
     this.bus.bind(room);
     room.onDrop(() => this.whileAttached(room, () => (this.status = "reconnecting")));
     room.onReconnect(() =>
@@ -444,6 +454,7 @@ export class GameConnectionManager<
   private detach(status?: ConnectionStatus): void {
     this.unbindState();
     this.stateFeedback.stop();
+    this.clock.detach();
     this.bus.unbind();
     this.room = undefined;
     if (status) this.status = status;

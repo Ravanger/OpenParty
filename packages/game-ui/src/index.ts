@@ -59,5 +59,6 @@ export {
 export { TextDraft, type TextDraftConfig } from "./TextDraft.svelte.js";
 export { TypingReporter } from "./TypingReporter.js";
 export { plural } from "./text.js";
+export { Tween, type TweenOptions, type TweenPoint, type TweenSpec } from "./tween.svelte.js";
 export { type LobbyPlayer, WaitingRoomViewModel } from "./WaitingRoomViewModel.svelte.js";
 export { WelcomeViewModel } from "./WelcomeViewModel.svelte.js";

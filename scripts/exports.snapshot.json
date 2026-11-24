@@ -399,6 +399,9 @@
           "MessageFeedbackEvent": {},
           "PhaseFeedbackEvent": {},
           "RoomLike": {},
+          "ServerClock": {
+            "experimental": true
+          },
           "UrgentFeedbackEvent": {},
           "clientConfig": {},
           "defaultClientStrings": {},
@@ -561,6 +564,18 @@
           "StickerShape": {},
           "TextDraft": {},
           "TextDraftConfig": {},
+          "Tween": {
+            "experimental": true
+          },
+          "TweenOptions": {
+            "experimental": true
+          },
+          "TweenPoint": {
+            "experimental": true
+          },
+          "TweenSpec": {
+            "experimental": true
+          },
           "TypingReporter": {},
           "UiStrings": {},
           "WaitingRoomViewModel": {},

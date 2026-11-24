@@ -1023,6 +1023,7 @@ const result = await manager.sendAction("PRESS", { power: 3 });
 | `lastServerError`, `dismissError()` | last rejected action or pushed `ERROR` (`$state`), for a toast. A kick arrives as `KICKED`, after which `status` is `"disconnected"` |
 | `onMessage(type, cb)` | returns an unsubscribe function; survives room changes. Pass a second generic, `GameConnectionManager<State, Events>`, with `Events` mapping message names to payload types, and `type` is limited to those names and `cb` gets the matching payload; the default accepts any name with an `unknown` payload |
 | `countdown()` | a `Countdown` (`secondsLeft`, `isUrgent`, `isExpired`) to `phaseEndsAt`, corrected for client clock skew; ticks only while read in a Svelte effect. The urgent rule (more than 0 and at most 10 seconds left) is also exported as `isUrgent(secondsLeft)` from `@openparty/game-client` |
+| `clock` | a `ServerClock` estimate of the server's current time (`now()`) from `state.serverNow`, refined by the round-trip time (`RoomLike.ping`) on join and every 30 s while read. It falls back to local time before the first sample and never moves backwards; use it to drive client motion instead of `Date.now()` |
 | `dispose()` | stop listening and close without forgetting the session |
 
 ### Browser-safe state classes
@@ -1059,6 +1060,11 @@ silent baseline), `{ type: "urgent" }` once per phase when the countdown enters 
 server broadcasts whose name the game registered with `onMessage`. `manager.feedback.on(type, callback)` returns an unsubscribe. The manager runs
 its state watchers (phase observation and urgency timer) only while at least one `phase` or `urgent` listener exists — they start on the first
 subscription and stop when the last one leaves; `hasListeners(type)` reports subscribers and `onChange(callback)` fires on every count change.
+
+### Server clock and tweened motion
+`manager.clock` is a `ServerClock`: an estimate of the server's current time from `state.serverNow`. It anchors on each new reading, counts half the measured round-trip time (`RoomLike.ping`, sampled on join and every 30 s while the clock is read) as the one-way delay, and advances with the local clock in between. `clock.now()` returns the estimate in ms — local time before the first reading and never below the previous call; `clock.isSynced` says whether a reading has arrived. `countdown()` and the urgency feedback use the same anchoring, so a screen can drive motion from `clock.now()` instead of `Date.now()`. A custom `RoomLike` must implement `ping(callback: (ms: number) => void)`.
+
+For a movement the server wrote once — start time, duration and endpoints — pass the clock to `@openparty/game-ui`'s `Tween` (see Game UI viewmodels) rather than streaming every position.
 
 ### Testing UI code
 `@openparty/game-client/testing` has `StubRoom`, an in-memory room around a real state object. `manager.attach(new StubRoom(state))`, mutate the state,
@@ -1101,6 +1107,7 @@ vitest `setupFiles`: it shims the storages and makes the SDK use `ws` under jsdo
 | `LobbySettingsViewModel` | The host's options form, generated from the game's options schema (`OptionFields` builds the fields). |
 | `OptionsReader` | The published options, parsed once per state change: `new OptionsReader(manager, schema, defaults?)` exposes reactive `current`, falling back to `defaults` or the schema's `.default()`s. |
 | `PhaseClock` | A phase's server countdown plus its configured length: `new PhaseClock(manager, announceAt?)` exposes `secondsLeft`, `isUrgent`, `announcement` (30/10/5 by default) and a `totalSeconds` getter read from `state.phaseDurationMs` (falls back to `secondsLeft` when the phase has no published duration). |
+| `Tween` | `(@experimental)` Interpolates a movement the server wrote once: `new Tween({ from, to \| path, startedAt, durationMs }, clock, { reducedMotion? })` with `startedAt` on the server clock; reactive `position` (`{ x, y }`) and `progress`, measured along a `path` by distance, clamped to the ends, straight to the end under reduced motion. Reads `clock.now()` (pass `manager.clock`), never `Date.now()`. |
 | `TypingReporter` | One typing message per change: `new TypingReporter(send, idleMs = 2500)`; call `keystroke()` per key and `stop()` on submit or teardown. |
 | `SoundPolicy` | The sound gate: off by default, one persisted toggle (stored under the game's `storagePrefix`), nothing plays before the first tap. `new SoundPolicy({ storage, storagePrefix, target })`; reactive `enabled`, `unlocked`, `canPlay` and `toggle()`; `dispose()` removes the gesture listeners. A throwing or empty storage degrades to off. |
 | `AppRouter` | Routes the connection status and room phase to a screen of your screen table (see below). `createAppRouter(manager, screens)` builds one. |

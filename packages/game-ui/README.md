@@ -6,7 +6,7 @@ Ships Svelte source; consumers need the Svelte plugin — Vite with `@sveltejs/v
 
 | Import | What |
 |---|---|
-| `@openparty/game-ui` | `createAppRouter`, `AppRouter`, `WelcomeViewModel`, `WaitingRoomViewModel`, `LobbySettingsViewModel`, `OptionsReader`, `PhaseClock`, `TypingReporter`, `GameControlsViewModel`, `HowToPlayViewModel`, `JoinNextRoundViewModel`, `NameField`, `ReplayViewModel`, `snapshotManager`, `replayManager`, `SoundPolicy`, `Spotlight`, `TextDraft`; `OptionFields`, `qrCode`, `playerSticker`, `rankRows`, `leaders`, `podiumSteps`, `roundLabel`, `plural`, `prefixedScreens`, `downloadReplay`, `mountReplayIfRequested`; `setStrings`, `defaultUiStrings`, `UiStrings`; types `RouterScreen`, `LobbySettingsConfig`, `HowToPlayStep`, `HowToPlayStorage`, `HowToPlayTimer`, `HowToPlayViewModelOptions`, `SoundPolicyOptions`, `StickerShape`, `TextDraftConfig`, `ProgressRow`, `ReplayManager` |
+| `@openparty/game-ui` | `createAppRouter`, `AppRouter`, `WelcomeViewModel`, `WaitingRoomViewModel`, `LobbySettingsViewModel`, `OptionsReader`, `PhaseClock`, `TypingReporter`, `GameControlsViewModel`, `HowToPlayViewModel`, `JoinNextRoundViewModel`, `NameField`, `ReplayViewModel`, `snapshotManager`, `replayManager`, `SoundPolicy`, `Spotlight`, `TextDraft`, `Tween`; `OptionFields`, `qrCode`, `playerSticker`, `rankRows`, `leaders`, `podiumSteps`, `roundLabel`, `plural`, `prefixedScreens`, `downloadReplay`, `mountReplayIfRequested`; `setStrings`, `defaultUiStrings`, `UiStrings`; types `RouterScreen`, `LobbySettingsConfig`, `HowToPlayStep`, `HowToPlayStorage`, `HowToPlayTimer`, `HowToPlayViewModelOptions`, `SoundPolicyOptions`, `StickerShape`, `TextDraftConfig`, `ProgressRow`, `ReplayManager`, `TweenPoint`, `TweenSpec`, `TweenOptions` |
 | `@openparty/game-ui/components` | Svelte 5 source: `GameShell`, `WelcomeScreen`, `StatusPanel`, `Timer`, `PhaseTimer`, `PhaseBar`, `PlayerSticker`, `QrCode`, `ActionBar`, `NameInput`, `SoundToggle`, `LobbySettings`, `GameControls`, `HowToPlay`, `HowToPlayButton`, `Podium`, `Confetti`, `ScreenTitle`, `ProgressStrip`, `ChoiceBoard`, `ExportReplayButton`, `ReplayViewer` |
 | `@openparty/game-ui/testing` | Test-only CSS audits for a game's `ui/` directory: `auditContrast({ uiDir, minChecked, pairs? })` (WCAG AA over same-rule colour/background pairs plus explicit cross-rule pairs; fails on a colour variable defined nowhere and throws when fewer than `minChecked` pairs were checked), `auditReducedMotion({ uiDir, minGuarded, allow? })` (every transition/animation/`scroll-behavior: smooth` inside a no-preference block, no Svelte motion directives outside the allow list; throws below `minGuarded`) and the walkers `cssFiles`, `rules`, `stripComments` |
 
@@ -158,6 +158,17 @@ Any viewmodel that needs the published options reads them through `OptionsReader
 ## Phase clock and typing
 
 `PhaseClock(manager, announceAt?)` wraps `manager.countdown()`: `secondsLeft`, `isUrgent` (the last ten seconds), `announcement` ("N seconds remaining" at 30/10/5 by default), `fraction` (the share of the phase still running, 0 to 1) and a `totalSeconds` getter read from the synced `state.phaseDurationMs` — when the server published no length (0), it falls back to the current `secondsLeft`, so the bar shows full instead of dividing by zero.
+
+`Tween` (`@experimental`) animates a movement the server wrote once: `new Tween({ from, to | path, startedAt, durationMs }, clock, { reducedMotion? })`. `startedAt` is on the server clock; pass `manager.clock` as `clock`. Reactive `position` (`{ x, y }`) and `progress` read the clock and invalidate roughly every frame while read in an effect — the tween never uses `Date.now()` and writes nothing into game state. It returns `from` before `startedAt`, clamps at the end (and for a zero duration), measures a `path` by cumulative distance, and jumps straight to the end when `reducedMotion()` returns true. Inject the preference:
+
+```ts
+const tween = new Tween(
+  { from: { x: 0, y: 0 }, path: waypoints, startedAt: state.moveStartedAt, durationMs: state.moveDurationMs },
+  manager.clock,
+  { reducedMotion: () => window.matchMedia("(prefers-reduced-motion: reduce)").matches },
+);
+// $derived(tween.position)
+```
 
 `roundLabel(round, total)` is the shared "Round 2 of 3" label for round-based screens; pass it the state's `roundNumber` and `totalRounds` (zeros before the first round).
 
