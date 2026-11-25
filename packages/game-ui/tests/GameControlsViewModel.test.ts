@@ -108,4 +108,55 @@ describe("GameControlsViewModel", () => {
     c.state.players.delete(c.manager.playerId);
     expect(vm.isSpectator).toBe(true);
   });
+
+  it("lets only the host pause and resume, closing the menu with either", async () => {
+    const c = host();
+    const vm = new GameControlsViewModel(c.manager);
+    expect(vm.isPaused).toBe(false);
+    expect(vm.canPause).toBe(true);
+    expect(vm.canResume).toBe(false);
+    await vm.resume();
+    expect(c.room.requests).toEqual([]); // nothing to resume
+    vm.toggleMenu();
+    await vm.pause();
+    expect(vm.menuOpen).toBe(false);
+    expect(c.room.requests).toEqual([{ type: "ACTION", payload: { type: "PAUSE_GAME" } }]);
+    c.state.pausedAt = Date.now();
+    expect(vm.isPaused).toBe(true);
+    expect(vm.canPause).toBe(false);
+    expect(vm.canResume).toBe(true);
+    await vm.pause(); // already paused: refused locally, nothing sent
+    expect(c.room.requests).toHaveLength(1);
+    vm.toggleMenu();
+    await vm.resume();
+    expect(vm.menuOpen).toBe(false);
+    expect(c.room.requests).toEqual([
+      { type: "ACTION", payload: { type: "PAUSE_GAME" } },
+      { type: "ACTION", payload: { type: "RESUME_GAME" } },
+    ]);
+  });
+
+  it("sends nothing for a guest and offers no pause in the lobby", async () => {
+    const c = connectedClient({ stateClass: BaseGameState, phase: "Play" });
+    const vm = new GameControlsViewModel(c.manager);
+    expect(vm.canPause).toBe(false);
+    expect(vm.canResume).toBe(false);
+    await vm.pause();
+    await vm.resume();
+    expect(c.room.requests).toEqual([]);
+
+    const l = host("Lobby");
+    const lobbyVm = new GameControlsViewModel(l.manager);
+    expect(lobbyVm.isPaused).toBe(false);
+    expect(lobbyVm.canPause).toBe(false);
+    expect(lobbyVm.canResume).toBe(false);
+  });
+
+  it("offers no pause once the game is over", () => {
+    const c = host();
+    const vm = new GameControlsViewModel(c.manager, (state) => state.phase === "Done");
+    c.state.phase = "Done";
+    expect(vm.canPause).toBe(false);
+    expect(vm.canResume).toBe(false);
+  });
 });

@@ -24,10 +24,19 @@ export class Countdown {
   readonly isUrgent: boolean = $derived(isUrgentSeconds(this.secondsLeft));
   private readonly track: () => void;
 
+  /**
+   * @param getEndsAt - The server-set deadline in epoch ms (0 for none).
+   * @param getServerNowFn - The latest `serverNow` seen in state.
+   * @param tickMs - The interval the countdown re-reads while a Svelte effect watches it.
+   * @param getPausedAt - Epoch ms at which the host paused the room, or 0 while it runs; when > 0
+   * the countdown freezes at that instant, because the server shifts `phaseEndsAt` by the paused
+   * time on resume.
+   */
   constructor(
     private readonly getEndsAt: () => number,
     private readonly getServerNowFn: () => number,
     tickMs = DEFAULT_TICK_MS,
+    private readonly getPausedAt: () => number = () => 0,
   ) {
     this.sync();
     this.track = createSubscriber((update) => {
@@ -39,13 +48,15 @@ export class Countdown {
     });
   }
 
-  /** Whole seconds left, skew-corrected against the server clock; `0` when no timer is set or no server time has arrived. */
+  /** Whole seconds left, skew-corrected against the server clock and frozen at `pausedAt` while the host has paused; `0` when no timer is set or no server time has arrived. */
   get secondsLeft(): number {
     this.track();
     this.sync();
     const ends = this.getEndsAt();
+    const pausedAt = this.getPausedAt();
     if (!ends || !this.clock.isSynced) return 0;
-    return Math.max(0, Math.ceil((ends - this.clock.now()) / 1000));
+    const now = pausedAt > 0 ? Math.min(this.clock.now(), pausedAt) : this.clock.now();
+    return Math.max(0, Math.ceil((ends - now) / 1000));
   }
 
   /** Re-anchors the clock to the newest server time, if it changed. */

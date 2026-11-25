@@ -123,6 +123,20 @@ describe("GameShell", () => {
     });
     expect(third.container.querySelector(".phase-banner")).not.toBeInTheDocument();
   });
+
+  it("shows the paused overlay while the room is paused and hides it on resume", () => {
+    const s = setup("Play");
+    const { container } = render(GameShellHarness, { router: s.router, controls: s.controls });
+    expect(container.querySelector(".paused-overlay")).not.toBeInTheDocument();
+    s.state.pausedAt = 1_000_000;
+    s.patch();
+    flushSync();
+    expect(container.querySelector(".paused-overlay")).toBeInTheDocument();
+    s.state.pausedAt = 0;
+    s.patch();
+    flushSync();
+    expect(container.querySelector(".paused-overlay")).not.toBeInTheDocument();
+  });
 });
 
 describe("GameShell focus on screen change", () => {

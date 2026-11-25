@@ -78,10 +78,11 @@ export class StateFeedback<TState extends BaseGameState = BaseGameState> {
     this.urgencyTimer = undefined;
   }
 
-  /** Fires the once-per-phase urgent event while the phase's countdown is in its last ten seconds, on the shared server clock. */
+  /** Fires the once-per-phase urgent event while the phase's countdown is in its last ten seconds, on the shared server clock. The clock keeps observing while paused (so the offset stays fresh for the resume), but a paused deadline must not run out in wall time, so nothing fires until `pausedAt` clears. */
   private observeUrgency(room: RoomLike<TState>): void {
     const state = room.state;
     this.clock.observe(state.serverNow);
+    if (state.pausedAt > 0) return;
     const ends = state.phaseEndsAt;
     if (!ends || !this.clock.isSynced) return;
     const remainingMs = ends - this.clock.now();

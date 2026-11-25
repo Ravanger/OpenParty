@@ -106,14 +106,14 @@ if (response.ok === false) console.warn(manager.lastServerError?.message);
 
 ## Show the phase clock
 
-`countdown()` counts down to `state.phaseEndsAt`, corrected for client clock skew. It ticks only while something reads it inside a Svelte effect and stops when the last reader goes away — no cleanup needed.
+`countdown()` counts down to `state.phaseEndsAt`, corrected for client clock skew. While the host has paused the room (`state.pausedAt > 0`) it clamps the clock to that instant, so the countdown freezes and never expires mid-pause; on resume the server shifts `phaseEndsAt` by the paused time and the countdown continues from where it stopped. It ticks only while something reads it inside a Svelte effect and stops when the last reader goes away — no cleanup needed.
 
 ```ts
 const clock = manager.countdown();
 clock.secondsLeft; clock.isUrgent; clock.isExpired; // reactive
 ```
 
-The urgent rule itself is exported as `isUrgent(secondsLeft)`: more than 0 and at most 10 seconds left, so an expired timer (0) is not urgent. `Countdown.isUrgent`, the manager's `urgent` feedback event and the game-ui `Timer` component all use it, so the threshold is defined once.
+The urgent rule itself is exported as `isUrgent(secondsLeft)`: more than 0 and at most 10 seconds left, so an expired timer (0) is not urgent. `Countdown.isUrgent`, the manager's `urgent` feedback event and the game-ui `Timer` component all use it, so the threshold is defined once. The `urgent` feedback keeps observing the server clock while the room is paused (the offset stays fresh for the resume) but fires nothing until `pausedAt` clears — a frozen deadline must not cross the urgent window in wall time.
 
 ### Server clock
 

@@ -167,4 +167,68 @@ describe("StateFeedback", () => {
     off();
     expect(seen).toHaveLength(0);
   });
+
+  it("does not fire urgent while paused, even when wall time crosses the window", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1_000_000);
+    const { bus, state, room, holder, feedback } = setup();
+    const seen: unknown[] = [];
+    bus.on("urgent", (event) => seen.push(event));
+    holder.room = room;
+    feedback.sync();
+
+    state.serverNow = 1_000_000;
+    state.phaseEndsAt = 1_025_000; // twenty-five seconds left: outside the window
+    room.patch();
+    await vi.advanceTimersByTimeAsync(250);
+    expect(seen).toHaveLength(0);
+
+    state.pausedAt = 1_000_000; // the host pauses with time to spare
+    room.patch();
+    state.serverNow = 1_016_000; // wall time crosses the ten-second window while paused
+    room.patch();
+    await vi.advanceTimersByTimeAsync(250);
+    expect(seen).toHaveLength(0);
+
+    // resume: the host shifts the deadline by the paused time, so no urgency either
+    state.pausedAt = 0;
+    state.phaseEndsAt = 1_041_000;
+    room.patch();
+    await vi.advanceTimersByTimeAsync(250);
+    expect(seen).toHaveLength(0);
+  });
+
+  it("fires urgent after a resume once the shifted deadline enters the window", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1_000_000);
+    const { bus, state, room, holder, feedback } = setup();
+    const seen: unknown[] = [];
+    bus.on("urgent", (event) => seen.push(event));
+    holder.room = room;
+    feedback.sync();
+
+    state.serverNow = 1_000_000;
+    state.phaseEndsAt = 1_025_000;
+    room.patch();
+    await vi.advanceTimersByTimeAsync(250);
+    expect(seen).toHaveLength(0);
+
+    state.pausedAt = 1_000_000;
+    room.patch();
+    state.serverNow = 1_016_000;
+    room.patch();
+    await vi.advanceTimersByTimeAsync(250);
+    expect(seen).toHaveLength(0);
+
+    state.pausedAt = 0;
+    state.phaseEndsAt = 1_041_000; // twenty-five seconds of active time left again
+    room.patch();
+    await vi.advanceTimersByTimeAsync(250);
+    expect(seen).toHaveLength(0);
+
+    state.serverNow = 1_036_000; // five seconds left after the resume
+    room.patch();
+    await vi.advanceTimersByTimeAsync(250);
+    expect(seen).toEqual([{ type: "urgent", reducedMotion: false }]);
+  });
 });

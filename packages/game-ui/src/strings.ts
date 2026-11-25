@@ -15,6 +15,14 @@ export interface UiStrings {
   leaveGame: string;
   /** The end-game button in the GameControls menu. */
   endGame: string;
+  /** The pause button in the GameControls menu (host only, outside the lobby). */
+  pauseGame: string;
+  /** The resume button in the GameControls menu while the room is paused (host only). */
+  resumeGame: string;
+  /** The PausedOverlay label and the live-region announcement when the host pauses. */
+  paused: string;
+  /** The live-region announcement when the host resumes. */
+  resumed: string;
   /** The confirmation line before ending the game for everyone. */
   confirmEndGame: string;
   /** Confirming answer of the end-game dialog. */
@@ -111,6 +119,10 @@ export const defaultUiStrings: UiStrings = {
   gameMenu: "Game menu",
   leaveGame: "Leave game",
   endGame: "End game",
+  pauseGame: "Pause game",
+  resumeGame: "Resume game",
+  paused: "Paused",
+  resumed: "Resumed",
   confirmEndGame: "End the game for everyone?",
   yes: "Yes",
   no: "No",
