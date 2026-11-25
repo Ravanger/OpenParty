@@ -20,6 +20,7 @@ export {
   type ResolvedGameOptions,
   resolveGameOptions,
 } from "./options.js";
+export { MAX_PAUSE_MS } from "./pause.js";
 export { type CoreStrings, defaultCoreStrings } from "./strings.js";
 export type {
   ActionContext,

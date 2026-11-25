@@ -4,7 +4,7 @@ import { PlayerSchema } from "./PlayerSchema.js";
 /**
  * Synced state every game shares. Games extend it with `BaseGameState.extend({ ... }, "Name")`.
  *
- * Reserved field names: `phase`, `roomCode`, `phaseEndsAt`, `phaseDurationMs`, `serverNow`, `spectatorCount`, `options`, `notice`, `minPlayers`, `maxPlayers`, `canStart`, `players`. A game field with one of these names fails at schema definition with
+ * Reserved field names: `phase`, `roomCode`, `phaseEndsAt`, `phaseDurationMs`, `pausedAt`, `serverNow`, `spectatorCount`, `options`, `notice`, `minPlayers`, `maxPlayers`, `canStart`, `players`. A game field with one of these names fails at schema definition with
  * "Duplicate '<name>' definition".
  */
 export const BaseGameState = schema(
@@ -13,6 +13,7 @@ export const BaseGameState = schema(
     roomCode: t.string().default(""),
     phaseEndsAt: t.number().default(0),
     phaseDurationMs: t.number().default(0),
+    pausedAt: t.number().default(0),
     serverNow: t.number().default(0),
     spectatorCount: t.number().default(0),
     options: t.string().default("{}"),

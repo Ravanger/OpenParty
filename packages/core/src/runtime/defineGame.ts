@@ -3,6 +3,8 @@ import {
   END_GAME,
   KICK_PLAYER,
   LOBBY_PHASE,
+  PAUSE_GAME,
+  RESUME_GAME,
   SET_OPTIONS,
   START_GAME,
 } from "@openparty/shared";
@@ -16,7 +18,14 @@ import type {
 } from "./types.js";
 
 const PHASE_NAME = /^[A-Za-z][A-Za-z0-9_]*$/;
-const RESERVED_ACTIONS: readonly string[] = [START_GAME, KICK_PLAYER, SET_OPTIONS, END_GAME];
+const RESERVED_ACTIONS: readonly string[] = [
+  START_GAME,
+  KICK_PLAYER,
+  SET_OPTIONS,
+  END_GAME,
+  PAUSE_GAME,
+  RESUME_GAME,
+];
 
 /**
  * The hard ceiling every declared action `rateLimit` is validated against at definition time, so a

@@ -48,6 +48,12 @@ describe("CoreStrings and defineGame", () => {
     expect(defaultCoreStrings.noSuchPlayer).toBe("No such player");
     expect(defaultCoreStrings.contentRejected).toBe(CLIENT_MESSAGES.CONTENT_REJECTED);
     expect(defaultCoreStrings.endGameInLobby).toBe("END_GAME is not allowed in Lobby");
+    expect(defaultCoreStrings.pauseInLobby).toBe("PAUSE_GAME is not allowed in Lobby");
+    expect(defaultCoreStrings.resumeInLobby).toBe("RESUME_GAME is not allowed in Lobby");
+    expect(defaultCoreStrings.gamePaused).toBe(CLIENT_MESSAGES.GAME_PAUSED);
+    expect(defaultCoreStrings.pausedTooLong).toBe(
+      "The game ended because it was paused for too long.",
+    );
     expect(defaultCoreStrings.needAtLeast(3)).toBe("Need at least 3 players to start");
     expect(defaultCoreStrings.notAllowedToSend("PRESS")).toBe("Not allowed to send PRESS");
     expect(defaultCoreStrings.waitingToBeLetIn).toBe("You are waiting to be let in");
@@ -231,6 +237,8 @@ describe("log-only core strings", () => {
       options: { get: () => ({}), set: () => {} },
       hasStarted: () => false,
       rosterChanged: () => {},
+      pause: () => {},
+      resume: () => {},
     });
     expect(
       frameworkError(() => lobby.endGameAction().handler(fakeContext(2) as never)).message,
@@ -277,6 +285,7 @@ describe("log-only core strings", () => {
       players: () => [player, waiting],
       contextFactory: () => fakeContext(0),
       filterLevel: () => "off",
+      paused: () => false,
       audienceOnce: () => true,
       reject: () => {},
       chain: (_event, inner) => inner(),

@@ -45,6 +45,12 @@ export interface PhaseState {
   phaseEndsAt: number;
   /** The evaluated `duration` of the current phase in ms, written next to `phaseEndsAt` on every entry; 0 when the phase has no timer. Clients read this instead of re-deriving the length from options. */
   phaseDurationMs: number;
+  /**
+   * Epoch ms at which the host paused the current phase, or 0 while it runs; written by the
+   * runtime. `phaseEndsAt` is shifted by the paused time on `RESUME_GAME`, so a client whose clock
+   * is paused-aware freezes its countdown at this instant. A phase transition clears it.
+   */
+  pausedAt?: number;
   /** True while in the Lobby with enough active players for `START_GAME`; written by the runtime. */
   canStart: boolean;
   /** Set to a fixed message by the runtime's default failure policy when a hook throws (see `GameDefinition.onError`); the runtime clears it when `START_GAME` begins the next game. */

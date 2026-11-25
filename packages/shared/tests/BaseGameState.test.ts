@@ -13,6 +13,7 @@ describe("BaseGameState", () => {
       roomCode: "",
       phaseEndsAt: 0,
       phaseDurationMs: 0,
+      pausedAt: 0,
       serverNow: 0,
       spectatorCount: 0,
       options: "{}",

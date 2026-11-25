@@ -87,6 +87,7 @@ function makePipeline(
     players: () => options.players ?? [player()],
     contextFactory: fakeContext,
     filterLevel: () => "off",
+    paused: () => false,
     audienceOnce: () => true,
     reject: (_playerId, action, code, message) => {
       sent.push(action === undefined ? { code, message } : { code, message, action });

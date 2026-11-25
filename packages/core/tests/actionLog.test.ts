@@ -312,6 +312,7 @@ describe("action log content, ordering and isolation", () => {
       "phaseDurationMs",
       "canStart",
       "log",
+      "pausedAt",
     ]);
     expect(Object.keys(table.priv)).toEqual(["secret"]);
   });

@@ -114,6 +114,7 @@ const newState = (): S => ({
   phaseEndsAt: 0,
   phaseDurationMs: 0,
   canStart: false,
+  pausedAt: 0,
   taps: 0,
 });
 
@@ -150,6 +151,7 @@ const newRollState = (): RollState => ({
   phaseEndsAt: 0,
   phaseDurationMs: 0,
   canStart: false,
+  pausedAt: 0,
   roll: 0,
 });
 
@@ -169,13 +171,27 @@ describe("replayLog", () => {
     });
     expect(states).toEqual([
       // construction at header.startedAt (1_000_000), before any entry
-      { phase: "Lobby", phaseEndsAt: 0, phaseDurationMs: 0, canStart: true, taps: 0 },
+      { phase: "Lobby", phaseEndsAt: 0, phaseDurationMs: 0, canStart: true, pausedAt: 0, taps: 0 },
       // after START_GAME: entered Tap, timer to 1_001_000
-      { phase: "Tap", phaseEndsAt: 1_001_000, phaseDurationMs: 1000, canStart: false, taps: 0 },
+      {
+        phase: "Tap",
+        phaseEndsAt: 1_001_000,
+        phaseDurationMs: 1000,
+        canStart: false,
+        pausedAt: 0,
+        taps: 0,
+      },
       // after TAP by p2 with by: 3
-      { phase: "Tap", phaseEndsAt: 1_001_000, phaseDurationMs: 1000, canStart: false, taps: 3 },
+      {
+        phase: "Tap",
+        phaseEndsAt: 1_001_000,
+        phaseDurationMs: 1000,
+        canStart: false,
+        pausedAt: 0,
+        taps: 3,
+      },
       // after the Tap timeout: entered Done (no timer)
-      { phase: "Done", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, taps: 3 },
+      { phase: "Done", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, pausedAt: 0, taps: 3 },
     ]);
     expect(states).toHaveLength(4);
   });
@@ -313,6 +329,7 @@ describe("replayLog", () => {
       phaseEndsAt: 0,
       phaseDurationMs: 0,
       canStart: false,
+      pausedAt: 0,
       taps: 0,
     });
   });
@@ -413,10 +430,17 @@ describe("replayLog", () => {
       players: 2,
     });
     expect(states).toEqual([
-      { phase: "Lobby", phaseEndsAt: 0, phaseDurationMs: 0, canStart: true, taps: 0 },
+      { phase: "Lobby", phaseEndsAt: 0, phaseDurationMs: 0, canStart: true, pausedAt: 0, taps: 0 },
       // the replayed timer expires at the logged timeout time, not enter + duration
-      { phase: "Tap", phaseEndsAt: 1_000_995, phaseDurationMs: 995, canStart: false, taps: 0 },
-      { phase: "Done", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, taps: 0 },
+      {
+        phase: "Tap",
+        phaseEndsAt: 1_000_995,
+        phaseDurationMs: 995,
+        canStart: false,
+        pausedAt: 0,
+        taps: 0,
+      },
+      { phase: "Done", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, pausedAt: 0, taps: 0 },
     ]);
   });
 
@@ -445,6 +469,7 @@ describe("replayLog", () => {
       phaseEndsAt: 0,
       phaseDurationMs: 0,
       canStart: false,
+      pausedAt: 0,
       taps: 10,
     });
   });
@@ -461,6 +486,7 @@ describe("replayLog", () => {
       phaseEndsAt: 0,
       phaseDurationMs: 0,
       canStart: false,
+      pausedAt: 0,
       taps: 0,
     });
   });
@@ -485,6 +511,7 @@ describe("replayLog", () => {
       phaseEndsAt: 0,
       phaseDurationMs: 0,
       canStart: false,
+      pausedAt: 0,
       taps: 0,
     });
   });
@@ -509,15 +536,43 @@ describe("replayLog", () => {
       players: 2,
     });
     expect(states).toEqual([
-      { phase: "Lobby", phaseEndsAt: 0, phaseDurationMs: 0, canStart: true, taps: 0 },
-      { phase: "Tap", phaseEndsAt: 1_001_000, phaseDurationMs: 1000, canStart: false, taps: 0 },
+      { phase: "Lobby", phaseEndsAt: 0, phaseDurationMs: 0, canStart: true, pausedAt: 0, taps: 0 },
+      {
+        phase: "Tap",
+        phaseEndsAt: 1_001_000,
+        phaseDurationMs: 1000,
+        canStart: false,
+        pausedAt: 0,
+        taps: 0,
+      },
       // the first Loop enter expires at the skewed logged time
-      { phase: "Loop", phaseEndsAt: 1_000_295, phaseDurationMs: 295, canStart: false, taps: 0 },
+      {
+        phase: "Loop",
+        phaseEndsAt: 1_000_295,
+        phaseDurationMs: 295,
+        canStart: false,
+        pausedAt: 0,
+        taps: 0,
+      },
       // re-entry after the first timeout; its timer expires at the second logged timeout
-      { phase: "Loop", phaseEndsAt: 1_000_600, phaseDurationMs: 305, canStart: false, taps: 0 },
+      {
+        phase: "Loop",
+        phaseEndsAt: 1_000_600,
+        phaseDurationMs: 305,
+        canStart: false,
+        pausedAt: 0,
+        taps: 0,
+      },
       // the third enter has no logged timeout (UNLOOP leaves early): nominal duration
-      { phase: "Loop", phaseEndsAt: 1_000_900, phaseDurationMs: 300, canStart: false, taps: 0 },
-      { phase: "Done", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, taps: 0 },
+      {
+        phase: "Loop",
+        phaseEndsAt: 1_000_900,
+        phaseDurationMs: 300,
+        canStart: false,
+        pausedAt: 0,
+        taps: 0,
+      },
+      { phase: "Done", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, pausedAt: 0, taps: 0 },
     ]);
   });
 
@@ -569,10 +624,24 @@ describe("replayLog", () => {
     };
     const { states } = replayLog(definition, renamed, { state: newState(), options: {} });
     expect(states).toEqual([
-      { phase: "Lobby", phaseEndsAt: 0, phaseDurationMs: 0, canStart: true, taps: 0 },
-      { phase: "Tap", phaseEndsAt: 1_001_000, phaseDurationMs: 1000, canStart: false, taps: 0 },
-      { phase: "Tap", phaseEndsAt: 1_001_000, phaseDurationMs: 1000, canStart: false, taps: 3 },
-      { phase: "Done", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, taps: 3 },
+      { phase: "Lobby", phaseEndsAt: 0, phaseDurationMs: 0, canStart: true, pausedAt: 0, taps: 0 },
+      {
+        phase: "Tap",
+        phaseEndsAt: 1_001_000,
+        phaseDurationMs: 1000,
+        canStart: false,
+        pausedAt: 0,
+        taps: 0,
+      },
+      {
+        phase: "Tap",
+        phaseEndsAt: 1_001_000,
+        phaseDurationMs: 1000,
+        canStart: false,
+        pausedAt: 0,
+        taps: 3,
+      },
+      { phase: "Done", phaseEndsAt: 0, phaseDurationMs: 0, canStart: false, pausedAt: 0, taps: 3 },
     ]);
   });
 
@@ -626,6 +695,7 @@ describe("replayLog", () => {
       phaseEndsAt: 0,
       phaseDurationMs: 0,
       canStart: false,
+      pausedAt: 0,
       taps: 3,
     });
   });
@@ -903,6 +973,7 @@ describe("replay restores recorded seat flags", () => {
     phaseEndsAt: 0,
     phaseDurationMs: 0,
     canStart: false,
+    pausedAt: 0,
     activeAtEnter: 0,
   });
 
@@ -930,6 +1001,7 @@ describe("replay restores recorded seat flags", () => {
       phaseEndsAt: 0,
       phaseDurationMs: 0,
       canStart: false,
+      pausedAt: 0,
       activeAtEnter: 2,
     });
   });
@@ -951,6 +1023,7 @@ describe("replay restores recorded seat flags", () => {
       phaseEndsAt: 0,
       phaseDurationMs: 0,
       canStart: false,
+      pausedAt: 0,
       activeAtEnter: 2,
     });
   });
@@ -1006,6 +1079,7 @@ describe("replay round-trip", () => {
     phaseEndsAt: 0,
     phaseDurationMs: 0,
     canStart: false,
+    pausedAt: 0,
     spins: 0,
     roll: 0,
     order: [],
@@ -1110,6 +1184,7 @@ describe("redacted entries", () => {
     phaseEndsAt: 0,
     phaseDurationMs: 0,
     canStart: false,
+    pausedAt: 0,
     log: [],
   });
 
@@ -1168,6 +1243,7 @@ describe("replayLog input bounds", () => {
     phaseEndsAt: 0,
     phaseDurationMs: 0,
     canStart: false,
+    pausedAt: 0,
     taps: 0,
   });
 
@@ -1298,6 +1374,7 @@ describe("replayLog tick quantization", () => {
     phaseEndsAt: 0,
     phaseDurationMs: 0,
     canStart: false,
+    pausedAt: 0,
     taps: 0,
     marks: [],
     lastTapsAtHit: -1,
@@ -1519,6 +1596,7 @@ describe("replay of an adversarial session", () => {
     phaseEndsAt: 0,
     phaseDurationMs: 0,
     canStart: false,
+    pausedAt: 0,
     roll: 0,
     d1: 0,
     d2: 0,
@@ -1604,6 +1682,7 @@ describe("replay of an adversarial session", () => {
     phaseEndsAt: 0,
     phaseDurationMs: 0,
     canStart: false,
+    pausedAt: 0,
     roll: 0,
     roll2: 0,
   });
@@ -1736,7 +1815,63 @@ describe("replay clock", () => {
       phaseEndsAt: 0,
       phaseDurationMs: 0,
       canStart: false,
+      pausedAt: 0,
       pings: [1, 2],
+    });
+  });
+});
+
+describe("replay pause branches", () => {
+  it("handles RESUME_GAME after the phase window has closed (slot undefined)", () => {
+    const log: ActionLog = {
+      header: {
+        game: "LoggedPlay",
+        version: "1",
+        protocolVersion: PROTOCOL_VERSION,
+        seed: [0, 0, 0, 0] as const,
+        startedAt: 1_000_000,
+      },
+      entries: [
+        { seq: 1, t: 1_000_000, phase: "Lobby", kind: "enter" },
+        {
+          seq: 2,
+          t: 1_000_000,
+          phase: "Lobby",
+          kind: "action",
+          actionType: "START_GAME",
+          senderId: "p1",
+          payload: {},
+        },
+        { seq: 3, t: 1_000_000, phase: "Lobby", kind: "transition", from: "Lobby", to: "Play" },
+        { seq: 4, t: 1_000_000, phase: "Play", kind: "enter" },
+        {
+          seq: 5,
+          t: 1_000_001,
+          phase: "Play",
+          kind: "action",
+          actionType: "PAUSE_GAME",
+          senderId: "p1",
+        },
+        { seq: 6, t: 1_001_000, phase: "Play", kind: "timeout" },
+        {
+          seq: 7,
+          t: 1_001_001,
+          phase: "Score",
+          kind: "action",
+          actionType: "RESUME_GAME",
+          senderId: "p1",
+        },
+      ],
+    };
+
+    const { states } = replayLog(loggedDefinition, log, {
+      state: newLoggedState(),
+      options: { rounds: 2 },
+      players: 2,
+    });
+    expect(states[states.length - 1]).toMatchObject({
+      phase: "Play",
+      pausedAt: 0,
     });
   });
 });

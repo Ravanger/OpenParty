@@ -5,19 +5,23 @@ import {
   FrameworkError,
   KICK_PLAYER,
   LOBBY_PHASE,
+  PAUSE_GAME,
+  RESUME_GAME,
   type ServerError,
   ServerMessage,
 } from "@openparty/shared";
 import { createActor } from "xstate";
 import { deepFreeze, newId } from "../utils.js";
 import { DispatchPipeline } from "./DispatchPipeline.js";
-import type { RuntimeHost } from "./host.js";
+import type { RuntimeHost, TimerHandle } from "./host.js";
 import { pickNextHost } from "./hostMigration.js";
 import { Lobby } from "./lobby.js";
 import { type ContextLogger, type Logger, type LogLine, noopLogger } from "./logger.js";
 import { MiddlewareChain } from "./MiddlewareChain.js";
 import { buildPhaseMachine } from "./machineFactory.js";
+import { PausableClock } from "./PausableClock.js";
 import { PhaseTicker } from "./PhaseTicker.js";
+import { MAX_PAUSE_MS } from "./pause.js";
 import { type CoreStrings, mergeCoreStrings } from "./strings.js";
 import { type Pending, PhaseLoopError, TransitionQueue } from "./TransitionQueue.js";
 import type {
@@ -75,6 +79,7 @@ export class GameRuntime<TState extends PhaseState, TPrivate, TOptions = Record<
   private readonly phases: Record<string, PhaseDefinition<TState, TPrivate, TOptions>>;
   private readonly chain: MiddlewareChain<TState, TPrivate, TOptions>;
   private readonly ticker: PhaseTicker<TState, TPrivate, TOptions>;
+  private readonly actorClock: PausableClock;
   private readonly pipeline: DispatchPipeline<TState, TPrivate, TOptions>;
   private readonly actor: PhaseActor;
   private readonly queue = new TransitionQueue();
@@ -88,6 +93,12 @@ export class GameRuntime<TState extends PhaseState, TPrivate, TOptions = Record<
   private stopped = false;
   private hasStarted = false;
   private lobbyReturnFailed = false;
+  /** True between a host `PAUSE_GAME` and its `RESUME_GAME` (or the maximum-pause auto-end). */
+  private paused = false;
+  /** Epoch ms the current pause began; set together with `paused`, read by `resume`. */
+  private pauseStartedAt = 0;
+  /** The safety timer that ends an abandoned pause; arms only while paused. */
+  private pauseTimer: TimerHandle | undefined = undefined;
 
   constructor(config: GameRuntimeConfig<TState, TPrivate, TOptions>) {
     this.spec = config.definition;
@@ -117,6 +128,8 @@ export class GameRuntime<TState extends PhaseState, TPrivate, TOptions = Record<
       },
       hasStarted: () => this.hasStarted,
       rosterChanged: () => this.rosterChange(),
+      pause: () => this.pause(),
+      resume: () => this.resume(),
     });
     this.ticker = new PhaseTicker<TState, TPrivate, TOptions>({
       host: this.host,
@@ -135,6 +148,8 @@ export class GameRuntime<TState extends PhaseState, TPrivate, TOptions = Record<
     this.builtins = {
       [KICK_PLAYER]: this.lobby.kickAction(),
       [END_GAME]: this.lobby.endGameAction(),
+      [PAUSE_GAME]: this.lobby.pauseAction(),
+      [RESUME_GAME]: this.lobby.resumeAction(),
     };
     this.phases = { ...this.spec.phases, [LOBBY_PHASE]: this.lobby.phase() };
     this.pipeline = new DispatchPipeline<TState, TPrivate, TOptions>({
@@ -147,11 +162,13 @@ export class GameRuntime<TState extends PhaseState, TPrivate, TOptions = Record<
       strings: this.strings,
       contextFactory: () => this.context(),
       filterLevel: () => this.spec.filterLevel?.(this.options) ?? "off",
+      paused: () => this.paused,
       audienceOnce: (audienceKey, scope) => this.host.audienceOnce(audienceKey, scope),
       reject: (playerId, action, code, message) => this.reject(playerId, action, code, message),
       chain: (event, inner) => this.chain.run(event, () => this.rejectThrown(event, inner)),
     });
     this.current = this.phases[LOBBY_PHASE] as PhaseDefinition<TState, TPrivate, TOptions>;
+    this.actorClock = new PausableClock(this.host);
     this.actor = createActor(
       buildPhaseMachine({
         phases: this.phases,
@@ -164,8 +181,8 @@ export class GameRuntime<TState extends PhaseState, TPrivate, TOptions = Record<
       }),
       {
         clock: {
-          setTimeout: (callback, ms) => this.host.setTimeout(() => this.run(callback), ms),
-          clearTimeout: (handle) => this.host.clearTimeout(handle),
+          setTimeout: (callback, ms) => this.actorClock.setTimeout(() => this.run(callback), ms),
+          clearTimeout: (handle) => this.actorClock.clearTimeout(handle),
         },
       },
     );
@@ -236,6 +253,7 @@ export class GameRuntime<TState extends PhaseState, TPrivate, TOptions = Record<
   stop(): void {
     this.stopped = true;
     this.queue.clear();
+    this.clearPauseTimer();
     this.actor.stop();
     this.ticker.clear();
   }
@@ -302,7 +320,57 @@ export class GameRuntime<TState extends PhaseState, TPrivate, TOptions = Record<
     if (nextId !== undefined) setHost(nextId);
   }
 
+  /** Freeze the current phase: its timing timer, its ticks and every queued action. */
+  private pause(): void {
+    if (this.paused) return;
+    this.paused = true;
+    this.pauseStartedAt = this.host.now();
+    this.state.pausedAt = this.pauseStartedAt;
+    this.actorClock.pause();
+    this.ticker.pause();
+    this.pauseTimer = this.host.setTimeout(() => this.run(() => this.endLongPause()), MAX_PAUSE_MS);
+  }
+
+  /** Resume a paused phase, shifting its deadline by exactly the paused time. */
+  private resume(): void {
+    if (!this.paused) return;
+    const pausedMs = this.host.now() - this.pauseStartedAt;
+    this.paused = false;
+    this.state.pausedAt = 0;
+    this.pauseStartedAt = 0;
+    if (this.state.phaseEndsAt > 0) this.state.phaseEndsAt += pausedMs;
+    this.clearPauseTimer();
+    this.actorClock.resume();
+    this.ticker.resume();
+  }
+
+  /** The safety timer: a pause that outlasted `MAX_PAUSE_MS` ends the game to the Lobby. */
+  private endLongPause(): void {
+    this.paused = false;
+    this.pauseTimer = undefined;
+    this.state.pausedAt = 0;
+    this.pauseStartedAt = 0;
+    this.state.notice = this.strings.pausedTooLong;
+    this.queue.push({ kind: "lobby" });
+  }
+
+  /** Drops the pause bookkeeping for a phase entry; the actor cancels any paused timer on exit. */
+  private resetPause(): void {
+    this.paused = false;
+    this.state.pausedAt = 0;
+    this.pauseStartedAt = 0;
+    this.clearPauseTimer();
+  }
+
+  private clearPauseTimer(): void {
+    if (this.pauseTimer === undefined) return;
+    this.host.clearTimeout(this.pauseTimer);
+    this.pauseTimer = undefined;
+  }
+
   private enter(name: string, phase: PhaseDefinition<TState, TPrivate, TOptions>): void {
+    // A pause belongs to one phase: leaving it (or re-entering) clears the pause first.
+    this.resetPause();
     // Reset before the enter event is observed, so the recorded entry carries 0 ticks.
     this.ticker.reset();
     this.phaseName = name;

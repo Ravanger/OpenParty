@@ -2,8 +2,11 @@ import type { FilterLevel } from "@openparty/content/filter";
 import {
   ActionEnvelopeSchema,
   CLIENT_MESSAGES,
+  END_GAME,
   ErrorCode,
   FrameworkError,
+  PAUSE_GAME,
+  RESUME_GAME,
 } from "@openparty/shared";
 import { type CoreStrings, mergeCoreStrings } from "./strings.js";
 import type {
@@ -33,11 +36,19 @@ interface DispatchPipelineDeps<TState extends PhaseState, TPrivate, TOptions> {
   contextFactory(): GameContext<TState, TPrivate, TOptions>;
   /** The room's current text-filter level (the definition's `filterLevel`, default `"off"`). */
   filterLevel(): FilterLevel;
+  /** True while the host has paused the room; only the pause controls and `END_GAME` are accepted then. */
+  paused(): boolean;
   /** True the first time `audienceKey` uses `scope`; see `RuntimeHost.audienceOnce`. */
   audienceOnce(audienceKey: string, scope: string): boolean;
   reject(playerId: string, action: string | undefined, code: ErrorCode, message: string): void;
   chain(event: MiddlewareEvent, inner: () => void): void;
 }
+
+/**
+ * The actions a paused room still accepts: resuming (and a redundant pause, a no-op) plus the
+ * host's way out (`END_GAME`). Every other action, game or built-in, is refused with `GAME_PAUSED`.
+ */
+const PAUSE_EXEMPT_ACTIONS: ReadonlySet<string> = new Set([PAUSE_GAME, RESUME_GAME, END_GAME]);
 
 /**
  * The action dispatch chain: envelope parse, action lookup, role and active checks, payload parse,
@@ -65,6 +76,7 @@ export class DispatchPipeline<TState extends PhaseState, TPrivate, TOptions> {
       return;
     }
     const type = envelope.data.type;
+    this.refuseWhilePaused(type);
     const action = this.lookup(type);
     if (action.from === "audience") {
       throw new FrameworkError(ErrorCode.NOT_ALLOWED, this.strings.audienceActionFromSeat(type));
@@ -118,6 +130,7 @@ export class DispatchPipeline<TState extends PhaseState, TPrivate, TOptions> {
       return;
     }
     const type = envelope.data.type;
+    this.refuseWhilePaused(type);
     const action = this.lookup(type);
     if (action.from !== "audience") {
       throw new FrameworkError(ErrorCode.UNAUTHORIZED, this.strings.notAllowedToSend(type));
@@ -144,6 +157,12 @@ export class DispatchPipeline<TState extends PhaseState, TPrivate, TOptions> {
       },
       () => action.handler(actionContext),
     );
+  }
+
+  /** Refuse everything but the pause controls and `END_GAME` while the room is paused. */
+  private refuseWhilePaused(type: string): void {
+    if (!this.deps.paused() || PAUSE_EXEMPT_ACTIONS.has(type)) return;
+    throw new FrameworkError(ErrorCode.GAME_PAUSED, this.strings.gamePaused);
   }
 
   /** Find `type` in the built-ins or the current phase; throws WRONG_PHASE/UNKNOWN_ACTION otherwise. */

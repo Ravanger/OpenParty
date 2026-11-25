@@ -20,6 +20,14 @@ export interface CoreStrings {
   contentRejected: string;
   /** `END_GAME` sent from the Lobby (server log). */
   endGameInLobby: string;
+  /** `PAUSE_GAME` sent from the Lobby (server log). */
+  pauseInLobby: string;
+  /** `RESUME_GAME` sent from the Lobby (server log). */
+  resumeInLobby: string;
+  /** Any queued action refused because the host paused the room (server log; clients see `CLIENT_MESSAGES.GAME_PAUSED`). */
+  gamePaused: string;
+  /** Written to `state.notice` when a pause outlasts the maximum and the runtime ends the game. */
+  pausedTooLong: string;
   /** `START_GAME` below `minPlayers` (server log). */
   needAtLeast(minPlayers: number): string;
   /** An action the sender's role may not send (server log). */
@@ -42,6 +50,10 @@ export const defaultCoreStrings: CoreStrings = {
   noSuchPlayer: "No such player",
   contentRejected: CLIENT_MESSAGES.CONTENT_REJECTED,
   endGameInLobby: `${END_GAME} is not allowed in ${LOBBY_PHASE}`,
+  pauseInLobby: "PAUSE_GAME is not allowed in Lobby",
+  resumeInLobby: "RESUME_GAME is not allowed in Lobby",
+  gamePaused: CLIENT_MESSAGES.GAME_PAUSED,
+  pausedTooLong: "The game ended because it was paused for too long.",
   needAtLeast: (minPlayers) => `Need at least ${minPlayers} players to start`,
   notAllowedToSend: (action) => `Not allowed to send ${action}`,
   waitingToBeLetIn: "You are waiting to be let in",

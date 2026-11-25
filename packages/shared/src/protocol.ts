@@ -50,6 +50,8 @@ export const ErrorCode = {
   ROOM_NOT_FOUND: "ROOM_NOT_FOUND",
   /** Client-side only: the server's reply to a request was not an `ActionResult`. Never sent by the server. */
   BAD_REPLY: "BAD_REPLY",
+  /** The host paused the room; every action but the pause controls and `END_GAME` is refused until it resumes. */
+  GAME_PAUSED: "GAME_PAUSED",
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
@@ -116,6 +118,12 @@ export const END_GAME = "END_GAME";
 
 /** Built-in host action `{ type, ...partialOptions }`: change the room options. Lobby only. */
 export const SET_OPTIONS = "SET_OPTIONS";
+
+/** Built-in host action: freeze the current phase outside the Lobby. Its phase timer, ticks and round-module timers stop until `RESUME_GAME`; a second pause is a no-op. */
+export const PAUSE_GAME = "PAUSE_GAME";
+
+/** Built-in host action: resume a paused phase, shifting `phaseEndsAt` by exactly the paused time so the remaining time is unchanged; a resume while running is a no-op. */
+export const RESUME_GAME = "RESUME_GAME";
 
 /** Valid action names: SCREAMING_SNAKE_CASE, at most 64 characters. */
 export const ACTION_NAME_PATTERN = /^[A-Z][A-Z0-9_]{0,63}$/;
