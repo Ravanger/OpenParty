@@ -870,6 +870,9 @@
           "DemoRunOptions": {},
           "GameClient": {},
           "GameRoomOf": {},
+          "KeyName": {
+            "experimental": true
+          },
           "PlayArgs": {},
           "PlaySession": {},
           "PlaySessionOptions": {},

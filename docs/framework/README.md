@@ -1384,11 +1384,21 @@ await play(buttonPackage);   // bun run play [--bots=0..7] [--name=You] [--join=
 | `notify(type, payload)` | sends an action without waiting or printing |
 | `changed()` | resolves on the next state change or when the stage ends |
 | `timeLeft()` | `" 12s left"` from the server clock, `""` without a deadline |
+| `onKey(handler)` | calls `handler(key)` for each single key press until the stage ends: raw mode, decoded as `"up"`, `"down"`, `"left"`, `"right"`, `"enter"`, `"space"`, `"escape"`, `"backspace"`, `"tab"` or the typed character |
+| `frame(lines)` | redraws a block of lines in place (cursor up and clear, no scroll) |
 | `quit()` | leaves the game; `run()` resolves |
 
 Optional strategy members: `narrate(state)` returns lines to print on every state change, `lobby(turn)` replaces the built-in lobby
 (host: Enter starts, `q` quits). The `play` entry parses `--bots`, `--name`, `--join`, `--endpoint` and `--api-port`, starts a server when the endpoint defaults are used and no room is joined, and exits 2 on bad arguments (as do `demo` and `bots`). `@openparty/terminal/testing` has test doubles. Example:
 `games/wit-clash/terminal/witClashTerminal.ts`.
+
+**Real-time stages** (`@experimental`). A game with a stage too fast for Enter reads keys with `onKey` and paints with
+`frame`: the key listener lives until the stage's `signal` aborts, so a phase change, a quit or a throwing handler ends it
+and puts back the terminal mode it found (raw mode is shared: registering again in the same stage releases it only when the
+last listener ends). `frame` keeps the block anchored — the next call moves the cursor to the block's first line and clears
+every line it drew — so a scoreboard does not scroll away. Both degrade instead of failing off a terminal: keys are refused
+with a printed line and frames become plain `print` calls, so a piped stdin (a test, a CI run) and redirected output still
+work while `ask` keeps its line-based behaviour.
 
 ### All-bot demo run
 

@@ -86,6 +86,8 @@ export class TerminalPlayer<TState extends BaseGameState> {
       signal,
       ask: async (question) => (await this.io.ask(question, signal)).trim(),
       print: (line) => this.io.print(line),
+      onKey: (handler) => this.io.onKey(handler, signal),
+      frame: (lines) => this.io.frame(lines),
       send: (type, payload, accepted) => this.send(type, payload, accepted),
       notify: (type, payload) => this.notify(type, payload),
       changed: () => this.changed(signal),

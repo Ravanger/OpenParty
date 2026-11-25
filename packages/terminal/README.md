@@ -2,8 +2,8 @@
 
 Terminal client: a human at a prompt, bots, or an all-bot demo run. You write the strategy.
 
-- `@openparty/terminal`: `TerminalPlayer`, `PlaySession`, `ReadlinePrompter`, `DemoRun`, `parsePlayArgs`, `parseDemoArgs`, `runBotsCommand` (throws `BadBotsArgsError` on a bad argv; map it to your bad-arguments exit code); `DEFAULT_ENDPOINT` (`ws://localhost:2567`), `DEFAULT_API_PORT` (3001); types `TerminalStrategy`, `TerminalTurn`, `TerminalPlayerOptions` (optional clock and quit word), `GameRoomOf<TState>` (the client-side room), `PlayArgs`, `BotsArgs`, `ArgsLimits`, `PlaySessionOptions`, `DemoRunOptions`, `BotsCommandOptions`, `BotsCommandHandle`
-- `@openparty/terminal/testing`: `ScriptedIo`, a scripted `Prompter`
+- `@openparty/terminal`: `TerminalPlayer`, `PlaySession`, `ReadlinePrompter`, `DemoRun`, `parsePlayArgs`, `parseDemoArgs`, `runBotsCommand` (throws `BadBotsArgsError` on a bad argv; map it to your bad-arguments exit code); `DEFAULT_ENDPOINT` (`ws://localhost:2567`), `DEFAULT_API_PORT` (3001); types `TerminalStrategy`, `TerminalTurn`, `TerminalPlayerOptions` (optional clock and quit word), `KeyName` (a decoded key press), `GameRoomOf<TState>` (the client-side room), `PlayArgs`, `BotsArgs`, `ArgsLimits`, `PlaySessionOptions`, `DemoRunOptions`, `BotsCommandOptions`, `BotsCommandHandle`
+- `@openparty/terminal/testing`: `ScriptedIo`, a scripted `Prompter` (`type` answers a question; `press` delivers a key; `frames` records `frame` calls)
 
 ## Write a strategy
 
@@ -31,9 +31,31 @@ export const buttonTerminal = (): TerminalStrategy<ButtonState> => ({
 | `notify(type, payload)` | sends without waiting or printing |
 | `changed()` | resolves on the next state change or when the stage ends |
 | `timeLeft()` | `" 12s left"` from the server clock, `""` without a deadline |
+| `onKey(handler)` | calls `handler(key)` for each single key press until the stage ends (raw mode; `"up"`, `"enter"`, `"space"`, `"a"`); prints a line and reads nothing without a terminal |
+| `frame(lines)` | redraws a block of lines in place (cursor up and clear, no scroll); plain prints without a terminal |
 | `quit()` | leaves the game |
 
 Optional: `stageOf(state)`; `narrate(state)` returns lines printed on every state change; `lobby(turn)` replaces the built-in lobby.
+
+`onKey` and `frame` (`@experimental`) are for real-time stages that cannot wait for Enter. `onKey` switches stdin to
+raw mode and decodes arrows, space, Enter, Escape, Backspace, Tab and typed characters; it restores the previous mode when
+the stage ends, when the player quits and when a handler throws (`Something went wrong: ...`). Registering again inside the
+same stage keeps the terminal in raw mode until the last listener ends. `frame` keeps the block where it was: the next call
+moves the cursor back to its first line and clears each line, so a score line does not scroll the stage away. On a piped
+stdin or a redirected stdout both fall back safely — keys are refused with a printed line and frames become plain prints.
+
+```ts
+async play(turn) {
+  if (turn.state.phase !== "Round") return;
+  turn.onKey((key) => {
+    if (key === "up" || key === "a") void turn.send("MOVE", { by: 1 }, "Moved.");
+  });
+  while (!turn.signal.aborted) {
+    turn.frame([`Round — ${turn.timeLeft().trim()}`, "Arrows to move"]);
+    await turn.changed();
+  }
+}
+```
 
 ## Wire `terminal/play.ts`
 
@@ -104,7 +126,7 @@ process.exit(passed ? 0 : 1);
 
 ## Test a strategy
 
-`ScriptedIo` (from `@openparty/terminal/testing`) is a `Prompter` that records `asked` and `printed` lines; `await io.type("text")` answers the pending question. Pass it to `TerminalPlayer` or `PlaySession`.
+`ScriptedIo` (from `@openparty/terminal/testing`) is a `Prompter` that records `asked` and `printed` lines; `await io.type("text")` answers the pending question, `io.press("up")` delivers a single key to the stage's `onKey` listeners (`io.listening` says whether any is left), and `io.frames` records every `frame` call. Pass it to `TerminalPlayer` or `PlaySession`.
 
 Depends on: `@openparty/bots`, `@openparty/client-utils`, `@openparty/server`, `@openparty/shared`, `@colyseus/sdk`
 

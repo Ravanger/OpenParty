@@ -1,4 +1,4 @@
-import type { Prompter } from "./Prompter.js";
+import { KEY_FAILURE, type KeyName, type Prompter } from "./Prompter.js";
 
 const tick = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -7,6 +7,8 @@ export class ScriptedIo implements Prompter {
   readonly asked: string[] = [];
   readonly printed: string[] = [];
   readonly signals: AbortSignal[] = [];
+  readonly frames: string[][] = [];
+  private readonly keyHandlers = new Set<(key: KeyName) => void>();
   private waiting: ((text: string) => void) | undefined;
 
   /** Records the question and signal, then waits for `type` to answer it. */
@@ -22,6 +24,35 @@ export class ScriptedIo implements Prompter {
   /** Records `line` in `printed`. */
   print(line: string): void {
     this.printed.push(line);
+  }
+
+  /** Listens for the stage's single keys until `signal` aborts; a throwing handler is reported. */
+  onKey(handler: (key: KeyName) => void, signal: AbortSignal): void {
+    const listening = (key: KeyName): void => {
+      try {
+        handler(key);
+      } catch (error) {
+        this.keyHandlers.delete(listening);
+        this.print(`${KEY_FAILURE}: ${String(error)}`);
+      }
+    };
+    this.keyHandlers.add(listening);
+    signal.addEventListener("abort", () => this.keyHandlers.delete(listening), { once: true });
+  }
+
+  /** Delivers `key` to the stage's key handlers, as a terminal would. */
+  press(key: KeyName): void {
+    for (const handler of [...this.keyHandlers]) handler(key);
+  }
+
+  /** Whether the current stage is listening for single keys. */
+  get listening(): boolean {
+    return this.keyHandlers.size > 0;
+  }
+
+  /** Records `lines` in `frames`. */
+  frame(lines: readonly string[]): void {
+    this.frames.push([...lines]);
   }
 
   /** Types `text` into the pending question and lets the player react. */

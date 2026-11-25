@@ -1,4 +1,5 @@
 import type { BaseGameState } from "@openparty/shared/schema";
+import type { KeyName } from "./Prompter.js";
 
 /** What a strategy sees and can do during one stage. Everything here is dropped when the stage ends. */
 export interface TerminalTurn<TState extends BaseGameState> {
@@ -11,6 +12,17 @@ export interface TerminalTurn<TState extends BaseGameState> {
   /** Trimmed answer; rejects when the stage ends. */
   ask(question: string): Promise<string>;
   print(line: string): void;
+  /**
+   * Calls `handler` for each single key press until the stage ends, then restores the terminal
+   * mode; without an interactive terminal it prints a line and reads nothing.
+   * @experimental Real-time terminal input.
+   */
+  onKey(handler: (key: KeyName) => void): void;
+  /**
+   * Replaces the block of lines the previous call drew, in place; plain prints without a terminal.
+   * @experimental Real-time terminal input.
+   */
+  frame(lines: readonly string[]): void;
   /** Sends an action, prints `accepted` or the refusal; true when accepted. */
   send(type: string, payload: object, accepted: string): Promise<boolean>;
   /** Sends an action without waiting or printing (typing badges and the like). */
