@@ -296,6 +296,27 @@ describe("defineRoundModule", () => {
     ]);
   });
 
+  it("rejects module actions named after reserved built-ins", () => {
+    const error = thrownBy(() =>
+      defineRoundModule<TapSlice, TapPriv, TapParams, TapResult>({
+        id: "reserved",
+        phases: {
+          Tap: {
+            actions: {
+              PAUSE_GAME: action({ from: "player", payload: z.object({}), handler: () => {} }),
+              RESUME_GAME: action({ from: "player", payload: z.object({}), handler: () => {} }),
+            },
+          },
+        },
+        result: () => ({ total: 0, winner: "" }),
+      }),
+    );
+    expect(error.problems).toEqual([
+      "PAUSE_GAME is reserved and built in",
+      "RESUME_GAME is reserved and built in",
+    ]);
+  });
+
   it("rejects a module without phases", () => {
     const error = thrownBy(() =>
       defineRoundModule<TapSlice, TapPriv, TapParams, TapResult>({
