@@ -92,6 +92,7 @@ Every rejection is sent only to the sender as `ERROR { code, message, action }`:
 | `NAME_TAKEN` | `SET_NAME` with a name another seat already has (compared trimmed and case-insensitively); the seat keeps its name |
 | `KICKED` | pushed to a player the host removed, just before the connection closes |
 | `INTERNAL` | only ever the answer to a request: a hook threw while handling the action |
+| `GAME_PAUSED` | the room is host-paused; every action but the pause controls and `END_GAME` is refused until it resumes |
 | `NOT_CONNECTED`, `CONNECTION_LOST`, `BAD_REPLY`, `ROOM_NOT_FOUND` | client-side only, never sent by the server: no room joined, the request or connect failed in transit, the reply was not an `ActionResult`, the typed room code is unknown ("Game code not found") |
 
 #### Awaiting an action's outcome
