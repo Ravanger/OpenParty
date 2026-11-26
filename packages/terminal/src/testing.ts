@@ -28,6 +28,7 @@ export class ScriptedIo implements Prompter {
 
   /** Listens for the stage's single keys until `signal` aborts; a throwing handler is reported. */
   onKey(handler: (key: KeyName) => void, signal: AbortSignal): void {
+    if (signal.aborted) return;
     const listening = (key: KeyName): void => {
       try {
         handler(key);

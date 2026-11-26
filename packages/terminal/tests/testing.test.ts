@@ -57,3 +57,16 @@ describe("ScriptedIo", () => {
     expect(io.frames).toEqual([["a", "b"]]);
   });
 });
+
+describe("ScriptedIo stage-ended key registration", () => {
+  it("does nothing when the stage has already ended", () => {
+    const io = new ScriptedIo();
+    const abort = new AbortController();
+    const keys: string[] = [];
+    abort.abort();
+    io.onKey((key) => keys.push(key), abort.signal);
+    expect(io.listening).toBe(false);
+    io.press("a");
+    expect(keys).toEqual([]);
+  });
+});
