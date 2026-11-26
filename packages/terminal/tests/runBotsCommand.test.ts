@@ -101,6 +101,31 @@ describe("runBotsCommand", () => {
     await host.leave(true);
   });
 
+  it("seats the bots with --bot-skill when no bot options are given", async () => {
+    const host = await new GameClient(handle.endpoint, handle.apiPort, kit).create(
+      crypto.randomUUID(),
+      "Ann",
+    );
+    const skills: number[] = [];
+    const recording: BotKit<TapState> = {
+      ...kit,
+      strategy: { play: (turn) => void skills.push(turn.skill) },
+    };
+    const lines = capture();
+    const running = await runBotsCommand({
+      kit: recording,
+      maxBots: 5,
+      argv: [host.state.roomCode.toLowerCase(), "2", ...serverArgs(), "--bot-skill=0.7"],
+      out: lines.push(lines.out),
+      err: lines.push(lines.err),
+      usage: USAGE,
+    });
+    expect(skills.length).toBeGreaterThan(0);
+    expect(skills.every((skill) => skill === 0.7)).toBe(true);
+    await running.leave();
+    await host.leave(true);
+  });
+
   it("prints the usage and rejects on bad arguments", async () => {
     const lines = capture();
     await expect(

@@ -41,14 +41,15 @@ export const runBotsCommand = async <TState extends BaseGameState>(
     throw new BadBotsArgsError(parsed.error);
   }
   const { code, count, endpoint, apiPort, skill } = parsed.value;
+  // The flag wins over a skill the caller already set in its bot options.
+  const botOptions = skill !== undefined ? { ...bot, skill } : bot;
   const seating = joinKitBots({
     kit,
     code,
     count,
     endpoint,
     apiPort,
-    // The flag wins over a skill the caller already set in its bot options.
-    ...(bot ? { bot: skill !== undefined ? { ...bot, skill } : bot } : {}),
+    ...(botOptions !== undefined ? { bot: botOptions } : {}),
   });
   seating.catch(() => undefined);
   options.onInterrupt?.(async () => {
