@@ -31,8 +31,10 @@ export const buttonKit: BotKit<ButtonState> = {
 | `turn` member | What |
 |---|---|
 | `state`, `playerId`, `name` | the synced state and this bot |
+| `skill` | this bot's skill, 0..1 (default 0.5) — see below |
 | `once(key, run)` | runs `run` the first time `key` is seen in this phase |
 | `later(speed, run)` | runs `run` after a `"think"`, `"react"` or `[min, max]` ms delay |
+| `every(ms, run)` | runs `run` every `ms` while the phase is unchanged and the bot stays in the room; a throwing `run` stops the cadence (`@experimental`) |
 | `act(type, payload?, note?)` | sends an action; the result goes to `log` and `onOutcome` |
 | `pick(items)` | a random item, `undefined` for an empty list |
 
@@ -101,7 +103,9 @@ await demo.leave();
 
 ## Tune pacing
 
-`BotOptions` (the `bot` option, or `bot` on the launcher's `create`): `thinkMs` (default `[2000, 6000]`), `reactMs` (`[500, 2500]`) — each a `DelayRange`, a `[minMs, maxMs]` range a random delay is drawn from — `rng`, `schedule`, `log`, `onOutcome`, `host` (`BotHostOptions`: the options that make a bot the host, `expectedPlayers`). `joinBots` takes `JoinBotsOptions` (connection, kit, room code and bot count), including `nameFor(n)` (default `Bot n`), `playerIds` and `timeoutMs`; `BotTable` takes `BotTableOptions` (connection, kit and join options) and `seatBots` takes `SeatBotsOptions` (how many bots to seat and how long, in milliseconds, to wait for a human first); `DemoTable` takes `DemoTableOptions` (connection, kit, bot count and finish rule), including `hostName`, `roomOptions` and `isFinished`.
+`BotOptions` (the `bot` option, or `bot` on the launcher's `create`): `thinkMs` (default `[2000, 6000]`), `reactMs` (`[500, 2500]`) — each a `DelayRange`, a `[minMs, maxMs]` range a random delay is drawn from — `skill` (0..1, default 0.5; see below), `rng`, `schedule`, `log`, `onOutcome`, `host` (`BotHostOptions`: the options that make a bot the host, `expectedPlayers`). `joinBots` takes `JoinBotsOptions` (connection, kit, room code and bot count), including `nameFor(n)` (default `Bot n`), `playerIds` and `timeoutMs`; `BotTable` takes `BotTableOptions` (connection, kit and join options) and `seatBots` takes `SeatBotsOptions` (how many bots to seat and how long, in milliseconds, to wait for a human first); `DemoTable` takes `DemoTableOptions` (connection, kit, bot count and finish rule), including `hostName`, `roomOptions` and `isFinished`.
+
+`skill` scales how fast a bot plays: the ranges drawn for `later("think")` and `later("react")` are multiplied by `1.5 - skill` (1.5× at skill 0, unchanged at the default 0.5, 0.5× at skill 1), while an explicit `[min, max]` range is never scaled. Out-of-range values are clamped to 0..1; a non-finite value falls back to 0.5. Accuracy scales through `mistakeChance(skill)` (`(1 - skill) / 2`), which a strategy rolls its own random number against. `every` and the skill surface are `@experimental` — see the framework guide's Bots section.
 
 Depends on: `@openparty/client-utils`, `@openparty/shared`, `@colyseus/sdk`
 
