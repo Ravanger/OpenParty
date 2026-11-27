@@ -142,6 +142,8 @@ describe("Launcher", () => {
       expect(await probe.canConnect(ports.api, lan)).toBe(true);
       await hosted.stop();
       await waitUntilFree(ports.api);
+      await waitUntilFree(ports.game);
+      await waitUntilFree(ports.clientDev);
       const dev = launcherOf();
       await dev.start({ mode: "dev", openBrowser: false });
       expect(await probe.canConnect(ports.api, lan)).toBe(false);
@@ -363,6 +365,8 @@ describe("Launcher", () => {
       expect(seen[0]?.bot?.skill).toBe(0.8);
       await withSkill.stop();
       await waitUntilFree(ports.game);
+      await waitUntilFree(ports.api);
+      await waitUntilFree(ports.clientDev);
 
       const plain = launcherOf({ demo });
       await plain.start({ mode: "dev", openBrowser: false, demo: 1 });
