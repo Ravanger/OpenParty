@@ -25,6 +25,14 @@ describe("GameRoom per-action rate limits", () => {
     expect(rateLimited(await send(p1, "PLAIN"))).toBe(true); // FAST never spent the shared bucket
   });
 
+  it("accepts a 12/s action's full burst and refuses the tap after it", async () => {
+    // The #306/#448 figure: a real-time tap action declares about 12 taps per second.
+    t = await bootRated({ rateLimits: { action: { rate: 1000, burst: 1000 } } });
+    const { p1 } = await startedRated(t);
+    for (let i = 0; i < 12; ++i) expect(await send(p1, "TAP")).toEqual({ ok: true });
+    expect(rateLimited(await send(p1, "TAP"))).toBe(true);
+  });
+
   it("refuses a lower-limit action sooner and leaves the shared bucket alone", async () => {
     t = await bootRated({ rateLimits: { action: { rate: 0.001, burst: 3 } } });
     const { p1 } = await startedRated(t);
