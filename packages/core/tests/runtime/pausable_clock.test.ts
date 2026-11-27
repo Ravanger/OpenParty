@@ -9,12 +9,23 @@ describe("PausableClock", () => {
     expect(() => clock.clearTimeout(999999 as never)).not.toThrow();
   });
 
-  it("pause() on already-paused timers is a no-op (timer.handle === undefined path)", () => {
+  it("pause() twice keeps the remembered remainder, not a stale recompute", () => {
     const host = new FakeHost();
     const clock = new PausableClock(host);
-    clock.setTimeout(() => {}, 1000);
+    let fired = false;
+    clock.setTimeout(() => {
+      fired = true;
+    }, 1000);
+    host.advance(200); // 800ms left
     clock.pause();
-    expect(() => clock.pause()).not.toThrow();
+    host.advance(500); // paused; wall time moves on
+    clock.pause(); // must be a no-op, not a recompute against the stale dueAt
+    expect(fired).toBe(false);
+    clock.resume();
+    host.advance(799); // not yet: only 800ms remain
+    expect(fired).toBe(false);
+    host.advance(1); // 800ms after resume: fires
+    expect(fired).toBe(true);
   });
 
   it("resume() on already-running timers is a no-op (timer.handle !== undefined path)", () => {

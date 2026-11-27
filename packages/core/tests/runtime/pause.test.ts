@@ -200,6 +200,19 @@ describe("host pause", () => {
     expect(t.state.ticks).toBe(3);
   });
 
+  it("refuses an undeclared action with GAME_PAUSED, not UNKNOWN_ACTION, while paused", () => {
+    // The pause check runs before the action lookup, so an action that does not exist anywhere
+    // is answered GAME_PAUSED while the room is paused.
+    const t = table();
+    t.start();
+    t.tick(100);
+    expect(t.act("p1", PAUSE_GAME)).toBeUndefined();
+    expect(t.act("p2", "NOT_A_REAL_ACTION")).toEqual({
+      code: ErrorCode.GAME_PAUSED,
+      message: CLIENT_MESSAGES.GAME_PAUSED,
+    });
+  });
+
   it("rejects player, audience and built-in actions with GAME_PAUSED, but not END_GAME", () => {
     const t = table();
     t.start();

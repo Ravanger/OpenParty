@@ -41,10 +41,18 @@ export class PausableClock {
     this.timers.delete(id);
   }
 
+  /** Clears every pending timer. */
+  clear(): void {
+    for (const id of [...this.timers.keys()]) this.clearTimeout(id as TimerHandle);
+  }
+
   /** Freezes every pending timer at the current host time. */
   pause(): void {
     for (const timer of this.timers.values()) {
-      if (timer.handle !== undefined) this.host.clearTimeout(timer.handle);
+      // A timer already paused keeps its remembered remainder; recompute it against the
+      // stale dueAt and a later resume would fire early.
+      if (timer.handle === undefined) continue;
+      this.host.clearTimeout(timer.handle);
       timer.remainingMs = Math.max(0, timer.dueAt - this.host.now());
       timer.handle = undefined;
     }

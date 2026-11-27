@@ -33,6 +33,8 @@ Clients join with `{ playerId, name? }`; `spectator: true` gives a TV display wi
 
 `rateLimits` bounds what a player can send: actions (default 10/s, burst 20), `SET_NAME` (2/s, burst 2), the host's `EXPORT_REPLAY` (one per 5 s) and `/api/resolve-code` per address (1/s, burst 10), enforced unless `mode: "observe"`. Buckets are keyed by room, player and message type — a seat by its `playerId`, a spectator by its join `playerId` — so reconnecting never resets one; they are freed when the seat or spectator is gone (a spectator's, after the `reconnectMs` window for an abnormal drop). An action whose definition declares `rateLimit: { rate, burst }` (`@openparty/core`, validated against `ACTION_RATE_LIMIT_CEILING`) gets a bucket keyed by its action type instead, so a fast action does not spend the shared action budget; an unparseable envelope or an undeclared type falls back to the shared bucket. An over-limit message is refused with `RATE_LIMITED`, pushed and returned, and never reaches the runtime.
 
+A host can pause the room (`PAUSE_GAME`) and resume it (`RESUME_GAME`) — any phase but the Lobby, rejecting a guest role with `UNAUTHORIZED`; a pause that outlasts `MAX_PAUSE_MS` (30 minutes) ends the game to the Lobby with a notice. Clients read the instant in `state.pausedAt` (0 while the room runs).
+
 ## Host without Bun
 
 `createGameServer` returns the Colyseus `Server` (omit `transport` to use the bundled WebSocket one). `greet` (default `true`) prints the Colyseus banner and `gracefullyShutdown` (default `true`) registers its `SIGINT`/`SIGTERM` handlers; `bootTestServer` turns both off. `startNodeServer` runs it plus the code API in this process.

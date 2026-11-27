@@ -94,7 +94,12 @@ export class Lobby<TState extends PhaseState, TPrivate, TOptions> {
     };
   }
 
-  /** The built-in `PAUSE_GAME`: host-only, any phase but the Lobby, a no-op while already paused. */
+  /**
+   * The built-in `PAUSE_GAME`: host-only, any phase but the Lobby, a no-op while already paused.
+   * Like every role refusal, a non-host gets `UNAUTHORIZED` — not `NOT_ALLOWED`, which the #472
+   * task text names; the framework contract backs this (role failures are `UNAUTHORIZED`
+   * everywhere else, e.g. `START_GAME` and game-declared host-only actions).
+   */
   pauseAction(): ActionDefinition<TState, TPrivate, TOptions, unknown> {
     return {
       from: "host",

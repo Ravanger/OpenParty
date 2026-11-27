@@ -45,9 +45,9 @@ export class GameControlsViewModel<TState extends BaseGameState> {
     return this.isVisible && this.manager.isHost && !this.isPaused && !this.isGameOver;
   }
 
-  /** True for the host while the controls are visible and the room is paused. */
+  /** True for the host while the controls are visible and the room is paused. The server accepts `RESUME_GAME` in any phase but the Lobby, so the menu agrees. */
   get canResume(): boolean {
-    return this.isVisible && this.manager.isHost && this.isPaused && !this.isGameOver;
+    return this.isVisible && this.manager.isHost && this.isPaused;
   }
 
   /** Opens or closes the menu and drops any pending end confirmation. */

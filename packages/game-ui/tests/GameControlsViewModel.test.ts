@@ -157,6 +157,8 @@ describe("GameControlsViewModel", () => {
     const vm = new GameControlsViewModel(c.manager, (state) => state.phase === "Done");
     c.state.phase = "Done";
     expect(vm.canPause).toBe(false);
-    expect(vm.canResume).toBe(false);
+    // The server accepts RESUME_GAME in a Done phase, so the menu offers it too.
+    c.state.pausedAt = Date.now();
+    expect(vm.canResume).toBe(true);
   });
 });

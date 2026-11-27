@@ -351,6 +351,10 @@ export class GameRuntime<TState extends PhaseState, TPrivate, TOptions = Record<
     this.state.pausedAt = 0;
     this.pauseStartedAt = 0;
     this.state.notice = this.strings.pausedTooLong;
+    // Clear the paused clock and pending tick directly, not only through the queued Lobby
+    // transition's entry: the cleanup must not depend on a later phase for it.
+    this.actorClock.clear();
+    this.ticker.clear();
     this.queue.push({ kind: "lobby" });
   }
 
