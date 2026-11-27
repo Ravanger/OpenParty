@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { join } from "node:path";
-import { type BotConnection, BotTable, type DemoTable } from "@openparty/bots";
+import { type BotConnection, type BotOptions, BotTable, type DemoTable } from "@openparty/bots";
 import { joinUrl, tvUrl } from "@openparty/client-utils";
 import { ServerProbe } from "@openparty/server/probe";
 import type { BaseGameState } from "@openparty/shared/schema";
@@ -92,12 +92,12 @@ export class Launcher<TState extends BaseGameState> {
     this.log("Press Ctrl+C to stop");
     this.started = true;
     if (demoRun) {
-      this.startDemo(demoRun.demo, demoRun.count, url, args.openBrowser).catch((error: unknown) =>
-        this.log(`Demo stopped: ${this.messageOf(error)}`),
+      this.startDemo(demoRun.demo, demoRun.count, url, args.openBrowser, args.skill).catch(
+        (error: unknown) => this.log(`Demo stopped: ${this.messageOf(error)}`),
       );
     } else if (botsRun) {
-      this.startBots(botsRun.bots, botsRun.count, url, args.openBrowser).catch((error: unknown) =>
-        this.log(`Bots stopped: ${this.messageOf(error)}`),
+      this.startBots(botsRun.bots, botsRun.count, url, args.openBrowser, args.skill).catch(
+        (error: unknown) => this.log(`Bots stopped: ${this.messageOf(error)}`),
       );
     } else {
       this.show(url, args.openBrowser);
@@ -193,11 +193,14 @@ export class Launcher<TState extends BaseGameState> {
     this.log(`Serving ${dist} on port ${port}`);
   }
 
-  private connection(): BotConnection & { bot: { log: (line: string) => void } } {
+  private connection(skill?: number): BotConnection & { bot: BotOptions } {
     return {
       endpoint: `ws://localhost:${this.ports.game}`,
       apiPort: this.ports.api,
-      bot: { log: (line: string) => this.log(`Bots: ${line}`) },
+      bot: {
+        log: (line: string) => this.log(`Bots: ${line}`),
+        ...(skill !== undefined ? { skill } : {}),
+      },
     };
   }
 
@@ -206,8 +209,9 @@ export class Launcher<TState extends BaseGameState> {
     count: number,
     clientUrl: string,
     browser: boolean,
+    skill?: number,
   ): Promise<void> {
-    const table = new BotTable({ ...bots.kit, ...this.connection() });
+    const table = new BotTable({ ...bots.kit, ...this.connection(skill) });
     this.table = table;
     const code = await table.open();
     this.log(`Room ${code}: bots join once you have entered your name`);
@@ -220,8 +224,9 @@ export class Launcher<TState extends BaseGameState> {
     count: number,
     clientUrl: string,
     browser: boolean,
+    skill?: number,
   ): Promise<void> {
-    const table: DemoTable<TState> = demo.create({ ...this.connection(), bots: count });
+    const table: DemoTable<TState> = demo.create({ ...this.connection(skill), bots: count });
     this.table = table;
     const code = await table.open();
     this.log(`Demo room ${code}: watch-only, ${count + 1} bots play one game`);

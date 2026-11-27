@@ -1,4 +1,11 @@
-import { type Client, type Delayed, logger, Room, ServerError } from "@colyseus/core";
+import {
+  type Client,
+  CloseCode as ColyseusCloseCode,
+  type Delayed,
+  logger,
+  Room,
+  ServerError,
+} from "@colyseus/core";
 import type { TextFilter } from "@openparty/content/filter";
 import {
   evaluateJoin,
@@ -59,6 +66,8 @@ export interface GameRoomConfig {
   audienceSlots: number;
   /** When set, player names are checked against it at join and on `SET_NAME`. */
   textFilter?: TextFilter;
+  /** How often Colyseus patches state to clients, in ms; omitted keeps the library default (50 ms, 20 Hz). */
+  patchRateMs?: number;
   /** Shared per-player limiter; buckets are keyed `(roomId, playerId, messageType)` so a reconnect cannot reset them. */
   rateLimiter: RateLimiter;
   /** The resolved limits behind `rateLimiter`, one bucket per message type. */
@@ -107,6 +116,7 @@ export class GameRoom extends Room<{ state: BaseGameState }> {
 
   constructor(private readonly config: GameRoomConfig) {
     super();
+    if (config.patchRateMs !== undefined) this.patchRate = config.patchRateMs;
   }
 
   onCreate(options: Record<string, unknown>): void {
@@ -206,6 +216,7 @@ export class GameRoom extends Room<{ state: BaseGameState }> {
       dispatch: (playerId, raw) => this.runtime.dispatch(playerId, raw),
       dispatchAudience: (playerId, raw) => this.runtime.dispatchAudience(playerId, raw),
       take: (key, bucket) => this.config.rateLimiter.take(key, bucket),
+      drop: (prefix) => this.config.rateLimiter.drop(prefix),
       roomId: () => this.roomId,
       rateLimits: this.config.rateLimits,
       recorder,
@@ -354,11 +365,13 @@ export class GameRoom extends Room<{ state: BaseGameState }> {
     this.reconnected(seat, client);
   }
 
-  onLeave(client: Client): void {
+  onLeave(client: Client, code?: number): void {
     this.views.close(client.sessionId);
-    if (this.seats.removeSpectator(client.sessionId)) {
+    const spectatorId = this.seats.spectatorPlayerIdFor(client.sessionId);
+    if (spectatorId !== undefined) {
+      this.seats.removeSpectator(client.sessionId);
       --this.state.spectatorCount;
-      this.config.rateLimiter.drop(`${this.roomId}:${client.sessionId}:`);
+      this.forgetAudience(spectatorId, code === ColyseusCloseCode.CONSENTED);
       return;
     }
     const seat = this.seatBySession(client);
@@ -406,6 +419,21 @@ export class GameRoom extends Room<{ state: BaseGameState }> {
     this.dropSeat(playerId, false);
     this.rosterChanged();
     this.scheduleDisposeIfEmpty();
+  }
+
+  /**
+   * Forgets a departed spectator's audience buckets. A consented leave is final, so it drops them
+   * at once; an abnormal drop waits out the seat reconnection window, because a spectator that
+   * comes back under the same join `playerId` must not get a fresh bucket.
+   */
+  private forgetAudience(playerId: string, consented: boolean): void {
+    if (consented) {
+      this.router.dropAudience(playerId);
+      return;
+    }
+    this.clock.setTimeout(() => {
+      if (this.seats.spectatorClientFor(playerId) === undefined) this.router.dropAudience(playerId);
+    }, this.config.reconnectMs);
   }
 
   private rosterChanged(): void {

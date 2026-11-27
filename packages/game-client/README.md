@@ -6,7 +6,7 @@ Ships source (`.ts`/`.svelte.ts`); consumers need the Svelte plugin — Vite wit
 
 | Import | What |
 |---|---|
-| `@openparty/game-client` | `GameConnectionManager<TState>`: connect, sync, send actions; `Countdown`, `isUrgent(secondsLeft)`, `FeedbackBus`, `clientConfig(env?)`, `resolveEndpoints`, `readCodeParam`, `readUrlCode(search?)`, `readUrlTvCode(search?)`; `ClientStrings`, `defaultClientStrings` for the manager's `strings` option; types `GameConnectionOptions` (server endpoints, room name and storage namespace), `ConnectionStatus`, `FeedbackEvent` (any bus event, discriminated by `type`), `ClientEnv` (the `VITE_*` build-env keys) |
+| `@openparty/game-client` | `GameConnectionManager<TState>`: connect, sync, send actions; `Countdown`, `isUrgent(secondsLeft)`, `ServerClock`, `FeedbackBus`, `clientConfig(env?)`, `resolveEndpoints`, `readCodeParam`, `readUrlCode(search?)`, `readUrlTvCode(search?)`; `ClientStrings`, `defaultClientStrings` for the manager's `strings` option; types `GameConnectionOptions` (server endpoints, room name and storage namespace), `ConnectionStatus`, `FeedbackEvent` (any bus event, discriminated by `type`), `ClientEnv` (the `VITE_*` build-env keys) |
 | `@openparty/game-client/testing` | `StubRoom`, `connectedClient`, `fakeFetch` for UI tests without a server |
 | `@openparty/game-client/test-setup` | jsdom setup (shims storage, fixes WebSocket for the SDK) |
 
@@ -106,14 +106,27 @@ if (response.ok === false) console.warn(manager.lastServerError?.message);
 
 ## Show the phase clock
 
-`countdown()` counts down to `state.phaseEndsAt`, corrected for client clock skew. It ticks only while something reads it inside a Svelte effect and stops when the last reader goes away — no cleanup needed.
+`countdown()` counts down to `state.phaseEndsAt`, corrected for client clock skew. While the host has paused the room (`state.pausedAt > 0`) it clamps the clock to that instant, so the countdown freezes and never expires mid-pause; on resume the server shifts `phaseEndsAt` by the paused time and the countdown continues from where it stopped. It ticks only while something reads it inside a Svelte effect and stops when the last reader goes away — no cleanup needed.
 
 ```ts
 const clock = manager.countdown();
 clock.secondsLeft; clock.isUrgent; clock.isExpired; // reactive
 ```
 
-The urgent rule itself is exported as `isUrgent(secondsLeft)`: more than 0 and at most 10 seconds left, so an expired timer (0) is not urgent. `Countdown.isUrgent`, the manager's `urgent` feedback event and the game-ui `Timer` component all use it, so the threshold is defined once.
+The urgent rule itself is exported as `isUrgent(secondsLeft)`: more than 0 and at most 10 seconds left, so an expired timer (0) is not urgent. `Countdown.isUrgent`, the manager's `urgent` feedback event and the game-ui `Timer` component all use it, so the threshold is defined once. The `urgent` feedback keeps observing the server clock while the room is paused (the offset stays fresh for the resume) but fires nothing until `pausedAt` clears — a frozen deadline must not cross the urgent window in wall time.
+
+### Server clock
+
+`manager.clock` is a `ServerClock`: an estimate of the server's current time from `state.serverNow`. Each new reading anchors the offset, counting half the round-trip time as the one-way delay of that reading; the RTT comes from `RoomLike.ping` on join and, while the clock is read, every 30 seconds. `now()` returns the estimate in ms — local time before the first reading and never below the previous call — and `isSynced` tells you whether a reading has arrived. `countdown()` and the urgency feedback use the same anchoring, so a game can drive smooth motion from `clock.now()` instead of `Date.now()`:
+
+```ts
+import { Tween } from "@openparty/game-ui";
+
+const position = new Tween({ from: { x: 0, y: 0 }, to: { x: 10, y: 10 }, startedAt, durationMs: 400 }, manager.clock);
+position.position; // reactive
+```
+
+A custom `RoomLike` implements `ping(callback: (ms: number) => void)`; `StubRoom` answers with its `pingRttMs`.
 
 ## Sound and animation feedback
 

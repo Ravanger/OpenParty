@@ -45,6 +45,12 @@ export interface PhaseState {
   phaseEndsAt: number;
   /** The evaluated `duration` of the current phase in ms, written next to `phaseEndsAt` on every entry; 0 when the phase has no timer. Clients read this instead of re-deriving the length from options. */
   phaseDurationMs: number;
+  /**
+   * Epoch ms at which the host paused the current phase, or 0 while it runs; written by the
+   * runtime. `phaseEndsAt` is shifted by the paused time on `RESUME_GAME`, so a client whose clock
+   * is paused-aware freezes its countdown at this instant. A phase transition clears it.
+   */
+  pausedAt?: number;
   /** True while in the Lobby with enough active players for `START_GAME`; written by the runtime. */
   canStart: boolean;
   /** Set to a fixed message by the runtime's default failure policy when a hook throws (see `GameDefinition.onError`); the runtime clears it when `START_GAME` begins the next game. */
@@ -195,6 +201,14 @@ export type PhaseMiddleware<TState extends PhaseState, TPrivate, TOptions> = {
   run(ctx: MiddlewareContext<TState, TPrivate, TOptions>, next: () => void): undefined;
 }["run"];
 
+/** Token-bucket limits for one action's own bucket (`ActionDefinition.rateLimit` / `AudienceActionDefinition.rateLimit`). */
+export interface ActionRateLimit {
+  /** Sustained actions per second; a finite number > 0, at most the server ceiling. */
+  rate: number;
+  /** Burst capacity held at once; an integer >= 1, at most the server ceiling. */
+  burst: number;
+}
+
 /** One client action accepted by a phase. */
 export interface ActionDefinition<TState extends PhaseState, TPrivate, TOptions, TPayload> {
   /** `"player"` means any active player, including the host. */
@@ -203,6 +217,14 @@ export interface ActionDefinition<TState extends PhaseState, TPrivate, TOptions,
   payload: z.ZodType<TPayload>;
   /** Payload fields that hold free text; `textFilterMiddleware` checks exactly these. The framework never guesses. */
   textFields?: readonly string[];
+  /**
+   * Gives this action its own token bucket instead of the room's shared per-player action bucket
+   * (`rateLimits.action`, default 10/s burst 20) — for a fast real-time action such as a tap, which
+   * then does not spend the budget of slower actions. `defineGame` rejects a rate that is not a
+   * finite number > 0, a burst that is not an integer >= 1, and either above the server ceiling
+   * (`ACTION_RATE_LIMIT_CEILING`: 100/s, burst 200).
+   */
+  rateLimit?: ActionRateLimit;
   handler(ctx: ActionContext<TState, TPrivate, TOptions, TPayload>): void;
 }
 
@@ -213,6 +235,8 @@ export interface AudienceActionDefinition<TState extends PhaseState, TPrivate, T
   payload: z.ZodType<TPayload>;
   /** Payload fields that hold free text; `textFilterMiddleware` checks exactly these, as for player actions. The framework never guesses. */
   textFields?: readonly string[];
+  /** Gives this action its own token bucket for each spectator, exactly as {@link ActionDefinition.rateLimit} does for a seat. */
+  rateLimit?: ActionRateLimit;
   handler(ctx: AudienceActionContext<TState, TPrivate, TOptions, TPayload>): void;
 }
 

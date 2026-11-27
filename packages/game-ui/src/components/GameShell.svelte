@@ -6,6 +6,7 @@ import type { Snippet } from "svelte";
 import type { AppRouter, RouterScreen } from "../AppRouter.js";
 import type { GameControlsViewModel } from "../GameControlsViewModel.svelte.js";
 import GameControls from "./GameControls.svelte";
+import PausedOverlay from "./PausedOverlay.svelte";
 
 const {
   router,
@@ -90,6 +91,8 @@ const route = $derived(router.screen);
       <div class="phase-banner" aria-hidden="true"><span>{router.banner}</span></div>
     {/if}
   {/key}
+
+  <PausedOverlay paused={controls.isPaused} />
 </main>
 
 <style>

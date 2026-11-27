@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import {
+  ACTION_RATE_LIMIT_CEILING,
   actionFactory,
   defineGame,
   type GameDefinition,
@@ -127,6 +128,46 @@ describe("defineGame", () => {
       });
       expect(message).toContain(`${name} is reserved`);
     }
+  });
+
+  it("rejects an action rateLimit outside the allowed shape or the server ceiling", () => {
+    const handler = () => {};
+    const payload = z.object({});
+    const messageFor = (rateLimit: unknown): string =>
+      errorsOf({
+        ...valid(),
+        phases: { Play: { actions: { TAP: { from: "player", payload, handler, rateLimit } } } },
+      } as unknown as GameDefinition<S>);
+    for (const rate of [0, -1, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(messageFor({ rate, burst: 1 })).toContain("rateLimit rate");
+    }
+    for (const burst of [0, -2, 1.5, Number.NaN]) {
+      expect(messageFor({ rate: 1, burst })).toContain("rateLimit burst");
+    }
+    expect(messageFor({ rate: ACTION_RATE_LIMIT_CEILING.rate + 1, burst: 1 })).toContain("ceiling");
+    expect(messageFor({ rate: 1, burst: ACTION_RATE_LIMIT_CEILING.burst + 1 })).toContain(
+      "ceiling",
+    );
+  });
+
+  it("accepts an action rateLimit within the server ceiling", () => {
+    expect(
+      errorsOf({
+        ...valid(),
+        phases: {
+          Play: {
+            actions: {
+              TAP: {
+                from: "player",
+                payload: z.object({}),
+                handler: () => {},
+                rateLimit: { rate: 12, burst: 24 },
+              },
+            },
+          },
+        },
+      }),
+    ).toBe("");
   });
 
   it("rejects a middleware entry that is not a function", () => {

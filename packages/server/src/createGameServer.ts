@@ -69,6 +69,12 @@ export interface GameServerOptions {
   /** When set, player names are checked against it at join and on `SET_NAME`, at the level of each game's `filterLevel`. */
   textFilter?: TextFilter;
   /**
+   * How often Colyseus patches state to clients, in ms: a whole number from 10 (100 Hz) to 1000
+   * (1 Hz). Omitted keeps the library default (50 ms, 20 Hz). Lower it for smooth real-time motion,
+   * raise it for a room that only needs occasional updates.
+   */
+  patchRateMs?: number;
+  /**
    * Per-player and per-address rate limits ({@link RateLimits}). Every room enforces the action,
    * SET_NAME and EXPORT_REPLAY buckets through one shared limiter; the HTTP entries enforce
    * `resolveCode` on `/api/resolve-code` (429 with `Retry-After`).
@@ -98,6 +104,25 @@ export const DEFAULT_AUDIENCE_SLOTS = 32;
 export const DEFAULT_MAX_PAYLOAD_BYTES = 4096;
 /** Default most phase transitions a room keeps as replay snapshots; no normal party reaches it. */
 export const DEFAULT_MAX_REPLAY_TRANSITIONS = 5_000;
+
+/** Smallest accepted `patchRateMs` (100 Hz) and largest (1 Hz). */
+const MIN_PATCH_RATE_MS = 10;
+const MAX_PATCH_RATE_MS = 1000;
+
+/** The `patchRateMs` to apply, or `undefined` to keep the library default; throws on an unusable value. */
+function resolvePatchRate(patchRateMs: number | undefined): number | undefined {
+  if (patchRateMs === undefined) return undefined;
+  if (
+    !Number.isInteger(patchRateMs) ||
+    patchRateMs < MIN_PATCH_RATE_MS ||
+    patchRateMs > MAX_PATCH_RATE_MS
+  ) {
+    throw new Error(
+      `patchRateMs must be a whole number from ${MIN_PATCH_RATE_MS} to ${MAX_PATCH_RATE_MS}`,
+    );
+  }
+  return patchRateMs;
+}
 
 /**
  * Reports one observed (not enforced) limit hit. With a `logger` it writes the structured line
@@ -150,6 +175,7 @@ export function createGameServer(options: GameServerOptions): GameColyseusServer
   // One logger for the rooms and for observe-mode limit hits; a configured logger wins over stdout.
   const logger = options.logger ?? jsonLineLogger();
   const rateLimits = resolveRateLimits(options.rateLimits);
+  const patchRateMs = resolvePatchRate(options.patchRateMs);
   const rateLimiter = new RateLimiter({
     mode: rateLimits.mode,
     ...(rateLimits.mode === "observe" ? { onObserve: (key) => warnRateLimit(key, logger) } : {}),
@@ -166,6 +192,7 @@ export function createGameServer(options: GameServerOptions): GameColyseusServer
       maxRooms: options.maxRooms ?? DEFAULT_MAX_ROOMS,
       audienceSlots: options.audienceSlots ?? DEFAULT_AUDIENCE_SLOTS,
       ...(options.textFilter ? { textFilter: options.textFilter } : {}),
+      ...(patchRateMs !== undefined ? { patchRateMs } : {}),
       rateLimiter,
       rateLimits,
       logger,

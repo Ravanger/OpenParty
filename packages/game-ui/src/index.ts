@@ -22,6 +22,7 @@ export {
   type StickerShape,
   stickerLetter,
 } from "./playerSticker.js";
+export { prefixedScreens } from "./prefixedScreens.js";
 export type { ProgressRow } from "./progressRow.js";
 export { type QrCode, qrCode } from "./qr.js";
 export {
@@ -58,5 +59,6 @@ export {
 export { TextDraft, type TextDraftConfig } from "./TextDraft.svelte.js";
 export { TypingReporter } from "./TypingReporter.js";
 export { plural } from "./text.js";
+export { Tween, type TweenOptions, type TweenPoint, type TweenSpec } from "./tween.svelte.js";
 export { type LobbyPlayer, WaitingRoomViewModel } from "./WaitingRoomViewModel.svelte.js";
 export { WelcomeViewModel } from "./WelcomeViewModel.svelte.js";

@@ -43,9 +43,9 @@ room.onMessage(ServerMessage.ERROR, (payload: unknown) => {
 });
 ```
 
-Other codes: `INVALID_ACTION`, `UNKNOWN_ACTION`, `WRONG_PHASE`, `UNAUTHORIZED`, `NOT_ENOUGH_PLAYERS`, `NOT_ALLOWED`, `NOT_ACTIVE`, `CONTENT_REJECTED`, `NAME_TAKEN`, `KICKED`, `INTERNAL`, `RATE_LIMITED`, and the client-only `NOT_CONNECTED`, `CONNECTION_LOST`, `BAD_REPLY`, `ROOM_NOT_FOUND`.
+Other codes: `INVALID_ACTION`, `UNKNOWN_ACTION`, `WRONG_PHASE`, `UNAUTHORIZED`, `NOT_ENOUGH_PLAYERS`, `NOT_ALLOWED`, `NOT_ACTIVE`, `CONTENT_REJECTED`, `NAME_TAKEN`, `KICKED`, `INTERNAL`, `RATE_LIMITED`, `GAME_PAUSED`, and the client-only `NOT_CONNECTED`, `CONNECTION_LOST`, `BAD_REPLY`, `ROOM_NOT_FOUND`.
 
-`LOBBY_PHASE`, `START_GAME`, `KICK_PLAYER`, `END_GAME` and `SET_OPTIONS` name the built-ins. `NAME_MAX_LENGTH` caps player names; `MAX_SEATS` caps the `seats` room option; `MAX_OPTIONS_JSON_LENGTH` caps serialized options at room creation and in `SET_OPTIONS`. `ROOM_CODE_LENGTH` and `ROOM_CODE_ALPHABET` define the room-code format that `RoomCodeSchema` enforces; `sanitizeRoomCode` cleans user input to it.
+`LOBBY_PHASE`, `START_GAME`, `KICK_PLAYER`, `END_GAME`, `PAUSE_GAME`, `RESUME_GAME` and `SET_OPTIONS` name the built-ins. `NAME_MAX_LENGTH` caps player names; `MAX_SEATS` caps the `seats` room option; `MAX_OPTIONS_JSON_LENGTH` caps serialized options at room creation and in `SET_OPTIONS`. `ROOM_CODE_LENGTH` and `ROOM_CODE_ALPHABET` define the room-code format that `RoomCodeSchema` enforces; `sanitizeRoomCode` cleans user input to it.
 
 `ACTION_NAME_PATTERN` validates custom action names (SCREAMING_SNAKE_CASE, at most 64 characters); `ActionEnvelopeSchema` is the minimal envelope every client message passes before the phase's own payload schema; `RoomOptionsSchema` covers the framework keys a client may pass when creating a room (`seats` makes the room watch-only for everyone else: only the listed playerIds can take a seat, spectators still join). `FRAMEWORK_OPTION_KEYS` is the union of the keys of `JoinOptionsSchema` and `RoomOptionsSchema`, derived from them so it cannot drift; the room strips these from create options before handing the rest to the game's options schema.
 

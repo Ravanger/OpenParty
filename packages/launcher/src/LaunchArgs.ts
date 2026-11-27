@@ -14,6 +14,8 @@ export interface LaunchArgs {
   bots?: number;
   /** Bots besides the host bot in a watch-only room, when `--demo` was given. */
   demo?: number;
+  /** How well the bots play, 0..1, when `--bot-skill` was given; omitted keeps the bots' default of 0.5. */
+  skill?: number;
 }
 
 const DEFAULT_BOTS = 3;
@@ -28,7 +30,8 @@ const usageOf = <TState extends BaseGameState>(config: LaunchConfig<TState>): st
     ...(config.demo ? [`--demo[=${config.demo.min}..${config.demo.max}]`] : []),
   ];
   const extra = options.length > 0 ? ` [${options.join(" | ")}]` : "";
-  return `Usage: launch [dev|host|prod] [--no-browser]${extra}`;
+  const skill = config.bots !== undefined || config.demo !== undefined ? " [--bot-skill=0..1]" : "";
+  return `Usage: launch [dev|host|prod] [--no-browser]${extra}${skill}`;
 };
 
 const isFlag = (flag: string, name: string): boolean =>
@@ -36,7 +39,7 @@ const isFlag = (flag: string, name: string): boolean =>
 
 const countOf = (flag: string, fallback: number): number => Number(flag.split("=")[1] ?? fallback);
 
-/** Parses `[dev|host|prod] [--no-browser] [--bots[=N] | --demo[=N]]`; the options a game does not support are refused. */
+/** Parses `[dev|host|prod] [--no-browser] [--bots[=N] | --demo[=N]] [--bot-skill=<0..1>]`; the options a game does not support are refused. */
 export const parseLaunchArgs = <TState extends BaseGameState>(
   argv: string[],
   config: LaunchConfig<TState>,
@@ -47,8 +50,10 @@ export const parseLaunchArgs = <TState extends BaseGameState>(
   const mode = positional[0] ?? "dev";
   const botsFlag = flags.find((flag) => isFlag(flag, "--bots"));
   const demoFlag = flags.find((flag) => isFlag(flag, "--demo"));
+  const skillFlag = flags.find((flag) => isFlag(flag, "--bot-skill"));
   const unknown = flags.filter(
-    (flag) => flag !== "--no-browser" && flag !== botsFlag && flag !== demoFlag,
+    (flag) =>
+      flag !== "--no-browser" && flag !== botsFlag && flag !== demoFlag && flag !== skillFlag,
   );
   if (!isMode(mode) || positional.length > 1 || unknown.length > 0) return fail;
 
@@ -68,6 +73,21 @@ export const parseLaunchArgs = <TState extends BaseGameState>(
   }
   if (result.bots !== undefined && result.demo !== undefined) {
     return { ok: false, error: COMBINED };
+  }
+  if (skillFlag !== undefined) {
+    // The flag only applies to a bot table this launch opens, on a game that has one.
+    if (
+      (!config.bots && !config.demo) ||
+      (result.bots === undefined && result.demo === undefined)
+    ) {
+      return fail;
+    }
+    const raw = skillFlag.split("=")[1];
+    // A 0..1 fraction: the integer-only `between` does not fit.
+    if (raw === undefined || raw.trim() === "") return fail;
+    const skill = Number(raw);
+    if (!Number.isFinite(skill) || skill < 0 || skill > 1) return fail;
+    result.skill = skill;
   }
   return { ok: true, value: result };
 };

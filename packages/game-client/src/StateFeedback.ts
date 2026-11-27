@@ -2,6 +2,7 @@ import type { BaseGameState } from "@openparty/shared/schema";
 import { isUrgentSeconds } from "./countdown.svelte.js";
 import type { FeedbackBus } from "./FeedbackBus.js";
 import type { RoomLike } from "./RoomLike.js";
+import { ServerClock } from "./serverClock.js";
 
 const URGENCY_TICK_MS = 250;
 
@@ -16,13 +17,12 @@ export class StateFeedback<TState extends BaseGameState = BaseGameState> {
   private phaseWatcher: { room: RoomLike<TState>; callback: () => void } | undefined;
   private urgencyTimer: ReturnType<typeof setInterval> | undefined;
   private urgentFired = false;
-  private lastServerNow = 0;
-  private lastServerNowAt = 0;
   private readonly offChange: () => void;
 
   constructor(
     private readonly feedback: FeedbackBus,
     private readonly roomOf: () => RoomLike<TState> | undefined,
+    private readonly clock: ServerClock<TState> = new ServerClock(),
   ) {
     this.offChange = this.feedback.onChange(() => this.sync());
   }
@@ -70,8 +70,6 @@ export class StateFeedback<TState extends BaseGameState = BaseGameState> {
   private startUrgencyTimer(room: RoomLike<TState>): void {
     this.stopUrgencyTimer();
     this.urgentFired = false;
-    this.lastServerNow = 0;
-    this.lastServerNowAt = 0;
     this.urgencyTimer = setInterval(() => this.observeUrgency(room), URGENCY_TICK_MS);
   }
 
@@ -80,17 +78,14 @@ export class StateFeedback<TState extends BaseGameState = BaseGameState> {
     this.urgencyTimer = undefined;
   }
 
-  /** Fires the once-per-phase urgent event while the phase's countdown is in its last ten seconds, skew-corrected like `Countdown`. */
+  /** Fires the once-per-phase urgent event while the phase's countdown is in its last ten seconds, on the shared server clock. The clock keeps observing while paused (so the offset stays fresh for the resume), but a paused deadline must not run out in wall time, so nothing fires until `pausedAt` clears. */
   private observeUrgency(room: RoomLike<TState>): void {
     const state = room.state;
+    this.clock.observe(state.serverNow);
+    if (state.pausedAt > 0) return;
     const ends = state.phaseEndsAt;
-    if (state.serverNow !== this.lastServerNow) {
-      this.lastServerNow = state.serverNow;
-      this.lastServerNowAt = Date.now();
-    }
-    if (!ends || !this.lastServerNow) return;
-    const estimatedNow = this.lastServerNow + (Date.now() - this.lastServerNowAt);
-    const remainingMs = ends - estimatedNow;
+    if (!ends || !this.clock.isSynced) return;
+    const remainingMs = ends - this.clock.now();
     if (!this.urgentFired && isUrgentSeconds(Math.ceil(remainingMs / 1000))) {
       this.urgentFired = true;
       this.feedback.emitUrgent();

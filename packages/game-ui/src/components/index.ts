@@ -86,6 +86,14 @@ export {
   default as NameInput,
 } from "./NameInput.svelte";
 export {
+  /**
+   * The full-screen cover shown while the host has paused the room: a centred "Paused" card over a
+   * dimmed backdrop, plus an always-present polite live region that announces the pause and the
+   * resume to screen readers. Pass `paused` from the state's `pausedAt`.
+   */
+  default as PausedOverlay,
+} from "./PausedOverlay.svelte";
+export {
   /** A "next up in Ns" label over a draining track, both driven by a `PhaseClock`; the label comes from `UiStrings.nextUpIn`. */
   default as PhaseBar,
 } from "./PhaseBar.svelte";

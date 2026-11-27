@@ -176,12 +176,15 @@ describe("GameControls", () => {
     await user.click(menu());
     await waitFor(() => expect(endGame()).toHaveFocus());
     await user.tab();
+    expect(screen.getByRole("button", { name: "Pause game" })).toHaveFocus();
+    await user.tab();
     expect(leaveButton()).toHaveFocus();
     await user.keyboard("{Escape}");
     expect(leaveButton()).not.toBeInTheDocument();
     expect(menu()).toHaveFocus();
     await user.click(menu());
     await waitFor(() => expect(endGame()).toHaveFocus());
+    await user.tab();
     await user.tab();
     expect(leaveButton()).toHaveFocus();
     await user.tab();
@@ -207,5 +210,35 @@ describe("GameControls", () => {
     expect(slot).not.toBeNull();
     expect(slot?.querySelector("button")?.textContent).toBe("How to play");
     await expectNoViolations(withSlot.container, "GameControls");
+  });
+
+  it("offers the host a pause entry that closes the menu and sends PAUSE_GAME", async () => {
+    const { c, vm } = setup("host");
+    const { container } = render(GameControls, { vm });
+    await fireEvent.click(menu());
+    expect(screen.queryByRole("button", { name: "Resume game" })).not.toBeInTheDocument();
+    await expectNoViolations(container, "GameControls");
+    await fireEvent.click(screen.getByRole("button", { name: "Pause game" }));
+    expect(c.room.requests).toEqual([{ type: "ACTION", payload: { type: "PAUSE_GAME" } }]);
+    expect(menu()).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("offers the host a resume entry while paused, and no pause entry", async () => {
+    const { c, vm } = setup("host");
+    c.state.pausedAt = Date.now();
+    const { container } = render(GameControls, { vm });
+    await fireEvent.click(menu());
+    expect(screen.queryByRole("button", { name: "Pause game" })).not.toBeInTheDocument();
+    await expectNoViolations(container, "GameControls");
+    await fireEvent.click(screen.getByRole("button", { name: "Resume game" }));
+    expect(c.room.requests).toEqual([{ type: "ACTION", payload: { type: "RESUME_GAME" } }]);
+  });
+
+  it("offers no pause or resume entry to a guest", async () => {
+    const { vm } = setup("player");
+    render(GameControls, { vm });
+    await fireEvent.click(menu());
+    expect(screen.queryByRole("button", { name: "Pause game" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Resume game" })).not.toBeInTheDocument();
   });
 });

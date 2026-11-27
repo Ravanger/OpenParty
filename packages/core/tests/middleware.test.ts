@@ -227,6 +227,7 @@ describe("timingMiddleware", () => {
       "phaseDurationMs",
       "canStart",
       "log",
+      "pausedAt",
     ]);
   });
 

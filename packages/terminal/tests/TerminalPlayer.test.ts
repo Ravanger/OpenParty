@@ -158,6 +158,21 @@ describe("TerminalPlayer", () => {
       expect(io.printed).toContain("Something went wrong: Error: sync boom");
     });
 
+    it("aborts the stage controller when the stage throws, so the keyboard listener restores", async () => {
+      const { room, io } = setup({
+        play: async (turn) => {
+          turn.onKey(() => undefined);
+          throw new Error("boom");
+        },
+      });
+      room.state.phase = "Bad";
+      room.patch();
+      await tick();
+      await tick();
+      expect(io.printed.some((line) => line.startsWith("Something went wrong"))).toBe(true);
+      expect(io.listening).toBe(false);
+    });
+
     it("reports a stage that throws, unless it was aborted", async () => {
       const { room, io } = setup({
         play: async (turn) => {
@@ -391,6 +406,59 @@ describe("TerminalPlayer", () => {
       await tick();
       expect(io.printed).toContain("Could not send that: Error: socket closed");
       expect(outcome.ok).toBe(false);
+    });
+  });
+
+  describe("real-time stages", () => {
+    it("delivers single keys to the stage until it ends", async () => {
+      const pressed: string[] = [];
+      const { room, io } = setup({
+        play: async (turn) => {
+          if (turn.state.phase !== "One") return;
+          turn.onKey((key) => pressed.push(key));
+          await turn.changed();
+        },
+      });
+      room.state.phase = "One";
+      room.patch();
+      await tick();
+      io.press("up");
+      io.press("a");
+      expect(pressed).toEqual(["up", "a"]);
+      expect(io.listening).toBe(true);
+      room.state.phase = "Two";
+      room.patch();
+      await tick();
+      expect(io.listening).toBe(false);
+      io.press("b");
+      expect(pressed).toEqual(["up", "a"]);
+    });
+
+    it("reports a failing key handler and stops reading", async () => {
+      const { room, io } = setup({
+        play: async (turn) => {
+          turn.onKey(() => {
+            throw new Error("boom");
+          });
+          await turn.changed();
+        },
+      });
+      room.state.phase = "One";
+      room.patch();
+      await tick();
+      expect(() => io.press("a")).not.toThrow();
+      expect(io.printed).toContain("Something went wrong: Error: boom");
+      expect(io.listening).toBe(false);
+    });
+
+    it("draws a frame from a stage", async () => {
+      const { room, io } = setup({
+        play: async (turn) => turn.frame(["score 1", " 5s left"]),
+      });
+      room.state.phase = "One";
+      room.patch();
+      await tick();
+      expect(io.frames).toEqual([["score 1", " 5s left"]]);
     });
   });
 

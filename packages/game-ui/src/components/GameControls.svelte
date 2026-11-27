@@ -107,6 +107,13 @@ async function onCancelEnd(): Promise<void> {
               >{strings.endGame}</button>
             {/if}
           {/if}
+          {#if vm.canPause}
+            <button type="button" class="btn" onclick={() => vm.pause()}>{strings.pauseGame}</button>
+          {:else if vm.canResume}
+            <button type="button" class="btn" onclick={() => vm.resume()}>
+              {strings.resumeGame}
+            </button>
+          {/if}
           <button type="button" class="btn" bind:this={leaveBtn} onclick={() => vm.leave()}>
             {strings.leaveGame}
           </button>

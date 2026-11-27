@@ -4,7 +4,7 @@ import { FakeHost } from "@openparty/core/testing";
 import { CLIENT_MESSAGES, ClientMessage, ErrorCode, ServerMessage } from "@openparty/shared";
 import { BaseGameState, PlayerSchema } from "@openparty/shared/schema";
 import { describe, expect, it } from "vitest";
-import type { ResolvedRateLimits } from "../src/RateLimiter.js";
+import type { ResolvedRateLimits, TokenBucket } from "../src/RateLimiter.js";
 import {
   ActionRouter,
   type ActionRouterDeps,
@@ -31,9 +31,19 @@ const NOT_ALLOWED = {
   error: { code: ErrorCode.NOT_ALLOWED, message: CLIENT_MESSAGES.NOT_ALLOWED },
 };
 
-/** A one-phase table: `VOTE` is audience-declared, `TAP` is a player action. */
+/** A token bucket distinct enough to spot in a recorded key. */
+const FAST_LIMIT = { rate: 50, burst: 60 };
+
+/** A one-phase table: `VOTE` is audience-declared, `TAP` is a player action, `FAST`/`CHEER` carry their own bucket. */
 const PHASES: Record<string, RoutedPhase> = {
-  Play: { actions: { VOTE: { from: "audience" }, TAP: { from: "player" } } },
+  Play: {
+    actions: {
+      VOTE: { from: "audience" },
+      CHEER: { from: "audience", rateLimit: FAST_LIMIT },
+      TAP: { from: "player" },
+      FAST: { from: "player", rateLimit: FAST_LIMIT },
+    },
+  },
 };
 
 const LIMITS: ResolvedRateLimits = {
@@ -88,6 +98,7 @@ const makeRouter = (overrides: Partial<ActionRouterDeps> = {}): ActionRouter => 
     dispatch: () => undefined,
     dispatchAudience: () => undefined,
     take: () => true,
+    drop: () => {},
     roomId: () => "room-1",
     rateLimits: LIMITS,
     recorder: new ReplayRecorder(PlainGame, 8, []),
@@ -158,6 +169,84 @@ describe("ActionRouter (unit)", () => {
     expect(lines).toEqual([
       ["warn", "action.rejected", { code: ErrorCode.INTERNAL, action: "TAP" }],
     ]);
+  });
+
+  it("logs an unparseable envelope whose dispatch threw with the unknown action", () => {
+    const lines: Array<[string, string, unknown]> = [];
+    const { client } = fakeClient("s1");
+    const router = makeRouter({
+      seatBySession: () => seatOf("p1"),
+      dispatch: () => {
+        throw new Error("boom");
+      },
+      logLine: (level, event, fields) => lines.push([level, event, fields]),
+    });
+    expect(router.action(client, { noType: true })).toEqual(INTERNAL);
+    expect(lines).toEqual([
+      ["warn", "action.rejected", { code: ErrorCode.INTERNAL, action: "unknown" }],
+    ]);
+  });
+
+  describe("per-action rate limits", () => {
+    /** Records every take and allows it. */
+    const takeRecorder =
+      (taken: Array<[string, TokenBucket]>): ActionRouterDeps["take"] =>
+      (key, bucket) => {
+        taken.push([key, bucket]);
+        return true;
+      };
+
+    it("spends a player action's own bucket, keyed by its type, instead of the shared one", () => {
+      const taken: Array<[string, TokenBucket]> = [];
+      const { client } = fakeClient("s1");
+      const router = makeRouter({
+        seatBySession: () => seatOf("p1"),
+        take: takeRecorder(taken),
+      });
+      expect(router.action(client, { type: "FAST" })).toEqual({ ok: true });
+      expect(taken).toEqual([[`room-1:p1:${ClientMessage.ACTION}:FAST`, FAST_LIMIT]]);
+      taken.length = 0;
+      expect(router.action(client, { type: "TAP" })).toEqual({ ok: true });
+      expect(taken).toEqual([[`room-1:p1:${ClientMessage.ACTION}`, LIMITS.action]]);
+    });
+
+    it("spends the shared bucket for a malformed envelope or an action the phase does not declare", () => {
+      const taken: Array<[string, TokenBucket]> = [];
+      const { client } = fakeClient("s1");
+      const router = makeRouter({
+        seatBySession: () => seatOf("p1"),
+        take: takeRecorder(taken),
+      });
+      router.action(client, { noType: true });
+      router.action(client, { type: "NOPE" });
+      expect(taken).toEqual([
+        [`room-1:p1:${ClientMessage.ACTION}`, LIMITS.action],
+        [`room-1:p1:${ClientMessage.ACTION}`, LIMITS.action],
+      ]);
+    });
+
+    it("keys a spectator's own-bucket action by join playerId and type, and the shared one by playerId", () => {
+      const taken: Array<[string, TokenBucket]> = [];
+      const seats = new SeatRegistry(() => []);
+      seats.addSpectator("s1", "aud-0001");
+      const { client } = fakeClient("s1");
+      const router = makeRouter({ seats, take: takeRecorder(taken) });
+      expect(router.action(client, { type: "CHEER" })).toEqual({ ok: true });
+      expect(taken).toEqual([
+        [`room-1:aud-0001:audience:${ClientMessage.ACTION}:CHEER`, FAST_LIMIT],
+      ]);
+      taken.length = 0;
+      expect(router.action(client, { type: "VOTE" })).toEqual({ ok: true });
+      expect(taken).toEqual([[`room-1:aud-0001:audience:${ClientMessage.ACTION}`, LIMITS.action]]);
+    });
+
+    it("falls back to the session id for a seatless connection with no spectator id", () => {
+      const taken: Array<[string, TokenBucket]> = [];
+      const { client } = fakeClient("s1");
+      const router = makeRouter({ take: takeRecorder(taken) });
+      expect(router.action(client, { type: "VOTE" })).toEqual(SPECTATOR);
+      expect(taken).toEqual([[`room-1:s1:audience:${ClientMessage.ACTION}`, LIMITS.action]]);
+    });
   });
 
   describe("the audience path for seatless connections", () => {

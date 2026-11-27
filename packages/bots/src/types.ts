@@ -28,10 +28,14 @@ export interface BotTurn<TState extends BaseGameState> {
   readonly state: TState;
   readonly playerId: string;
   readonly name: string;
+  /** This bot's skill, clamped to 0..1 (default 0.5); see {@link mistakeChance}. @experimental Reflex-round bot API; may change before 1.0. */
+  readonly skill: number;
   /** Runs `run` the first time `key` is seen in the current phase. */
   once(key: string, run: () => void): void;
   /** Runs `run` after a random delay; cancelled when the phase changes or the bot leaves. */
   later(delay: BotSpeed | DelayRange, run: () => void): void;
+  /** Runs `run` every `ms` — rescheduling after each run — while the phase is unchanged and the bot stays in the room; a throwing `run` is logged through `log` (when set) and stops the cadence, and a synchronously-fired scheduler ends the cadence after the first firing instead of recursing. @experimental Reflex-round bot API; may change before 1.0. */
+  every(ms: number, run: () => void): void;
   /** Sends action `type`; the outcome goes to `onOutcome` and `log`. `note` describes it in the log. `type` overrides any `type` in `payload`. */
   act(type: string, payload?: object, note?: string): void;
   /** A random element, or `undefined` for an empty list. */
@@ -53,6 +57,8 @@ export interface BotHostOptions {
 /** Per-bot timing, logging and hosting options; every field is optional. */
 export interface BotOptions {
   rng?: () => number;
+  /** How well this bot plays, 0..1 (default 0.5): higher skill shortens the delays drawn for `later("think")` and `later("react")` by a factor of `1.5 - skill`, and lowers {@link mistakeChance}. Out-of-range values are clamped to 0..1; a non-finite value falls back to 0.5. @experimental Reflex-round bot API; may change before 1.0. */
+  skill?: number;
   /** Runs `run` after `ms` and returns a canceller. */
   schedule?: (run: () => void, ms: number) => () => void;
   thinkMs?: DelayRange;

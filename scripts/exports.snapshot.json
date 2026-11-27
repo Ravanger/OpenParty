@@ -27,9 +27,15 @@
           "JoinBotsOptions": {},
           "JoinKitBotsOptions": {},
           "SeatBotsOptions": {},
+          "composeStrategies": {
+            "experimental": true
+          },
           "defaultConnector": {},
           "joinBots": {},
           "joinKitBots": {},
+          "mistakeChance": {
+            "experimental": true
+          },
           "outcomeOf": {}
         }
       }
@@ -146,6 +152,7 @@
         },
         "symbols": {
           "ACTION_LOG_ENTRY_KINDS": {},
+          "ACTION_RATE_LIMIT_CEILING": {},
           "ActionContext": {},
           "ActionDefinition": {},
           "ActionLog": {},
@@ -153,6 +160,7 @@
           "ActionLogEntryKind": {},
           "ActionLogHeader": {},
           "ActionLogSchema": {},
+          "ActionRateLimit": {},
           "AudienceActionContext": {},
           "AudienceActionDefinition": {},
           "AudienceScope": {},
@@ -179,6 +187,7 @@
           "LogLine": {},
           "Logger": {},
           "LoggingMiddlewareOptions": {},
+          "MAX_PAUSE_MS": {},
           "MiddlewareContext": {},
           "MiddlewareEvent": {},
           "OptionsRejectionReason": {},
@@ -251,7 +260,28 @@
           "default": "./dist/kits/index.js"
         },
         "symbols": {
+          "Graph": {
+            "experimental": true
+          },
+          "MountRoundModuleOptions": {
+            "experimental": true
+          },
           "Responses": {
+            "experimental": true
+          },
+          "RoundModule": {
+            "experimental": true
+          },
+          "RoundModuleAction": {
+            "experimental": true
+          },
+          "RoundModuleActionContext": {
+            "experimental": true
+          },
+          "RoundModuleContext": {
+            "experimental": true
+          },
+          "RoundModulePhase": {
             "experimental": true
           },
           "Slots": {
@@ -263,7 +293,16 @@
           "allResponded": {
             "experimental": true
           },
+          "assignTeams": {
+            "experimental": true
+          },
           "countVoted": {
+            "experimental": true
+          },
+          "createTurnOrder": {
+            "experimental": true
+          },
+          "defineRoundModule": {
             "experimental": true
           },
           "drawPool": {
@@ -278,7 +317,28 @@
           "leaders": {
             "experimental": true
           },
+          "mountRoundModule": {
+            "experimental": true
+          },
+          "nextTurn": {
+            "experimental": true
+          },
+          "reachable": {
+            "experimental": true
+          },
+          "roundModuleActionFactory": {
+            "experimental": true
+          },
+          "shortestPath": {
+            "experimental": true
+          },
           "tallyVotes": {
+            "experimental": true
+          },
+          "teamTotals": {
+            "experimental": true
+          },
+          "validateGraph": {
             "experimental": true
           }
         }
@@ -343,6 +403,9 @@
           "MessageFeedbackEvent": {},
           "PhaseFeedbackEvent": {},
           "RoomLike": {},
+          "ServerClock": {
+            "experimental": true
+          },
           "UrgentFeedbackEvent": {},
           "clientConfig": {},
           "defaultClientStrings": {},
@@ -505,6 +568,18 @@
           "StickerShape": {},
           "TextDraft": {},
           "TextDraftConfig": {},
+          "Tween": {
+            "experimental": true
+          },
+          "TweenOptions": {
+            "experimental": true
+          },
+          "TweenPoint": {
+            "experimental": true
+          },
+          "TweenSpec": {
+            "experimental": true
+          },
           "TypingReporter": {},
           "UiStrings": {},
           "WaitingRoomViewModel": {},
@@ -517,6 +592,9 @@
           "playerSticker": {},
           "plural": {},
           "podiumSteps": {},
+          "prefixedScreens": {
+            "experimental": true
+          },
           "qrCode": {},
           "rankRows": {},
           "replayManager": {},
@@ -554,6 +632,7 @@
           "LobbyScreen": {},
           "LobbySettings": {},
           "NameInput": {},
+          "PausedOverlay": {},
           "PhaseBar": {},
           "PhaseTimer": {},
           "PlayerSticker": {},
@@ -741,8 +820,10 @@
           "MAX_OPTIONS_JSON_LENGTH": {},
           "MAX_SEATS": {},
           "NAME_MAX_LENGTH": {},
+          "PAUSE_GAME": {},
           "PROTOCOL_VERSION": {},
           "PlayerIdSchema": {},
+          "RESUME_GAME": {},
           "ROOM_CODE_ALPHABET": {},
           "ROOM_CODE_LENGTH": {},
           "ResolveCodeResponseSchema": {},
@@ -793,6 +874,9 @@
           "DemoRunOptions": {},
           "GameClient": {},
           "GameRoomOf": {},
+          "KeyName": {
+            "experimental": true
+          },
           "PlayArgs": {},
           "PlaySession": {},
           "PlaySessionOptions": {},
@@ -815,7 +899,9 @@
           "default": "./dist/testing.js"
         },
         "symbols": {
-          "ScriptedIo": {}
+          "ScriptedIo": {
+            "experimental": true
+          }
         }
       }
     }

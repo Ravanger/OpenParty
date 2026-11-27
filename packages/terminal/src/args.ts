@@ -19,6 +19,8 @@ export interface BotsArgs {
   count: number;
   endpoint: string;
   apiPort: number;
+  /** How well the bots play, 0..1, when `--bot-skill` was given; omitted keeps the bots' default of 0.5. */
+  skill?: number;
 }
 
 /** Limits and usage text for parsing a game's `play` and `bots` arguments. */
@@ -60,6 +62,7 @@ const read = (
         join: { type: "string" },
         endpoint: { type: "string" },
         "api-port": { type: "string" },
+        "bot-skill": { type: "string" },
       },
       strict: true,
       allowPositionals: positionals > 0,
@@ -117,15 +120,22 @@ export const parseDemoArgs = (argv: string[], limits: DemoArgsLimits): Parsed<De
   return { ok: true, value: { bots } };
 };
 
-/** Parses `CODE [count] --endpoint --api-port` for a command that seats bots in an existing room. */
+/** Parses `CODE [count] --endpoint --api-port --bot-skill` for a command that seats bots in an existing room. */
 export const parseBotsArgs = (argv: string[], limits: ArgsLimits): Parsed<BotsArgs> => {
   const fail = { ok: false, error: limits.usage } as const;
-  const input = read(argv, ["endpoint", "api-port"], 2);
+  const input = read(argv, ["endpoint", "api-port", "bot-skill"], 2);
   if (!input) return fail;
   const code = RoomCodeSchema.safeParse((input.positionals[0] ?? "").toUpperCase());
   const count = Number(input.positionals[1] ?? "3");
   const apiPort = Number(input.values["api-port"] ?? DEFAULT_API_PORT);
   const endpoint = input.values.endpoint ?? DEFAULT_ENDPOINT;
+  const rawSkill = input.values["bot-skill"];
+  let skill: number | undefined;
+  if (rawSkill !== undefined) {
+    // A 0..1 fraction: the integer-only `between` does not fit.
+    skill = Number(rawSkill);
+    if (rawSkill.trim() === "" || !Number.isFinite(skill) || skill < 0 || skill > 1) return fail;
+  }
   if (
     !code.success ||
     !between(count, 1, limits.maxBots) ||
@@ -134,5 +144,8 @@ export const parseBotsArgs = (argv: string[], limits: ArgsLimits): Parsed<BotsAr
   ) {
     return fail;
   }
-  return { ok: true, value: { code: code.data, count, endpoint, apiPort } };
+  return {
+    ok: true,
+    value: { code: code.data, count, endpoint, apiPort, ...(skill !== undefined ? { skill } : {}) },
+  };
 };

@@ -2,8 +2,8 @@
 
 Terminal client: a human at a prompt, bots, or an all-bot demo run. You write the strategy.
 
-- `@openparty/terminal`: `TerminalPlayer`, `PlaySession`, `ReadlinePrompter`, `DemoRun`, `parsePlayArgs`, `parseDemoArgs`, `runBotsCommand` (throws `BadBotsArgsError` on a bad argv; map it to your bad-arguments exit code); `DEFAULT_ENDPOINT` (`ws://localhost:2567`), `DEFAULT_API_PORT` (3001); types `TerminalStrategy`, `TerminalTurn`, `TerminalPlayerOptions` (optional clock and quit word), `GameRoomOf<TState>` (the client-side room), `PlayArgs`, `BotsArgs`, `ArgsLimits`, `PlaySessionOptions`, `DemoRunOptions`, `BotsCommandOptions`, `BotsCommandHandle`
-- `@openparty/terminal/testing`: `ScriptedIo`, a scripted `Prompter`
+- `@openparty/terminal`: `TerminalPlayer`, `PlaySession`, `ReadlinePrompter`, `DemoRun`, `parsePlayArgs`, `parseDemoArgs`, `runBotsCommand` (throws `BadBotsArgsError` on a bad argv; map it to your bad-arguments exit code); `DEFAULT_ENDPOINT` (`ws://localhost:2567`), `DEFAULT_API_PORT` (3001); types `TerminalStrategy`, `TerminalTurn`, `TerminalPlayerOptions` (optional clock and quit word), `KeyName` (a decoded key press), `GameRoomOf<TState>` (the client-side room), `PlayArgs`, `BotsArgs`, `ArgsLimits`, `PlaySessionOptions`, `DemoRunOptions`, `BotsCommandOptions`, `BotsCommandHandle`
+- `@openparty/terminal/testing`: `ScriptedIo`, a scripted `Prompter` (`type` answers a question; `press` delivers a key; `frames` records `frame` calls)
 
 ## Write a strategy
 
@@ -31,13 +31,43 @@ export const buttonTerminal = (): TerminalStrategy<ButtonState> => ({
 | `notify(type, payload)` | sends without waiting or printing |
 | `changed()` | resolves on the next state change or when the stage ends |
 | `timeLeft()` | `" 12s left"` from the server clock, `""` without a deadline |
+| `onKey(handler)` | calls `handler(key)` for each single key press until the stage ends (raw mode; `"up"`, `"enter"`, `"space"`, `"a"`); prints a line and reads nothing without a terminal |
+| `frame(lines)` | redraws a block of lines in place (cursor up and clear, no scroll); plain prints without a terminal |
 | `quit()` | leaves the game |
 
 Optional: `stageOf(state)`; `narrate(state)` returns lines printed on every state change; `lobby(turn)` replaces the built-in lobby.
 
+`onKey` and `frame` (`@experimental`) are for real-time stages that cannot wait for Enter. `onKey` switches stdin to
+raw mode and decodes arrows, space, Enter, Escape, Backspace, Tab and typed characters; the previous mode is restored when
+the stage ends and the last listener is gone (the signal aborts, the player quits, or a throwing handler stops that listener
+— `Something went wrong: ...`). Registering again inside the
+same stage keeps the terminal in raw mode until the last listener ends. `frame` keeps the block where it was: the next call
+moves the cursor back to its first line and clears each line, so a score line does not scroll the stage away. On a piped
+stdin or a redirected stdout both fall back safely — keys are refused with a printed line and frames become plain prints.
+
+Two constraints to know. While a stage listens, the terminal is in raw mode and Ctrl+C is swallowed: raw mode generates no
+SIGINT and the decoder has no name for it, so a real-time stage whose phase never changes can only be left through a key
+the strategy handles itself — the convention is the quit word (`turn.quitWord`) or Escape, handled in the same `onKey`
+callback. And `ask` and `onKey` do not coexist: `onKey` removes readline's line-editing listener, so a question issued while
+a stage listens would not receive keys — use line questions (`ask`) or real-time keys (`onKey` + `frame`), not both.
+
+```ts
+async play(turn) {
+  if (turn.state.phase !== "Round") return;
+  turn.onKey((key) => {
+    if (key === turn.quitWord || key === "escape") return void turn.quit();
+    if (key === "up" || key === "a") void turn.send("MOVE", { by: 1 }, "Moved.");
+  });
+  while (!turn.signal.aborted) {
+    turn.frame([`Round — ${turn.timeLeft().trim()}`, "Arrows to move"]);
+    await turn.changed();
+  }
+}
+```
+
 ## Wire `terminal/play.ts`
 
-`parsePlayArgs` reads `--bots`, `--name`, `--join`, `--endpoint`, `--api-port`. `parseDemoArgs(argv, { minBots, maxBots, usage })` reads `--bots N` (both the space and `=` forms) for an all-bot demo (default 3, clamped into the range; an empty value, a non-integer or out-of-range count, a repeated flag, unknown flags and extra positionals are rejected with `usage`). `PlayArgs`, `BotsArgs` and `DemoArgs` are the parsed command lines; `ArgsLimits` and `DemoArgsLimits` carry the limits and usage text. Entries exit 2 on bad arguments. `PlaySession` (options `PlaySessionOptions`: where the server is, which room to enter, who plays) finds or starts a server, creates or joins a room and seats bots from your `BotKit`; rooms are opened through `GameClient`, a thin wrapper over the default room connector (`defaultConnector`) from `@openparty/bots`.
+`parsePlayArgs` reads `--bots`, `--name`, `--join`, `--endpoint`, `--api-port`. `parseDemoArgs(argv, { minBots, maxBots, usage })` reads `--bots N` (both the space and `=` forms) for an all-bot demo (default 3, clamped into the range; an empty value, a non-integer or out-of-range count, a repeated flag, unknown flags and extra positionals return `usage` as the error — the caller prints it and exits 2). `PlayArgs`, `BotsArgs` and `DemoArgs` are the parsed command lines; `ArgsLimits` and `DemoArgsLimits` carry the limits and usage text. Entries exit 2 on bad arguments. `PlaySession` (options `PlaySessionOptions`: where the server is, which room to enter, who plays) finds or starts a server, creates or joins a room and seats bots from your `BotKit`; rooms are opened through `GameClient`, a thin wrapper over the default room connector (`defaultConnector`) from `@openparty/bots`.
 
 ```ts
 import { createInterface } from "node:readline/promises";
@@ -69,7 +99,7 @@ lines.close();
 
 ## Wire `bots/cli.ts`
 
-`bun run bots <CODE> [count]` seats bots in a room created in the browser. `runBotsCommand` takes `BotsCommandOptions`; the `BotsCommandHandle` it resolves with controls the seated bots.
+`bun run bots <CODE> [count]` seats bots in a room created in the browser. `parseBotsArgs(argv, { maxBots, usage })` reads the code, the count (default 3), `--endpoint`, `--api-port` and `--bot-skill=<0..1>` — the bots' skill; omitted keeps the default 0.5, and an empty, non-numeric or out-of-range value returns `usage` as the error — the caller prints it and exits 2. `runBotsCommand` takes `BotsCommandOptions`; the flag wins over a `skill` already set in its `bot` options, and the `BotsCommandHandle` it resolves with controls the seated bots.
 
 ```ts
 import { runBotsCommand } from "@openparty/terminal";
@@ -104,7 +134,7 @@ process.exit(passed ? 0 : 1);
 
 ## Test a strategy
 
-`ScriptedIo` (from `@openparty/terminal/testing`) is a `Prompter` that records `asked` and `printed` lines; `await io.type("text")` answers the pending question. Pass it to `TerminalPlayer` or `PlaySession`.
+`ScriptedIo` (from `@openparty/terminal/testing`) is a `Prompter` that records `asked` and `printed` lines; `await io.type("text")` answers the pending question, `io.press("up")` delivers a single key to the stage's `onKey` listeners (`io.listening` says whether any is left), and `io.frames` records every `frame` call. Pass it to `TerminalPlayer` or `PlaySession`.
 
 Depends on: `@openparty/bots`, `@openparty/client-utils`, `@openparty/server`, `@openparty/shared`, `@colyseus/sdk`
 

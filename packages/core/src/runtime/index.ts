@@ -1,4 +1,9 @@
-export { actionFactory, defineGame, GameDefinitionError } from "./defineGame.js";
+export {
+  ACTION_RATE_LIMIT_CEILING,
+  actionFactory,
+  defineGame,
+  GameDefinitionError,
+} from "./defineGame.js";
 export { GameRuntime, type GameRuntimeConfig, InvalidPrivateStateError } from "./GameRuntime.js";
 export type { RuntimeHost, TimerHandle } from "./host.js";
 export { evaluateJoin, type JoinGate } from "./join.js";
@@ -15,10 +20,12 @@ export {
   type ResolvedGameOptions,
   resolveGameOptions,
 } from "./options.js";
+export { MAX_PAUSE_MS } from "./pause.js";
 export { type CoreStrings, defaultCoreStrings } from "./strings.js";
 export type {
   ActionContext,
   ActionDefinition,
+  ActionRateLimit,
   AudienceActionContext,
   AudienceActionDefinition,
   AudienceScope,

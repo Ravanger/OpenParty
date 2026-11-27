@@ -71,6 +71,12 @@ action name: do not declare it in a payload schema, and `sendAction` refuses to 
 while `z.looseObject` passes them through and should be avoided. An action with no fields uses
 `EmptyPayloadSchema` from `@openparty/core` instead of writing `z.object({})`; and to end the game back in
 the lobby, put `playAgainAction()` (host-only, empty payload) in your own end phase under your own action name.
+An action can declare its own token bucket, `rateLimit: { rate, burst }` (rate in actions per second, burst the tokens
+it holds at once), instead of spending the room's shared per-player ACTION budget — for a fast real-time action such as
+a tap, which then no longer drains the budget of slower actions. `defineGame` rejects a rate that is not a finite number
+`> 0`, a burst that is not an integer `>= 1`, and either above the server ceiling (`ACTION_RATE_LIMIT_CEILING`: 100/s,
+burst 200). An action without `rateLimit` keeps the shared bucket (default 10/s, burst 20). An audience action
+(`from: "audience"`) declares it the same way, and each spectator holds its own bucket per action.
 Every rejection is sent only to the sender as `ERROR { code, message, action }`:
 
 | Code | Cause |
@@ -86,6 +92,7 @@ Every rejection is sent only to the sender as `ERROR { code, message, action }`:
 | `NAME_TAKEN` | `SET_NAME` with a name another seat already has (compared trimmed and case-insensitively); the seat keeps its name |
 | `KICKED` | pushed to a player the host removed, just before the connection closes |
 | `INTERNAL` | only ever the answer to a request: a hook threw while handling the action |
+| `GAME_PAUSED` | the room is host-paused; every action but the pause controls and `END_GAME` is refused until it resumes |
 | `NOT_CONNECTED`, `CONNECTION_LOST`, `BAD_REPLY`, `ROOM_NOT_FOUND` | client-side only, never sent by the server: no room joined, the request or connect failed in transit, the reply was not an `ActionResult`, the typed room code is unknown ("Game code not found") |
 
 #### Awaiting an action's outcome
@@ -138,8 +145,10 @@ On the server, spectators are the audience. A seatless connection may send `ACTI
 `from: "audience"` in the current phase; anything else (a player action, a built-in, an action of another phase) gets the
 same `UNAUTHORIZED` spectator refusal as before audience actions existed. The audience key is the spectator's join
 `playerId`: once-scopes survive that connection dropping and reconnecting within the phase, and are cleared on a phase
-change, not on disconnect. Spectator actions draw from the same ACTION rate-limit bucket, keyed per connection and freed
-when the spectator leaves. Audience identity is in-memory and unauthenticated — a client that rotates its join `playerId`
+change, not on disconnect. Spectator actions draw from the same ACTION rate-limit bucket as a seat, keyed by that join
+`playerId` (under an `audience` namespace, so it can never collide with a seat holding the same id), so a reconnect
+cannot reset it either; the buckets are freed when the spectator leaves, after the seat reconnection window for an
+abnormal drop. Audience identity is in-memory and unauthenticated — a client that rotates its join `playerId`
 gets fresh scopes — so audience votes count participation, not commitments.
 
 ### Host controls
@@ -149,6 +158,10 @@ The runtime handles these host-only actions for you; do not declare them (`defin
 - `KICK_PLAYER { playerId }`: any phase, not yourself; `playerId` is validated as a player id (a malformed or oversized one gets `INVALID_ACTION`, an unknown but well-formed one the "no such player" refusal). The host implementation removes the seat, then `onRosterChange` runs. The ban is per `playerId` and per the kicked seat's secret hash: a kicked client that rejoins with a fresh id but its stored secret is refused with `KICKED_REJOIN` too (IPs are not used — they are shared on a LAN). A player who leaves normally can rejoin.
 - `SET_OPTIONS { ...partial }`: Lobby only. If the game declares no `definition.options` schema, it rejects any key but `type` (`INVALID_ACTION`); a room for such a game also refuses create options. Otherwise the partial is merged into the current options and validated, then published; a failed parse or a result whose JSON is longer than `MAX_OPTIONS_JSON_LENGTH` is `INVALID_ACTION` and keeps the previous options. `ctx.options` reflects the new value. When the game declares an options schema, both paths resolve through core's `resolveGameOptions(definition, raw)` — the one options contract, returning `{ ok: true, options }` or `{ ok: false, reason: "unexpected" | "invalid" | "too-large" }`; each caller keeps its own failure channel (create closes with `INVALID_OPTIONS`, `SET_OPTIONS` rejects the action). For a schema-less game the no-keys guard stays inline in `Lobby.setOptions` against the **sent** keys (the merge can carry non-empty current options), while create reaches it through the resolver.
 - `END_GAME`: any phase but the Lobby (`WRONG_PHASE` there). It runs `onEndGame(ctx)`, where a game can set a notice for the players, and then returns everyone to the Lobby as `ctx.returnToLobby()` does (`onReturnToLobby` runs, waiting joiners are let in). The hook cannot veto it.
+- `PAUSE_GAME`: any phase but the Lobby (`WRONG_PHASE` there); a no-op while already paused. It freezes the current phase's deadline timer, its ticks and every queued action, and writes the pause instant to `state.pausedAt` (0 while the room runs). Clients read that one field: the countdown clamps to it and game-ui shows the "Paused" overlay from it. A pause that outlasts `MAX_PAUSE_MS` (30 minutes, exported from core) is treated as an abandoned game: the runtime ends it to the Lobby with a notice.
+- `RESUME_GAME`: any phase but the Lobby (`WRONG_PHASE` there); a no-op while running. It shifts `phaseEndsAt` by exactly the paused time and clears `state.pausedAt`, so the phase resumes with no gap and clients lose no remaining time.
+
+Host migration runs while a room is paused (a dropped host promotes the next seat, who can resume), and a paused room stays open to token reconnects; the returning client's snapshot carries `pausedAt`.
 
 The first seat of a room is host by acquisition. After that, when the current host is not connected — or no seat holds the role any more (their seat was removed) — the runtime migrates it to one of the connected seats, in seat order, per `definition.hostMigration`:
 
@@ -196,6 +209,10 @@ A real-time phase declares `onTick(ctx, dtMs)`, called every `tickMs` while the 
 Ticks stop as soon as the phase is left — including a transition queued from within `onTick` — and on shutdown; leaving and re-entering restarts the cadence.
 Like `onPlayerSync`, ticks are not wrapped by phase middleware.
 On a live room the Colyseus clock quantizes delivery to its ~16 ms grid. Ticks are anchored to the phase entry — tick k is scheduled for enter + k·tickMs regardless of when tick k−1 actually fired — so a tick can land up to one grid step late but never more: lateness is not carried into the next tick. An action in that window would otherwise replay with one extra tick, so the log corrects it without logging each tick (which would be too chatty): while a ticking phase is active, every entry records `ticks` — the ticks fired since the phase was entered — and `replayLog` caps that phase's delivery at the recorded count, applying deferred ticks in fire order at the next entry boundary (or discarding them when the phase is left first), exactly as the live room did. Legacy logs without `ticks` replay every nominally due tick, as before. Timeouts have the same skew; the log corrects those too (see the Determinism contract).
+
+Two transport limits bound a real-time phase. The room patches state to clients at 20 Hz (every 50 ms, the Colyseus default); `patchRateMs` on `createGameServer` changes that (10–1000 ms). Client actions are rate-limited per player at 10 per second with a burst of 20 (`rateLimits.action`); to stream one action faster — a tap race at about 12 taps per second, say — declare that action's own `rateLimit` (see Actions) rather than raising the shared budget for every action. The declared ceiling is 100 actions/s with a burst of 200.
+
+A host pause (see Host controls) freezes everything a timer drives: the deadline, the tick cadence and queued actions all stop at the instant in `state.pausedAt`, and resume with no gap because `RESUME_GAME` shifts `phaseEndsAt` by exactly the paused time. Client side, `manager.countdown()` clamps its clock to `pausedAt` while that is non-zero, so a countdown never runs out mid-pause; the urgency feedback keeps observing the server clock through the pause (the offset stays fresh for the resume) but fires nothing until `pausedAt` clears.
 
 ### Lobby
 Built in. `START_GAME` is host only and needs `minPlayers` active players (else `NOT_ENOUGH_PLAYERS`).
@@ -254,6 +271,120 @@ outside the chain), no cancelling queued transitions.
 - `timingMiddleware()` — records per-phase durations into a store kept outside `ctx.priv` (keyed by it; read back with `getPhaseTimings(priv)`); each phase gets `{ enteredAt: number, durationsMs: number[] }`. Started on enter (before the hook), closed when a transition out of that phase is observed. The currently open phase has no final duration yet. Never touches `ctx.state` (it is synced to clients) or `ctx.priv`; timing metadata stays server-side.
 - `actionLogMiddleware()` — append-only, JSON-serializable record of every middleware-visible event, kept outside `ctx.priv` (read back with `getActionLog(priv)`); see Action log and replay below.
 - `textFilterMiddleware(filter)` — rejects an action whose declared text fields fail the room's filter level; player and audience actions alike (an audience action declares its `textFields` the same way). Declare which payload fields are free text per action (`textFields: ["..."]` on the action definition; the framework never guesses) and how strict this room is via `filterLevel?: (options) => "off" | "moderate" | "strict"` on the game definition (default `"off"`). For each declared string field it runs `filter.check(value, level)` in declaration order and, on the first failure, rejects with `CONTENT_REJECTED` and a fixed core string (`CoreStrings.contentRejected`, default `CLIENT_MESSAGES.CONTENT_REJECTED`) — always with `redactPayload`, so an action log records the rejection without the offending text — without running the handler. The filter's own reason never reaches a client; it is passed only to `{ onRejected?(ctx, reason) }` (the second argument), which fires after the rejection is recorded; the game can react (e.g. count rejections) but cannot change the outcome. A `TextFilter` comes from `@openparty/content` (`createTextFilter()` is the default English one); at `"off"` the filter is never called, and actions without `textFields` pass untouched.
+
+### Round modules
+A round module is a self-contained sub-game: its own phases and actions over a slice of the host's synced state. Define it once with `defineRoundModule`, mount it into a game under a name prefix with `mountRoundModule` (both from `@openparty/core/kits`, `@experimental`) — the mount returns ordinary phase definitions to spread into `GameDefinition.phases`.
+
+```ts
+import { defineRoundModule, mountRoundModule, roundModuleActionFactory } from "@openparty/core/kits";
+import { z } from "zod";
+
+interface TapSlice { taps: Record<string, number> }
+const action = roundModuleActionFactory<TapSlice, {}, { limit: number }>();
+
+export const TapRound = defineRoundModule<TapSlice, {}, { limit: number }, { total: number }>({
+  id: "tap",
+  enter: (ctx) => { ctx.state.taps = {}; }, // per-run setup; runs on entry into the first declared phase
+  phases: {
+    Tap: {
+      duration: 10_000,
+      onTimeout: (ctx) => ctx.finish(),
+      actions: {
+        TAP: action({
+          from: "player",
+          payload: z.object({}),
+          handler: (ctx) => {
+            ctx.state.taps[ctx.playerId] = (ctx.state.taps[ctx.playerId] ?? 0) + 1;
+          },
+        }),
+      },
+    },
+  },
+  result: (ctx) => ({ total: Object.values(ctx.state.taps).reduce((a, b) => a + b, 0) }),
+});
+
+export const MyGame = defineGame<State, Priv>({
+  // ...name, version, player limits as in Minimal game
+  startPhase: "Ready",
+  createPrivateState: () => ({ tap: {} }),
+  phases: {
+    Ready: {}, // the host starts a round by transitioning to the prefixed name, "MOD_Tap"
+    ...mountRoundModule(TapRound, {
+      prefix: "MOD",
+      slice: (state) => state.tap, // the module's slice of the host's synced state
+      priv: (priv) => priv.tap, // its slice of the private state
+      params: { limit: 5 }, // per-run parameters, read as ctx.params in the module
+      onDone: (ctx, result) => { // the host's full context; leave the module from here
+        ctx.state.roundTotal = result.total;
+        ctx.transition("Scored");
+      },
+    }),
+    Scored: {},
+  },
+});
+```
+
+Naming and validation. The module's phases become `<prefix>_<Phase>` and its actions `<PREFIX>__<ACTION>` (the prefix upper-cased), e.g. `MOD_Tap` / `MOD__TAP`; both are validated at mount time against the same name rules as a game, and a `GameDefinitionError` lists every problem. `defineRoundModule` validates the module's own names: phase names follow the game phase rule (`Lobby` stays reserved), action names are SCREAMING_SNAKE_CASE, and none of them may be a reserved built-in — a prefixed name can never equal one, so the module's own name is what gets checked. `mountRoundModule` validates the mount's own prefixed names. The game-level validation lives in `defineGame`, which sees the whole phases record: duplicate-prefix mounts (the same module twice, or two different modules under one prefix) and a game-declared phase shadowing a mount's phase are rejected there at definition time. The shadowing check sees only the final record, so it catches a game phase written after the mount spread; one written before it is silently overwritten by the mount. The same module can be mounted several times in one game under different prefixes. Before mounting, define the module with `defineRoundModule` — that is what makes every definition-time validation apply; `mountRoundModule` validates only the mount's own prefixed names, so a module skipped past `defineRoundModule` bypasses the local name rules and the reserved-action check entirely.
+
+What a module hook sees. `state` narrowed to its slice, `priv` narrowed to its private slice, and `params` — the type system keeps it away from the rest of the host's state. `transition` takes a module-local phase name; the mount maps it to the prefixed one, so a module moves between its own phases without knowing the prefix. The context also forwards `returnToLobby`, `rng`, `newId` and `now`, plus the usual `players`/`send`/`broadcast`/`showTo`/`hideFrom`/`log`.
+
+Leaving. Two ways, and they do not both produce a result. Through `ctx.finish()` — the intended path — the slice's `result(ctx)` is computed and the mount's `onDone(hostCtx, result)` runs with the host's full context, so the host leaves the module from there (queue a transition or return to the lobby). Through `ctx.returnToLobby()` — a host abandoning the module mid-run — the result is not computed and `onDone` does not run; whatever the module left in the slice stays in the host's state, so the next run can reset it in `enter`. `enter` runs on every entry into the module's first declared phase — not just on module entry — before that phase's `onEnter`: a module that transitions back to its first phase re-runs `enter`, which resets the slice and loses any mid-run state it kept there. Reset per-run state in `enter`, never in closures: `replayLog` re-runs the same definition object, so a closure flag would break replay determinism. A module session replays like any other — the log records the prefixed names and `replayLog` re-drives the mounted phases through the same definition.
+
+Screens and bots. The client sees a mounted module's phases under their prefixed names (`<prefix>_<Phase>`), so its screen table must be re-keyed the same way. `prefixedScreens(screens, prefix)` from `@openparty/game-ui` (`@experimental`) re-keys a module-local `{ [Phase]: screen }` table into entries ready to spread into the game's table:
+
+```ts
+import { prefixedScreens } from "@openparty/game-ui";
+
+const MOD_SCREENS = { Tap: { component: TapScreen, waitingLabel: "Tapping", banner: "" } };
+
+export const PHASE_SCREENS = {
+  [LOBBY_PHASE]: { component: WaitingRoom, waitingLabel: "Waiting", banner: "" },
+  ...prefixedScreens(MOD_SCREENS, "MOD"), // key: MOD_Tap
+} satisfies Record<KnownPhase, PhaseScreen>;
+```
+
+The result carries exactly the prefixed literal keys (no string index), so a module phase left out of `MOD_SCREENS` is still missing from the game's table and its `satisfies` check fails at compile time. For bots, `composeStrategies(base, { [prefix]: strategy })` from `@openparty/bots` (`@experimental`, see Bots) returns one strategy: the matching module's `play` runs in a `<prefix>_<Phase>` phase (longest prefix wins), the base `play` elsewhere, and both `host` hooks (base first) where present.
+
+### Turn order and teams
+
+Phases that need a reproducible seating sequence or fixed partitions can use four pure helpers from `@openparty/core/kits` (`@experimental`). They work on player ids, never mutate their inputs, and take the same seeded `rng` source as the rest of the runtime so a recorded session replays identically.
+
+```ts
+import { assignTeams, createTurnOrder, nextTurn, teamTotals } from "@openparty/core/kits";
+
+const order = createTurnOrder(ids, ctx.rng); // a fresh, shuffled array
+const present = new Set(activeIds);
+const nextId = nextTurn(order, currentId, present); // undefined when nobody is present
+const teams = assignTeams(order, [1, 3], ctx.rng, soloHistory); // [[one id], [three ids]]
+const totals = teamTotals(scores, teams); // one sum per team, in order
+```
+
+`createTurnOrder(ids, rng)` shuffles a copy of `ids`. `nextTurn(order, current, presentIds)` walks forward from `current`, wrapping at the end (and starting at the first id when `current` is not in the order), then returns the first id in `presentIds` — or `undefined` when none of the order is present; if only `current` is present, it keeps the turn.
+
+`assignTeams(ids, shape, rng, history?)` partitions the ids into teams of the requested sizes. Sizes must be positive integers summing to the id count; otherwise it throws a plain `Error` — a caller bug, never a client-visible message. When a shape has single-seat teams those seats rotate: pass the ids that held them in earlier rounds as `history` (oldest first — just append the sole member of each assignment), and ids never used there come first, then the least recently used ones. `teamTotals(scores, teams)` sums a `Record<string, number>` keyed by playerId, counts an id with no score as zero, and returns one number per team.
+
+### Graph helpers
+
+A track or board can be described as a directed graph and queried with three pure helpers from `@openparty/core/kits` (`@experimental`). A `Graph` is a plain record from a node id to the ids it leads to; an id with no entry is not a node. The helpers never mutate their input and use node, edge and start vocabulary only.
+
+```ts
+import { type Graph, reachable, shortestPath, validateGraph } from "@openparty/core/kits";
+
+const track: Graph = {
+  start: ["left", "right"],
+  left: ["finish"],
+  right: ["finish"],
+  finish: [],
+};
+
+reachable(track, "start", 2); // { ends: ["finish"], branches: ["start"] }
+shortestPath(track, "start", "finish"); // ["start", "left", "finish"]
+validateGraph(track, ["start"]); // []
+```
+
+`reachable(graph, from, steps)` follows up to `steps` edges and returns `{ ends, branches }`: every node a walk can end on — reached at `steps` edges, or with no outgoing edges — and every branch point a walk passes through (a node with more than one outgoing edge), each listed once. Each node is walked once per depth, so a node reached at two depths is walked twice, and a walk that only leads back into a cycle keeps going until `steps` is reached — its end is the node the `steps`-th edge lands on. `steps` of 0 returns `from` itself. An unknown `from` is a caller bug and throws a plain `Error` — validate the content once at load.
+
+`shortestPath(graph, from, to)` returns the fewest-edge route as a node list (both ends included), or `undefined` when `to` cannot be reached. `validateGraph(graph, starts)` reports all problems in one list: an edge whose target is not a node, an empty starts list, each start that is not a node, and each node no start can reach (checked only when at least one start is a node). It returns an empty array for a valid graph. One or more starts are valid — several model a board with multiple spawn points; an empty list is not. The content schema stays in the game; `packages/content/README.md` shows a graph file loaded with `loadJsoncDir`.
 
 ### Action log and replay
 `actionLogMiddleware()` records everything the middleware sees into an append-only, JSON-serializable log
@@ -797,7 +928,7 @@ type ButtonState = SchemaType<typeof ButtonState>;
 const games = [{ roomName: "button", definition: ButtonGame, stateClass: ButtonState }];
 ```
 
-Reserved field names: `phase`, `roomCode`, `phaseEndsAt`, `phaseDurationMs`, `serverNow`, `spectatorCount`, `options`, `notice`, `minPlayers`, `maxPlayers`, `canStart`, `players`. Do not reuse them in `BaseGameState.extend(...)`; Colyseus rejects the clash only at schema definition (`Duplicate 'options' definition on '<State>'`), so name a collection of voting or answer choices `choices`, not `options`. `options` stays as the room-options JSON: it is part of the synced shape every client reads, so a rename would be a breaking change with no gain.
+Reserved field names: `phase`, `roomCode`, `phaseEndsAt`, `phaseDurationMs`, `pausedAt`, `serverNow`, `spectatorCount`, `options`, `notice`, `minPlayers`, `maxPlayers`, `canStart`, `players`. Do not reuse them in `BaseGameState.extend(...)`; Colyseus rejects the clash only at schema definition (`Duplicate 'options' definition on '<State>'`), so name a collection of voting or answer choices `choices`, not `options`. `options` stays as the room-options JSON: it is part of the synced shape every client reads, so a rename would be a breaking change with no gain.
 
 Bun entry point (the only place that imports `bun`):
 
@@ -806,12 +937,14 @@ import { startServer } from "@openparty/server/bun";
 await startServer({ games });   // WebSocket on PORT (2567) + /api/resolve-code on API_PORT (3001)
 ```
 
-Elsewhere: `createGameServer({ games, roomCodeService?, transport?, maxPayloadBytes?, maxRooms?, reconnectMs?, emptyRoomGraceMs?, audienceSlots?, textFilter?, greet?, gracefullyShutdown? })` returns the Colyseus `Server`,
+Elsewhere: `createGameServer({ games, roomCodeService?, transport?, maxPayloadBytes?, maxRooms?, reconnectMs?, emptyRoomGraceMs?, audienceSlots?, textFilter?, patchRateMs?, greet?, gracefullyShutdown? })` returns the Colyseus `Server`,
 and `createApiHandler(roomCodeService, { allowedOrigins?, limiter?, resolveCode?, trustProxy? })` is the pure `(request, info?) => Response` behind `/api/resolve-code`: it answers with CORS allow headers only for origins in `allowedOrigins` (exact origins or `scheme://host:*` patterns — the `*` stands for a port, so digits only; `"*"` for all) — by default loopback on any port, the dev client — echoing the origin; in list mode every response also carries `Vary: Origin`, so a shared cache cannot serve one origin's CORS headers to another; a disallowed origin gets no allow headers, so the browser blocks it while non-browser callers still get the answer. An `OPTIONS` preflight is answered with 204 before spending any throttle budget. The HTTP entries (`serveApi`, the Bun `startServer`) forward the request's method and headers and pass `{ remoteAddress }` as the second argument, and they bind the code API to loopback by default: `host` (or env `HOST`) picks another interface, `allowedOrigins` (or env `ALLOWED_ORIGINS`, comma-separated, `*` for all) widens who may read it, and `trustProxy` (or env `TRUST_PROXY=true`) keys the throttle on the last hop of `X-Forwarded-For` instead of the socket address — only when every request passes a trusted reverse proxy that records the client's real address; otherwise clients behind one proxy share a single bucket, and a direct caller could split it by spoofing the header. The Node entry never lets one request take the process down: a method Node's parser accepts but the `Request` constructor forbids (such as `TRACE`) gets 405, and a handler failure gets a fixed 500 JSON body — the exception is logged, not sent to the client.
 `greet` (default `true`) prints the Colyseus start-up banner; `gracefullyShutdown` (default `true`) registers the Colyseus `SIGINT`/`SIGTERM` handlers that shut the server down. `bootTestServer` sets both to `false`, so a test run prints no banner and no `MaxListenersExceededWarning`; a test that starts a server itself passes the same two.
 The largest accepted WebSocket frame is `maxPayloadBytes` (default `DEFAULT_MAX_PAYLOAD_BYTES`, 4096), enforced on both transports; a bigger frame closes only that connection (code 1009) and leaves the room and its other players untouched.
 The number of concurrent rooms across all games is capped by `maxRooms` (default `DEFAULT_MAX_ROOMS`, 100; `Infinity` removes the cap): a create beyond the cap is refused with close code 4429 (`SERVER_FULL`, "Server is full") and existing rooms keep working; a slot frees again when one of the rooms is disposed.
-Rate limits are configured with `rateLimits`: actions per player (default 10/s, burst 20), `SET_NAME` per player (default 2/s, burst 2), the host's `EXPORT_REPLAY` (default one per 5 s, burst 1 — the message whose handler rebuilds and hashes the whole bundle) and `/api/resolve-code` per remote address (default 1/s, burst 10), plus `mode: "observe" | "enforce"` (default `"enforce"`). Actions, `SET_NAME` and a host's `EXPORT_REPLAY` are enforced in every room through one shared limiter: buckets are keyed by room, player and message type, so a reconnect cannot reset them, and they are freed when a seat leaves or the room is disposed. An over-limit message is refused with `RATE_LIMITED` — pushed as `ERROR` and returned in the `ActionResult` of a request — without touching other players; the refusal happens before the runtime, so it is not logged and replay is unaffected. The code API enforces its bucket in the HTTP entries: an exhausted address gets 429 with `Retry-After` (seconds until the next token) and the CORS headers of its origin, and callers whose remote address is unknown share one bucket instead of getting unlimited access. Each limiter bounds its own memory: once it tracks more than 1024 keys, the next take forgets every bucket that has refilled to full — such a bucket answers exactly like a never-seen key, so eviction never changes an allow/deny result. In observe mode an over-limit message or request is logged through the configured `logger` (event `rate.limit`, field `key`) instead of being refused; without one it falls back to `console.warn`.
+Rate limits are configured with `rateLimits`: actions per player (default 10/s, burst 20), `SET_NAME` per player (default 2/s, burst 2), the host's `EXPORT_REPLAY` (default one per 5 s, burst 1 — the message whose handler rebuilds and hashes the whole bundle) and `/api/resolve-code` per remote address (default 1/s, burst 10), plus `mode: "observe" | "enforce"` (default `"enforce"`). Actions, `SET_NAME` and a host's `EXPORT_REPLAY` are enforced in every room through one shared limiter: buckets are keyed by room, player and message type, so a reconnect cannot reset them, and they are freed when a seat leaves or the room is disposed. An action that declares its own `rateLimit` (see Actions) spends a bucket keyed by its action type instead, and does not touch the shared action bucket; a malformed envelope, an action the phase does not declare and a seatless sender of a seat action all fall back to the shared bucket, so unknown types cannot each mint one. An over-limit message is refused with `RATE_LIMITED` — pushed as `ERROR` and returned in the `ActionResult` of a request — without touching other players; the refusal happens before the runtime, so it is not logged and replay is unaffected. The code API enforces its bucket in the HTTP entries: an exhausted address gets 429 with `Retry-After` (seconds until the next token) and the CORS headers of its origin, and callers whose remote address is unknown share one bucket instead of getting unlimited access. Each limiter bounds its own memory: once it tracks more than 1024 keys, the next take forgets every bucket that has refilled to full — such a bucket answers exactly like a never-seen key, so eviction never changes an allow/deny result. In observe mode an over-limit message or request is logged through the configured `logger` (event `rate.limit`, field `key`) instead of being refused; without one it falls back to `console.warn`.
+
+The room broadcasts state patches at 20 Hz (every 50 ms, the Colyseus default). `patchRateMs` (a whole number from 10 to 1000, so 100 Hz to 1 Hz) changes that cadence for every room on the server; a value outside the range throws at startup. Omitted keeps the library default. It bounds how often clients see a change, not how often the server computes it — `onTick` keeps its own `tickMs` (see Timers).
 
 Clients join with `{ playerId, name?, seatSecret? }` (`spectator: true` for a TV display: no seat, counted in `spectatorCount`; spectators need no secret). A spectator must not reuse an already-seated `playerId`: such a join is refused with `4406 "Seat is taken"`, and a spectator holding an id that later gets seated is evicted with the same code.
 Create a watch-only room with the framework option `seats: string[]` (the playerIds allowed to take a seat): any other non-spectator join is refused with `4404 "This room is watch-only"`, spectators still join. It is not a game option and is not published in `state.options`.
@@ -897,6 +1030,7 @@ const result = await manager.sendAction("PRESS", { power: 3 });
 | `lastServerError`, `dismissError()` | last rejected action or pushed `ERROR` (`$state`), for a toast. A kick arrives as `KICKED`, after which `status` is `"disconnected"` |
 | `onMessage(type, cb)` | returns an unsubscribe function; survives room changes. Pass a second generic, `GameConnectionManager<State, Events>`, with `Events` mapping message names to payload types, and `type` is limited to those names and `cb` gets the matching payload; the default accepts any name with an `unknown` payload |
 | `countdown()` | a `Countdown` (`secondsLeft`, `isUrgent`, `isExpired`) to `phaseEndsAt`, corrected for client clock skew; ticks only while read in a Svelte effect. The urgent rule (more than 0 and at most 10 seconds left) is also exported as `isUrgent(secondsLeft)` from `@openparty/game-client` |
+| `clock` | a `ServerClock` estimate of the server's current time (`now()`) from `state.serverNow`, refined by the round-trip time (`RoomLike.ping`) on join and every 30 s while read. It falls back to local time before the first sample and never moves backwards; use it to drive client motion instead of `Date.now()` |
 | `dispose()` | stop listening and close without forgetting the session |
 
 ### Browser-safe state classes
@@ -933,6 +1067,11 @@ silent baseline), `{ type: "urgent" }` once per phase when the countdown enters 
 server broadcasts whose name the game registered with `onMessage`. `manager.feedback.on(type, callback)` returns an unsubscribe. The manager runs
 its state watchers (phase observation and urgency timer) only while at least one `phase` or `urgent` listener exists — they start on the first
 subscription and stop when the last one leaves; `hasListeners(type)` reports subscribers and `onChange(callback)` fires on every count change.
+
+### Server clock and tweened motion
+`manager.clock` is a `ServerClock`: an estimate of the server's current time from `state.serverNow`. It anchors on each new reading, counts half the measured round-trip time (`RoomLike.ping`, sampled on join and every 30 s while the clock is read) as the one-way delay, and advances with the local clock in between. `clock.now()` returns the estimate in ms — local time before the first reading and never below the previous call; `clock.isSynced` says whether a reading has arrived. `countdown()` and the urgency feedback use the same anchoring, so a screen can drive motion from `clock.now()` instead of `Date.now()`. A custom `RoomLike` must implement `ping(callback: (ms: number) => void)`.
+
+For a movement the server wrote once — start time, duration and endpoints — pass the clock to `@openparty/game-ui`'s `Tween` (see Game UI viewmodels) rather than streaming every position.
 
 ### Testing UI code
 `@openparty/game-client/testing` has `StubRoom`, an in-memory room around a real state object. `manager.attach(new StubRoom(state))`, mutate the state,
@@ -975,6 +1114,7 @@ vitest `setupFiles`: it shims the storages and makes the SDK use `ws` under jsdo
 | `LobbySettingsViewModel` | The host's options form, generated from the game's options schema (`OptionFields` builds the fields). |
 | `OptionsReader` | The published options, parsed once per state change: `new OptionsReader(manager, schema, defaults?)` exposes reactive `current`, falling back to `defaults` or the schema's `.default()`s. |
 | `PhaseClock` | A phase's server countdown plus its configured length: `new PhaseClock(manager, announceAt?)` exposes `secondsLeft`, `isUrgent`, `announcement` (30/10/5 by default) and a `totalSeconds` getter read from `state.phaseDurationMs` (falls back to `secondsLeft` when the phase has no published duration). |
+| `Tween` | `(@experimental)` Interpolates a movement the server wrote once: `new Tween({ from, to \| path, startedAt, durationMs }, clock, { reducedMotion? })` with `startedAt` on the server clock; reactive `position` (`{ x, y }`) and `progress`, measured along a `path` by distance, clamped to the ends, straight to the end under reduced motion. Reads `clock.now()` (pass `manager.clock`), never `Date.now()`. |
 | `TypingReporter` | One typing message per change: `new TypingReporter(send, idleMs = 2500)`; call `keystroke()` per key and `stop()` on submit or teardown. |
 | `SoundPolicy` | The sound gate: off by default, one persisted toggle (stored under the game's `storagePrefix`), nothing plays before the first tap. `new SoundPolicy({ storage, storagePrefix, target })`; reactive `enabled`, `unlocked`, `canPlay` and `toggle()`; `dispose()` removes the gesture listeners. A throwing or empty storage degrades to off. |
 | `AppRouter` | Routes the connection status and room phase to a screen of your screen table (see below). `createAppRouter(manager, screens)` builds one. |
@@ -1137,10 +1277,25 @@ once `canStart` holds and `host.expectedPlayers` seats are named). `turn` has:
 | Member | What |
 |---|---|
 | `state`, `playerId`, `name` | the synced state and this bot |
+| `skill` | this bot's skill, 0..1 (default 0.5) — see below |
 | `once(key, run)` | runs `run` the first time `key` is seen in this phase |
 | `later(speed, run)` | runs `run` after a `"think"`, `"react"` or `[min, max]` ms delay; cancelled on phase change or leave |
+| `every(ms, run)` | runs `run` every `ms` — rescheduling after each run — while the phase is unchanged and the bot stays in the room; a throwing `run` is logged through `log` (when set) and stops the cadence; a synchronously-fired scheduler ends the cadence after the first firing instead of recursing (`@experimental`) |
 | `act(type, payload?, note?)` | sends an action; the result goes to `log` and `onOutcome` |
 | `pick(items)` | a random item, `undefined` for an empty list |
+
+**Skill and cadence** (`@experimental`, for reflex rounds). `BotOptions.skill` (0..1, default 0.5) scales how fast a bot plays: the ranges drawn for `later("think")` and `later("react")` are multiplied by `1.5 - skill` — 1.5× at skill 0, unchanged at the default 0.5, 0.5× at skill 1 — while an explicit `[min, max]` range is never scaled. Out-of-range values are clamped to 0..1; a non-finite value falls back to 0.5. Accuracy scales through `mistakeChance(skill)` (`(1 - skill) / 2`, clamped the same way), which a strategy rolls its own random number against:
+
+```ts
+play: (turn) => {
+  if (Math.random() < mistakeChance(turn.skill)) return; // this bot fumbles
+  turn.every(100, () => turn.act("TAP"));
+},
+```
+
+`every` is the repeating form of `later`: it reschedules after each run and its timers are cancelled with everything else on a phase change or when the bot leaves, so a cadence never outlives its phase. A throwing `run` stops the cadence (logged through `log` when one is set) instead of leaving a timer behind.
+
+For a game with round modules (see Round modules), `composeStrategies(base, { [prefix]: strategy })` (`@experimental`) builds one `BotStrategy` from a base brain and one strategy per mount prefix. In a `<prefix>_<Phase>` phase the matching module strategy's `play` runs; any other phase uses the base `play` (the longest matching prefix wins). Both `host` hooks run when present, base first, so the base can keep handling the lobby while a module hosts its own round. Pass the composed strategy as your kit's `strategy`.
 
 Tables take the kit plus `endpoint`, `apiPort` and optional `bot` (`BotOptions`):
 
@@ -1158,7 +1313,8 @@ await demo.finished();                           // rejects if the room closes
 await demo.leave();
 ```
 
-Overridable: `BotOptions` `thinkMs` (default `[2000, 6000]`), `reactMs` (`[500, 2500]`), `rng`, `schedule(run, ms) => cancel`,
+Overridable: `BotOptions` `thinkMs` (default `[2000, 6000]`), `reactMs` (`[500, 2500]`), `skill` (0..1, default 0.5 — see
+Skill and cadence), `rng`, `schedule(run, ms) => cancel`,
 `log`, `onOutcome`, `host.expectedPlayers`; `joinBots` `nameFor(n)` (default `Bot n`, taken names skipped), `playerIds`,
 `timeoutMs` (`BotTable` and `DemoTable` also take `nameFor` and `timeoutMs`); `DemoTable` `hostName`, `roomOptions`, `isFinished`. Every failure leaves the seats it took.
 `joinKitBots({ kit, ... })` is the same seating with the kit passed as `kit` instead of spread.
@@ -1172,6 +1328,11 @@ reuses its connector for the bots it seats. Example: `games/wit-clash/bots/witCl
 A game declares its kit once as the `botKit` field of its declaration (`gamePackage.ts`) and never joins bots by hand:
 the `bun run bots <CODE> [count]` entry is a stub calling `botsCli(gamePackage)` from `@openparty/game-kit/bots`, which seats
 the bots in a room made elsewhere (usage bounded by `meta.maxPlayers - 1`) and removes them on Ctrl+C.
+
+The skill can be chosen per run instead of hard-coded: the launcher's bot tables and the `bots` command take
+`--bot-skill=<0..1>` (`launch --bots=3 --bot-skill=0.8`, `launch --demo --bot-skill=0.8`, `bots <CODE> [count] --bot-skill=0.2`),
+which sets `BotOptions.skill` for the bots they seat; omitted, the bots keep the default 0.5. The launcher refuses the flag
+without a `--bots`/`--demo` table or on a game that declares neither, and both commands refuse a value outside 0..1.
 
 ## Terminal
 
@@ -1230,11 +1391,27 @@ await play(buttonPackage);   // bun run play [--bots=0..7] [--name=You] [--join=
 | `notify(type, payload)` | sends an action without waiting or printing |
 | `changed()` | resolves on the next state change or when the stage ends |
 | `timeLeft()` | `" 12s left"` from the server clock, `""` without a deadline |
+| `onKey(handler)` | calls `handler(key)` for each single key press until the stage ends: raw mode, decoded as `"up"`, `"down"`, `"left"`, `"right"`, `"enter"`, `"space"`, `"escape"`, `"backspace"`, `"tab"` or the typed character |
+| `frame(lines)` | redraws a block of lines in place (cursor up and clear, no scroll) |
 | `quit()` | leaves the game; `run()` resolves |
 
 Optional strategy members: `narrate(state)` returns lines to print on every state change, `lobby(turn)` replaces the built-in lobby
 (host: Enter starts, `q` quits). The `play` entry parses `--bots`, `--name`, `--join`, `--endpoint` and `--api-port`, starts a server when the endpoint defaults are used and no room is joined, and exits 2 on bad arguments (as do `demo` and `bots`). `@openparty/terminal/testing` has test doubles. Example:
 `games/wit-clash/terminal/witClashTerminal.ts`.
+
+**Real-time stages** (`@experimental`). A game with a stage too fast for Enter reads keys with `onKey` and paints with
+`frame`: the key listener lives until the stage's `signal` aborts, so a phase change, a quit or a throwing handler ends it; the
+terminal mode is restored when the last listener is gone (raw mode is shared: registering again in the same stage releases it only when the
+last listener ends). `frame` keeps the block anchored — the next call moves the cursor to the block's first line and clears
+every line it drew — so a scoreboard does not scroll away. Both degrade instead of failing off a terminal: keys are refused
+with a printed line and frames become plain `print` calls, so a piped stdin (a test, a CI run) and redirected output still
+work while `ask` keeps its line-based behaviour.
+
+Two constraints to know. While a stage listens, the terminal is in raw mode and Ctrl+C is swallowed: raw mode generates no
+SIGINT and the decoder has no name for it, so a real-time stage whose phase never changes can only be left through a key
+the strategy handles itself — the convention is the quit word (`turn.quitWord`) or Escape, handled in the same `onKey` callback.
+And `ask` and `onKey` do not coexist: `onKey` removes readline's line-editing listener, so a question issued while a stage
+listens would not receive keys. Either use line questions (`ask`) in the stage, or real-time keys (`onKey` + `frame`), not both.
 
 ### All-bot demo run
 
@@ -1293,6 +1470,7 @@ preset's copy drifts — and `launch` forwards an optional `ports` (a partial of
 | `--no-browser` | do not open a browser tab |
 | `--bots[=N]` | open a room for you and seat N bots (1 to `bots.max`, default `bots.default` or 3) once you have entered your name |
 | `--demo[=N]` | a watch-only room that N bots plus a host bot play alone; the browser opens its TV view (`demo.min` to `demo.max`). Excludes `--bots` |
+| `--bot-skill=<0..1>` | how well the bots play, 0 easy to 1 hard (default 0.5); applies to the `--bots` or `--demo` table this launch opens and is refused without one |
 
 The launcher refuses to start when a port is taken, stops everything on Ctrl+C or a closed terminal (SIGHUP), kills every spawned process if it crashes or the process exits, and exits 1 if a service dies. Its full config
 (`ports`, `commands`, `readyTimeoutMs`, `openBrowser`, `log`) and pieces (`Launcher`, `parseLaunchArgs`, `ProcessGroup`, `StaticSite`,
@@ -1382,7 +1560,7 @@ export { svelteConfig as default } from "@openparty/config/svelte";
 | `@openparty/shared` | `NAME_MAX_LENGTH`: the cap `SET_NAME` enforces on player names; `MAX_SEATS`: the most playerIds a room's `seats` option may list; `MAX_OPTIONS_JSON_LENGTH`: the cap on serialized options at room creation and in `SET_OPTIONS`; `FRAMEWORK_OPTION_KEYS`: the framework-owned create/join keys, derived from `JoinOptionsSchema` and `RoomOptionsSchema` so it cannot drift from them; `ROOM_CODE_LENGTH` and `ROOM_CODE_ALPHABET`: the shape of a room code; `sanitizeRoomCode(raw)`: uppercases, drops other characters and cuts to the code length (for a code input); `FRAMEWORK_VERSION`: recorded in exported replay bundles |
 | `@openparty/client-utils` | `Parsed<T>` (`{ ok: true, value } \| { ok: false, error }`) and `between(value, min, max)` for argument parsing; `waitFor(predicate, what, timeoutMs)` poll loop; `resolveRoomCode(apiBase, code)` (rejects with `RoomCodeError`, `reason` `"not-found"` or `"bad-reply"`); `joinUrl(base, code)` / `tvUrl(base, code)` share links; `claimName(room, playerId, name, timeoutMs?)` (type `SeatRoom`), `apiBaseOf(endpoint, apiPort)` |
 | `@openparty/core` | `EmptyPayloadSchema` (the payload of an action with no fields), `playAgainAction()` (host-only return-to-lobby action for a game's own end phase); `shuffle(items, rng)`, `weightedSample(items, count, rng, weightOf)` (a weighted draw without replacement: a weight of 0 is never picked, equal weights deal a uniform shuffle, and there is no default rng), `required(value, what)`; options resolution `resolveGameOptions(definition, raw)` → `{ ok: true, options } | { ok: false, reason: "unexpected" | "invalid" | "too-large" }` (the one room-options contract — no schema means no keys, then the schema parse, then the `MAX_OPTIONS_JSON_LENGTH` cap; Zod text never reaches the result); roster guards: `seatedCount(ctx)` (active and ready seats, counting briefly disconnected ones), `isBelowMinimum(ctx, min)`, `departedIds(ids, ctx)` — they only report; `endIfBelowMinimum(ctx, min, notice)` sets the notice and queues the return to the lobby instead; `RosterLedger` (a private-state ledger: `remember(ctx)`, `nameOf(ctx, id)`, `participantIds`, `rememberedNames`, `drop(id)`, `clear()`); synced per-player entry helpers `ensureMine(ctx, mine, playerId, create)`, `resetMine(ctx, mine)`, `pruneMine(ctx, mine, ids)` |
-| `@openparty/core/kits` | Phase kits (`@experimental`). collectResponses: `allResponded(slots, responses, presentIds)` (complete when every present author responded to every slot), `entriesFor(slotId, slots, responses)` (one entry per author, `text` undefined when unanswered); types `Slots`, `Responses`. voteAndTally: `tallyVotes(voterIds, votes)`, `allHaveVoted(voterIds, votes)`, `countVoted(voterIds, votes)`, `eligibleVoters(activeIds, excludedIds)` (an empty exclusion list allows self-vote), `leaders(counts)` → `{ top, ids }` (a tie shows up as `ids.length > 1`). drawPool: `drawPool(items, usedIds, needed)` → `{ items, exhausted }` — the unused items when at least `needed` remain, otherwise all items with their ids cleared from the mutable `usedIds` set |
+| `@openparty/core/kits` | Phase kits (`@experimental`). collectResponses: `allResponded(slots, responses, presentIds)` (complete when every present author responded to every slot), `entriesFor(slotId, slots, responses)` (one entry per author, `text` undefined when unanswered); types `Slots`, `Responses`. voteAndTally: `tallyVotes(voterIds, votes)`, `allHaveVoted(voterIds, votes)`, `countVoted(voterIds, votes)`, `eligibleVoters(activeIds, excludedIds)` (an empty exclusion list allows self-vote), `leaders(counts)` → `{ top, ids }` (a tie shows up as `ids.length > 1`). drawPool: `drawPool(items, usedIds, needed)` → `{ items, exhausted }` — the unused items when at least `needed` remain, otherwise all items with their ids cleared from the mutable `usedIds` set. Round modules (see Round modules): `defineRoundModule(module)` (validates the module's local names), `mountRoundModule(module, { prefix, slice, priv, params, onDone })` → host phases to spread into `GameDefinition.phases` (phases become `<prefix>_<Phase>`, actions `<PREFIX>__<ACTION>`; the game-level duplicate-prefix and shadowing checks live in `defineGame`), `roundModuleActionFactory<TSlice, TPriv, TParams>()` (type binding for a module's actions); types `RoundModule`, `RoundModulePhase`, `RoundModuleAction`, `RoundModuleContext`, `RoundModuleActionContext`, `MountRoundModuleOptions`. turnOrder: `createTurnOrder(ids, rng)` (a fresh deterministic shuffle), `nextTurn(order, current, presentIds)` (next present id, wrapping; `undefined` when none is present). teams: `assignTeams(ids, shape, rng, history?)` (deterministic partition into positive-integer sizes summing to the id count; rotates single-seat teams through `history`), `teamTotals(scores, teams)` (one score sum per team, missing ids count as 0). graph: type `Graph` (a record from a node id to its outgoing ids), `reachable(graph, from, steps)` → `{ ends, branches }` (nodes a walk can end on — reached at `steps` edges or a sink — plus each branch point once; each node is walked once per depth, walks through cycles included), `shortestPath(graph, from, to)` (fewest-edge route as a node list, `undefined` when unreachable), `validateGraph(graph, starts)` (all problems in one list: unknown edge endpoints, unknown starts, an empty starts list, nodes no start reaches) |
 | `@openparty/server/node` | `startNodeServer({ games, port?, apiPort? })` (a game server and its API in this process; `.stop()`), `serveApi(codes, { port, host? })`: the code API on Node's `http` (the Bun entry serves its own) |
 | `@openparty/server/probe` | `ServerProbe` (`isGameServer(port, apiPort, host?)` — `host` defaults to `localhost` and is used for both the TCP check and the code-API fetch; `canConnect(port)`, `answers(url)`), `freePort()`, `closeHttpServer(server)` (resolves when the server already stopped): port probing without Colyseus |
 | `@openparty/content` | `loadJsoncDir(dir, schema, { idOf, label, onInvalid?, maxFiles?, maxFileBytes? })`: a folder of commented JSON files (symlinks ignored), validated; bad files throw by default (`onInvalid: "skip"` warns and skips), caps at 256 files / 1 MiB per file; `loadJsoncFile(file, schema, { label, maxFileBytes? })`: one such file with the same messages — a game's single-file content loader; `stripJsonComments` |
@@ -1459,7 +1637,7 @@ The framework validates everything that crosses the wire, but the rules are your
    ```
    (`games/wit-clash/src/phases/answering.ts`)
 
-8. **Know the limits.** `playerId` is the only seat credential: a client can send any action, but the server acts on `ctx.playerId`, which it assigned itself. `RateLimiter` throttles `ACTION` and `SET_NAME` per player and spectator actions per connection, but nothing caps how many connections or rooms one address opens; the limits and what is out of scope are in [the threat model](../security/threat-model.md).
+8. **Know the limits.** `playerId` is the only seat credential: a client can send any action, but the server acts on `ctx.playerId`, which it assigned itself. `RateLimiter` throttles `ACTION` and `SET_NAME` per player and spectator actions per join `playerId`, but nothing caps how many connections or rooms one address opens; the limits and what is out of scope are in [the threat model](../security/threat-model.md).
    ```ts
    const drafts = ctx.priv.drafts.get(ctx.playerId) ?? new Map<string, string>();
    ctx.priv.drafts.set(ctx.playerId, drafts.set(matchupId, answer));

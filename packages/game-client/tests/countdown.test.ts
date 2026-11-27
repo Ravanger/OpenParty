@@ -1,6 +1,7 @@
 import { tick } from "svelte";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Countdown, isUrgent, URGENT_SECONDS } from "../src/countdown.svelte.js";
+import { ServerClock } from "../src/serverClock.js";
 import { observe } from "./observe.svelte.js";
 
 describe("Countdown", () => {
@@ -85,6 +86,21 @@ describe("Countdown", () => {
     expect(countdown.secondsLeft).toBe(30);
   });
 
+  it("corrects against the shared clock it is given", () => {
+    vi.setSystemTime(1_000_000);
+    const clock = new ServerClock();
+    const countdown = new Countdown(
+      () => 1_060_000,
+      () => 1_000_000,
+      undefined,
+      () => 0,
+      clock,
+    );
+    // the shared clock — not a private instance — anchored the reading
+    expect(clock.isSynced).toBe(true);
+    expect(countdown.secondsLeft).toBe(60);
+  });
+
   it("flags the last ten seconds as urgent", () => {
     vi.setSystemTime(1_000_000);
     const countdown = new Countdown(
@@ -159,6 +175,67 @@ describe("Countdown", () => {
     );
     expect(countdown.secondsLeft).toBe(0);
     serverNow = 1_000_000;
+    expect(countdown.secondsLeft).toBe(60);
+  });
+});
+
+describe("Countdown while paused", () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it("freezes at the pause instant and resumes from there once the deadline is shifted", () => {
+    vi.setSystemTime(1_000_000);
+    let serverNow = 1_000_000;
+    let pausedAt = 0;
+    let ends = 1_060_000;
+    const countdown = new Countdown(
+      () => ends,
+      () => serverNow,
+      250,
+      () => pausedAt,
+    );
+    expect(countdown.secondsLeft).toBe(60);
+    serverNow = 1_020_000; // forty seconds left when the host pauses
+    pausedAt = 1_020_000;
+    expect(countdown.secondsLeft).toBe(40);
+    vi.advanceTimersByTime(5_000); // wall time passes while the room is paused
+    serverNow = 1_025_000;
+    expect(countdown.secondsLeft).toBe(40);
+    pausedAt = 0; // resume: the host shifts the deadline by the paused time
+    ends = 1_065_000;
+    expect(countdown.secondsLeft).toBe(40);
+    vi.advanceTimersByTime(3_000);
+    serverNow = 1_028_000;
+    expect(countdown.secondsLeft).toBe(37);
+  });
+
+  it("does not expire while paused, even past the original deadline", () => {
+    vi.setSystemTime(1_000_000);
+    let serverNow = 1_000_000;
+    let pausedAt = 0;
+    const countdown = new Countdown(
+      () => 1_010_000,
+      () => serverNow,
+      250,
+      () => pausedAt,
+    );
+    serverNow = 1_009_000; // one second left when the host pauses
+    pausedAt = 1_009_000;
+    expect(countdown.isExpired).toBe(false);
+    vi.advanceTimersByTime(5_000);
+    serverNow = 1_014_000; // wall time crossed the deadline while paused
+    expect(countdown.secondsLeft).toBe(1);
+    expect(countdown.isExpired).toBe(false);
+  });
+
+  it("ignores a pause that has no instant (0)", () => {
+    vi.setSystemTime(1_000_000);
+    const countdown = new Countdown(
+      () => 1_060_000,
+      () => 1_000_000,
+      250,
+      () => 0,
+    );
     expect(countdown.secondsLeft).toBe(60);
   });
 });

@@ -5,7 +5,7 @@ import { networkInterfaces, tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Client } from "@colyseus/sdk";
-import { type BotKit, DemoTable } from "@openparty/bots";
+import { type BotConnection, type BotKit, DemoTable } from "@openparty/bots";
 import { claimName, resolveRoomCode, waitFor } from "@openparty/client-utils";
 import { freePort, ServerProbe } from "@openparty/server/probe";
 import { ClientMessage, PROTOCOL_VERSION } from "@openparty/shared";
@@ -142,6 +142,8 @@ describe("Launcher", () => {
       expect(await probe.canConnect(ports.api, lan)).toBe(true);
       await hosted.stop();
       await waitUntilFree(ports.api);
+      await waitUntilFree(ports.game);
+      await waitUntilFree(ports.clientDev);
       const dev = launcherOf();
       await dev.start({ mode: "dev", openBrowser: false });
       expect(await probe.canConnect(ports.api, lan)).toBe(false);
@@ -299,6 +301,77 @@ describe("Launcher", () => {
       );
 
       await launcher.stop();
+    },
+    TIMEOUT,
+  );
+
+  it(
+    "gives the bots the skill from --bot-skill",
+    async () => {
+      const skills: number[] = [];
+      const launcher = launcherOf({
+        bots: {
+          kit: {
+            roomName: TAP_ROOM,
+            stateClass: TapState,
+            strategy: { play: (turn) => void skills.push(turn.skill) },
+          },
+          max: 3,
+        },
+      });
+      await launcher.start({ mode: "dev", openBrowser: true, bots: 1, skill: 0.8 });
+      await waitFor(() => opened.length === 1, "the join link", 10_000);
+      const code = new URL(opened[0] ?? "").searchParams.get("code") ?? "";
+      const roomId = await resolveRoomCode(`http://localhost:${ports.api}`, code);
+      const playerId = crypto.randomUUID();
+      const room = await new Client(`ws://localhost:${ports.game}`).joinById<TapState>(
+        roomId,
+        {
+          playerId,
+          seatSecret: crypto.randomUUID() + crypto.randomUUID(),
+          protocolVersion: PROTOCOL_VERSION,
+        },
+        TapState,
+      );
+      leavers.push(() => room.leave(true));
+      await claimName(room, playerId, "Ann");
+      await waitFor(() => skills.length > 0, "the bot to play", 10_000);
+      expect(skills.every((skill) => skill === 0.8)).toBe(true);
+      await launcher.stop();
+    },
+    TIMEOUT,
+  );
+
+  it(
+    "forwards --bot-skill to the demo table and omits it when the flag is absent",
+    async () => {
+      const seen: Array<BotConnection & { bots: number }> = [];
+      const demo = {
+        min: 1,
+        max: 3,
+        create: (options: BotConnection & { bots: number }) => {
+          seen.push(options);
+          return new DemoTable<TapState>({
+            ...kit,
+            ...options,
+            bot: { ...options.bot, ...quick },
+            isFinished: (state) => state.done,
+          });
+        },
+      };
+      const withSkill = launcherOf({ demo });
+      await withSkill.start({ mode: "dev", openBrowser: false, demo: 1, skill: 0.8 });
+      await waitFor(() => seen.length === 1, "the demo table", 10_000);
+      expect(seen[0]?.bot?.skill).toBe(0.8);
+      await withSkill.stop();
+      await waitUntilFree(ports.game);
+      await waitUntilFree(ports.api);
+      await waitUntilFree(ports.clientDev);
+
+      const plain = launcherOf({ demo });
+      await plain.start({ mode: "dev", openBrowser: false, demo: 1 });
+      await waitFor(() => seen.length === 2, "the demo table", 10_000);
+      expect(seen[1]?.bot?.skill).toBeUndefined();
     },
     TIMEOUT,
   );

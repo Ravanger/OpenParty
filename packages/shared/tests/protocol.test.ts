@@ -65,6 +65,7 @@ describe("protocol constants", () => {
         "RATE_LIMITED",
         "ROOM_NOT_FOUND",
         "UNAUTHORIZED",
+        "GAME_PAUSED",
         "UNKNOWN_ACTION",
         "WRONG_PHASE",
       ].sort(),

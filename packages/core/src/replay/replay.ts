@@ -1,4 +1,10 @@
-import { LOBBY_PHASE, PROTOCOL_VERSION, type ServerError } from "@openparty/shared";
+import {
+  LOBBY_PHASE,
+  PAUSE_GAME,
+  PROTOCOL_VERSION,
+  RESUME_GAME,
+  type ServerError,
+} from "@openparty/shared";
 import type { ActionLog, ActionLogEntry } from "../actionLog.js";
 import {
   type GameContext,
@@ -59,41 +65,69 @@ function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
-/** Pairs each logged enter with the timeout that closed it; `undefined` when the phase left early. */
-function pairTimeouts(entries: ActionLogEntry[]): Map<string, (number | undefined)[]> {
-  const pairs = new Map<string, (number | undefined)[]>();
-  const open = new Map<string, { list: (number | undefined)[]; index: number }>();
-  for (const entry of entries) {
-    if (entry.kind === "enter") {
-      let list = pairs.get(entry.phase);
-      if (list === undefined) {
-        list = [];
-        pairs.set(entry.phase, list);
-      }
-      open.set(entry.phase, { list, index: list.length });
-      list.push(undefined);
-    } else if (entry.kind === "timeout") {
-      const slot = open.get(entry.phase);
-      if (slot !== undefined) {
-        slot.list[slot.index] = entry.t;
-        open.delete(entry.phase);
-      }
-    }
-  }
-  return pairs;
+/** One entered window of a phase: its recorded timeout, if it timed out, and the time it spent paused. */
+interface PhaseWindow {
+  /** `ctx.now()` when the phase timed out; absent when the phase was left early. */
+  timeoutAt?: number;
+  /** Total ms the host held this window paused, from its logged `PAUSE_GAME`/`RESUME_GAME` pairs. */
+  pausedMs: number;
 }
 
 /**
- * Replaces each timed phase's duration with one that expires at the log's recorded timeout time.
- * Enters without a logged timeout keep the original duration.
+ * Pairs each logged enter with the timeout that closed it and sums the paused time inside that
+ * window; a pause still open at its end (the game was ended, or the maximum-pause safety ended it)
+ * contributes nothing, because no timeout closed the window.
+ */
+function phaseWindows(entries: ActionLogEntry[]): Map<string, PhaseWindow[]> {
+  const windows = new Map<string, PhaseWindow[]>();
+  const open = new Map<string, { list: PhaseWindow[]; index: number; window: PhaseWindow }>();
+  let pauseAt: number | undefined;
+  for (const entry of entries) {
+    if (entry.kind === "enter") {
+      let list = windows.get(entry.phase);
+      if (list === undefined) {
+        list = [];
+        windows.set(entry.phase, list);
+      }
+      const window: PhaseWindow = { pausedMs: 0 };
+      list.push(window);
+      open.set(entry.phase, { list, index: list.length - 1, window });
+      pauseAt = undefined;
+    } else if (entry.kind === "timeout") {
+      const slot = open.get(entry.phase);
+      if (slot !== undefined) {
+        slot.window.timeoutAt = entry.t;
+        open.delete(entry.phase);
+      }
+    } else if (entry.kind === "transition") {
+      pauseAt = undefined;
+    } else if (entry.kind === "action" && entry.rejected !== true) {
+      if (entry.actionType === PAUSE_GAME) {
+        pauseAt ??= entry.t;
+      } else if (entry.actionType === RESUME_GAME && pauseAt !== undefined) {
+        const slot = open.get(entry.phase);
+        if (slot !== undefined) slot.window.pausedMs += entry.t - pauseAt;
+        pauseAt = undefined;
+      }
+    }
+  }
+  return windows;
+}
+
+/**
+ * Replaces each timed phase's duration with one that expires at the log's recorded timeout time,
+ * net of the time a host pause held that entry. Live, a pause shifts `phaseEndsAt` forward by its
+ * own length; replaying the same pause shifts the replay deadline by the same amount, so starting
+ * from the active (timeout minus paused) duration lands both on the recorded timeout. Enters
+ * without a logged timeout keep the original duration.
  */
 function authoritativeDurations<TState extends PhaseState, TPrivate, TOptions>(
   definition: GameDefinition<TState, TPrivate, TOptions>,
-  pairs: Map<string, (number | undefined)[]>,
+  windows: Map<string, PhaseWindow[]>,
 ): GameDefinition<TState, TPrivate, TOptions> {
   const phases: Record<string, PhaseDefinition<TState, TPrivate, TOptions>> = {};
   for (const [name, phase] of Object.entries(definition.phases)) {
-    const list = pairs.get(name);
+    const list = windows.get(name);
     if (list === undefined || phase.duration === undefined) {
       phases[name] = phase;
       continue;
@@ -103,10 +137,12 @@ function authoritativeDurations<TState extends PhaseState, TPrivate, TOptions>(
     phases[name] = {
       ...phase,
       duration: (ctx) => {
-        const at = list[next++];
+        const window = list[next++];
         // Call the original even when overridden: a function duration may draw the RNG.
         const base = typeof original === "function" ? original(ctx) : original;
-        return at !== undefined ? at - ctx.now() : base;
+        return window?.timeoutAt !== undefined
+          ? window.timeoutAt - window.pausedMs - ctx.now()
+          : base;
       },
     };
   }
@@ -260,7 +296,7 @@ export function replayLog<TState extends PhaseState, TPrivate, TOptions>(
   host.time = log.header.startedAt;
   const { definition: cappedDefinition, caps } = capTicks(definition);
   const runtime = new GameRuntime({
-    definition: authoritativeDurations(cappedDefinition, pairTimeouts(log.entries)),
+    definition: authoritativeDurations(cappedDefinition, phaseWindows(log.entries)),
     state: init.state,
     options: init.options,
     host,

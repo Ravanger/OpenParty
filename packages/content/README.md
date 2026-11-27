@@ -27,6 +27,53 @@ const items = await loadJsoncDir("./content/items", Item, { idOf: (item) => item
 - Fail loudly by default: an unparsable file or a schema failure throws, naming the file (and the failing entry for schema errors). Pass `onInvalid: "skip"` to skip such files with a `console.warn` instead.
 - Caps: more than `maxFiles` files (default 256) or a file above `maxFileBytes` bytes (default 1 MiB) throws.
 
+## Graph content
+
+A track or board is content like any other: describe it in a JSONC file, validate it with the game's own zod schema, and hand the adjacency to the graph helpers in `@openparty/core/kits` (`@experimental`; see the framework guide's Graph helpers). `@openparty/content` only loads the file — the schema and vocabulary stay in the game.
+
+```ts
+import { loadJsoncDir } from "@openparty/content";
+import { type Graph, validateGraph } from "@openparty/core/kits";
+import { z } from "zod";
+
+const BoardSchema = z.object({
+  id: z.string(),
+  nodes: z.array(
+    z.object({
+      id: z.string(),
+      kind: z.string(),
+      layout: z.object({ column: z.number().int(), row: z.number().int() }).optional(),
+    }),
+  ),
+  edges: z.array(z.object({ from: z.string(), to: z.string() })),
+  start: z.string(),
+});
+type Board = z.infer<typeof BoardSchema>;
+
+function toGraph(board: Board): Graph {
+  const graph: Record<string, string[]> = Object.fromEntries(
+    board.nodes.map((node) => [node.id, []]),
+  );
+  for (const edge of board.edges) {
+    const outgoing = graph[edge.from] ?? [];
+    graph[edge.from] = outgoing;
+    outgoing.push(edge.to);
+  }
+  return graph;
+}
+
+const boards = await loadJsoncDir("./content/boards", BoardSchema, {
+  idOf: (board) => board.id,
+  label: "Board",
+});
+for (const board of boards) {
+  const problems = validateGraph(toGraph(board), [board.start]);
+  if (problems.length > 0) throw new Error(`${board.id}: ${problems.join("; ")}`);
+}
+```
+
+`toGraph` keeps an edge whose target no node declares, so `validateGraph` reports it instead of the loader silently dropping it. `layout` is the game's to read when rendering; the graph helpers ignore it. Several starts are allowed (`starts` is a list); an empty list is a problem.
+
 ## Text filtering
 
 `createTextFilter()` returns the default English `TextFilter`, backed by the [obscenity](https://github.com/jo3-l/obscenity) dataset and its recommended transformers (case folding, confusables, leet-speak such as `$` for `s`, repeated-letter collapse). Matchers are built lazily on first use.

@@ -26,4 +26,47 @@ describe("ScriptedIo", () => {
     await expect(answer).rejects.toThrow("aborted");
     await io.type("nobody listens");
   });
+
+  it("delivers pressed keys to the stage and forgets it when the stage ends", () => {
+    const io = new ScriptedIo();
+    const abort = new AbortController();
+    const keys: string[] = [];
+    io.onKey((key) => keys.push(key), abort.signal);
+    expect(io.listening).toBe(true);
+    io.press("up");
+    io.press("enter");
+    abort.abort();
+    io.press("a");
+    expect(keys).toEqual(["up", "enter"]);
+    expect(io.listening).toBe(false);
+  });
+
+  it("reports a failing key handler and stops reading", () => {
+    const io = new ScriptedIo();
+    io.onKey(() => {
+      throw new Error("boom");
+    }, new AbortController().signal);
+    expect(() => io.press("a")).not.toThrow();
+    expect(io.printed).toContain("Something went wrong: Error: boom");
+    expect(io.listening).toBe(false);
+  });
+
+  it("records frames", () => {
+    const io = new ScriptedIo();
+    io.frame(["a", "b"]);
+    expect(io.frames).toEqual([["a", "b"]]);
+  });
+});
+
+describe("ScriptedIo stage-ended key registration", () => {
+  it("does nothing when the stage has already ended", () => {
+    const io = new ScriptedIo();
+    const abort = new AbortController();
+    const keys: string[] = [];
+    abort.abort();
+    io.onKey((key) => keys.push(key), abort.signal);
+    expect(io.listening).toBe(false);
+    io.press("a");
+    expect(keys).toEqual([]);
+  });
 });

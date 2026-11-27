@@ -28,6 +28,10 @@ export interface LobbyBindings<TState extends PhaseState, TPrivate, TOptions> {
   hasStarted(): boolean;
   /** Runs the current phase's `onRosterChange`. */
   rosterChanged(): void;
+  /** Freezes the current phase's clock and ticks; the runtime's `PAUSE_GAME` handler. */
+  pause(): void;
+  /** Resumes a paused phase and shifts its deadline; the runtime's `RESUME_GAME` handler. */
+  resume(): void;
 }
 
 /** The built-in `Lobby` phase (`START_GAME`, `SET_OPTIONS`, optional auto-start) and the `KICK_PLAYER` and `END_GAME` actions. */
@@ -86,6 +90,39 @@ export class Lobby<TState extends PhaseState, TPrivate, TOptions> {
         }
         definition.onEndGame?.(ctx);
         ctx.returnToLobby();
+      },
+    };
+  }
+
+  /**
+   * The built-in `PAUSE_GAME`: host-only, any phase but the Lobby, a no-op while already paused.
+   * Like every role refusal, a non-host gets `UNAUTHORIZED` — not `NOT_ALLOWED`, which the #472
+   * task text names; the framework contract backs this (role failures are `UNAUTHORIZED`
+   * everywhere else, e.g. `START_GAME` and game-declared host-only actions).
+   */
+  pauseAction(): ActionDefinition<TState, TPrivate, TOptions, unknown> {
+    return {
+      from: "host",
+      payload: EmptyPayloadSchema,
+      handler: (ctx) => {
+        if (ctx.phase === LOBBY_PHASE) {
+          throw new FrameworkError(ErrorCode.WRONG_PHASE, this.strings.pauseInLobby);
+        }
+        this.bindings.pause();
+      },
+    };
+  }
+
+  /** The built-in `RESUME_GAME`: host-only, any phase but the Lobby, a no-op while running. */
+  resumeAction(): ActionDefinition<TState, TPrivate, TOptions, unknown> {
+    return {
+      from: "host",
+      payload: EmptyPayloadSchema,
+      handler: (ctx) => {
+        if (ctx.phase === LOBBY_PHASE) {
+          throw new FrameworkError(ErrorCode.WRONG_PHASE, this.strings.resumeInLobby);
+        }
+        this.bindings.resume();
       },
     };
   }

@@ -11,7 +11,7 @@ import type { GameDeclaration, GameKitIo, GameMeta } from "./types.js";
 
 /** The usage line for the `bots` command, bounded by the game's seats. */
 const botsUsage = (meta: GameMeta): string =>
-  `Usage: bun run bots <CODE> [count=3] [--endpoint ws://localhost:2567] [--api-port 3001]\nCODE is ${ROOM_CODE_LENGTH} letters; count is 1 to ${meta.maxPlayers - 1}.`;
+  `Usage: bun run bots <CODE> [count=3] [--endpoint ws://localhost:2567] [--api-port 3001] [--bot-skill=0..1]\nCODE is ${ROOM_CODE_LENGTH} letters; count is 1 to ${meta.maxPlayers - 1}.`;
 
 /** The `bots` entry's default io: the real process; it needs no prompter, server starter or launcher. */
 export const botsIo: GameKitIo = {
