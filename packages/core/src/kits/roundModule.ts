@@ -19,6 +19,7 @@ import {
   type PhaseState,
   type PlayerInfo,
 } from "../runtime/index.js";
+import type { RoundModuleMountInfo } from "../runtime/roundModuleMount.js";
 
 const PHASE_NAME = /^[A-Za-z][A-Za-z0-9_]*$/;
 const RESERVED_ACTIONS: readonly string[] = [
@@ -29,8 +30,6 @@ const RESERVED_ACTIONS: readonly string[] = [
   PAUSE_GAME,
   RESUME_GAME,
 ];
-/** Which prefixes each defined module has been mounted with (a failed mount registers nothing). */
-const mounts = new WeakMap<object, Set<string>>();
 
 /**
  * The context a round module's phase hooks receive: the host context narrowed to the module's slice,
@@ -196,7 +195,9 @@ export function roundModuleActionFactory<TSlice, TPriv, TParams>() {
  * Defines a round module and validates its local names at definition time: phase names follow the
  * game phase rule (`Lobby` stays reserved), action names are SCREAMING_SNAKE_CASE and none of them
  * is a reserved built-in name (a prefixed name can never equal one, so the module's own name is
- * checked).
+ * checked). Local names only: the prefix, the phases the merge actually overwrites, and duplicate
+ * mounts are checked when the module is mounted — mount it with {@link mountRoundModule} and
+ * build the game with `defineGame`, which owns the mount validation.
  * @throws {GameDefinitionError} listing every problem.
  *
  * @experimental Round module API; may change before 1.0.
@@ -222,7 +223,6 @@ export function defineRoundModule<TSlice, TPriv, TParams, TResult>(
     }
   }
   if (problems.length > 0) throw new GameDefinitionError(problems);
-  mounts.set(definition, new Set());
   return definition;
 }
 
@@ -232,8 +232,11 @@ export function defineRoundModule<TSlice, TPriv, TParams, TResult>(
  * `<PREFIX>__<ACTION>` (the prefix upper-cased); both are validated here. The host enters the
  * module by transitioning to a prefixed phase name; module hooks see only their slice, private
  * slice and params, move between the module's own phases with local names, and end the run with
- * `ctx.finish()`, which runs `onDone` with the host's full context. A module can be mounted once
- * per prefix: a second mount of the same module under the same prefix throws.
+ * `ctx.finish()`, which runs `onDone` with the host's full context. Modules are validated here
+ * for their own prefixed names only; duplicate-prefix and phase-shadowing checks happen in
+ * `defineGame`, which sees the whole game, so the game must be built with `defineGame`, not by hand.
+ * The module's own names are validated by `defineRoundModule`, not here: skip that step and
+ * no definition-time validation applies.
  * @throws {GameDefinitionError} listing every problem.
  *
  * @experimental Round module API; may change before 1.0.
@@ -262,10 +265,6 @@ export function mountRoundModule<
   if (!options.prefix) {
     problems.push("prefix must not be empty");
   } else {
-    const used = mounts.get(module);
-    if (used?.has(options.prefix)) {
-      problems.push(`module "${module.id}" is already mounted with prefix "${options.prefix}"`);
-    }
     for (const local of Object.keys(module.phases)) {
       const prefixed = `${options.prefix}_${local}`;
       if (!PHASE_NAME.test(prefixed)) problems.push(`prefixed phase name "${prefixed}" is invalid`);
@@ -282,7 +281,6 @@ export function mountRoundModule<
   if (problems.length > 0) throw new GameDefinitionError(problems);
 
   const { prefix, slice, priv, params, onDone } = options;
-  mounts.get(module)?.add(prefix);
 
   const narrow = (
     host: GameContext<THostState, THostPriv, THostOptions>,
@@ -331,6 +329,13 @@ export function mountRoundModule<
     return wrapped;
   };
 
+  const mountKey = Symbol("openparty.mountRoundModule");
+  const mountInfo: RoundModuleMountInfo = {
+    moduleId: module.id,
+    prefix,
+    phaseNames: Object.keys(module.phases).map((local) => `${prefix}_${local}`),
+  };
+
   const phases: Record<string, PhaseDefinition<THostState, THostPriv, THostOptions>> = {};
   for (const [local, phase] of Object.entries(module.phases)) {
     const wrapped: PhaseDefinition<THostState, THostPriv, THostOptions> = {
@@ -355,5 +360,20 @@ export function mountRoundModule<
     if (phase.actions !== undefined) wrapped.actions = wrapActions(phase.actions);
     phases[`${prefix}_${local}`] = wrapped;
   }
+
+  for (const phase of Object.values(phases)) {
+    Object.defineProperty(phase, mountKey, {
+      value: mountInfo,
+      enumerable: false,
+      writable: true,
+      configurable: true,
+    });
+  }
+  Object.defineProperty(phases, mountKey, {
+    value: mountInfo,
+    enumerable: true,
+    writable: true,
+    configurable: true,
+  });
   return phases;
 }

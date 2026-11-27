@@ -21,6 +21,7 @@ import {
   roundModuleActionFactory,
 } from "../../src/kits/roundModule.js";
 import { replayLog } from "../../src/replay/index.js";
+import { isRoundModuleMountInfo, roundModuleMounts } from "../../src/runtime/roundModuleMount.js";
 import { TestTable } from "../../src/testing/TestTable.js";
 
 // Compile-time exactness: this alias fails to compile when the two types differ.
@@ -348,10 +349,11 @@ describe("mountRoundModule", () => {
     expect(error.problems).toEqual(["prefix must not be empty"]);
   });
 
-  it("throws when the same module is mounted twice under one prefix", () => {
+  it("does not track duplicate mounts at mount time: defineGame owns that check", () => {
+    // Two mounts of the same module under one prefix no longer throw here; the game-level
+    // check in defineGame is what rejects the collision.
     mount("DUP");
-    const error = thrownBy(() => mount("DUP"));
-    expect(error.problems).toEqual(['module "tap" is already mounted with prefix "DUP"']);
+    expect(Object.keys(mount("DUP"))).toEqual(["DUP_Tap", "DUP_Reveal"]);
   });
 
   it("throws when a prefixed phase name fails the phase-name rule", () => {
@@ -384,6 +386,119 @@ describe("mountRoundModule", () => {
     };
     expect(Object.keys(mountRoundModule(raw, options))).toEqual(["RAW_Solo"]);
     expect(Object.keys(mountRoundModule(raw, options))).toEqual(["RAW_Solo"]);
+  });
+});
+
+describe("prefix collisions in a game", () => {
+  const optionsFor = (prefix: string) => ({
+    prefix,
+    slice: (state: HostState) => state.slice,
+    priv: (priv: HostPriv) => priv.mod,
+    params: { limit: 1 },
+    onDone: () => {},
+  });
+
+  const gameWithPhases = (phases: Record<string, unknown>) =>
+    defineGame<HostState, HostPriv, HostOptions>({
+      name: "CollisionHost",
+      version: "1",
+      minPlayers: 1,
+      maxPlayers: 4,
+      startPhase: "Ready",
+      createPrivateState: () => ({ mod: { drawn: "" }, hostNote: "h" }),
+      phases: { Ready: {}, ...phases, Scored: {} } as never,
+    });
+
+  it("rejects the same module mounted twice under one prefix", () => {
+    const error = thrownBy(() =>
+      gameWithPhases({
+        ...mountRoundModule(tapModule, optionsFor("DUP")),
+        ...mountRoundModule(tapModule, optionsFor("DUP")),
+      }),
+    );
+    expect(error.problems).toContain('module "tap" is already mounted with prefix "DUP"');
+  });
+
+  it("rejects two different modules mounted under one prefix", () => {
+    const other = defineRoundModule<TapSlice, TapPriv, TapParams, TapResult>({
+      id: "other",
+      phases: { Tap: {} },
+      result: () => ({ total: 0, winner: "" }),
+    });
+    const error = thrownBy(() =>
+      gameWithPhases({
+        ...mountRoundModule(tapModule, optionsFor("DUP")),
+        ...mountRoundModule(other, optionsFor("DUP")),
+      }),
+    );
+    expect(error.problems).toContain(
+      'modules "tap" and "other" are mounted with the same prefix "DUP"',
+    );
+  });
+
+  it("rejects a mount whose phases the game overwrites", () => {
+    const error = thrownBy(() =>
+      gameWithPhases({
+        ...mountRoundModule(tapModule, optionsFor("DUP")),
+        DUP_Tap: {}, // the game declares its own phase with the module's name
+      }),
+    );
+    expect(error.problems).toContain(
+      'module "tap" mounts phase "DUP_Tap" but the game declares its own phase with that name',
+    );
+  });
+
+  it("rejects a mount whose phase was deleted from the record", () => {
+    // The spread carries the enumerable mount symbol, so `defineGame` sees the mount even after
+    // the phase entry itself was dropped.
+    const mounted = mountRoundModule(tapModule, optionsFor("DUP")) as Record<string, unknown>;
+    delete mounted.DUP_Tap;
+    const error = thrownBy(() => gameWithPhases(mounted));
+    expect(error.problems).toContain(
+      'module "tap" mounts phase "DUP_Tap" but the game declares no such phase',
+    );
+  });
+
+  it("accepts the same module mounted twice under two different prefixes", () => {
+    expect(() =>
+      gameWithPhases({
+        ...mountRoundModule(tapModule, optionsFor("FIRST")),
+        ...mountRoundModule(tapModule, optionsFor("SECOND")),
+      }),
+    ).not.toThrow();
+  });
+});
+
+describe("mount info helpers", () => {
+  it("isRoundModuleMountInfo accepts a well-formed info and rejects other shapes", () => {
+    expect(
+      isRoundModuleMountInfo({ moduleId: "tap", prefix: "DUP", phaseNames: ["DUP_Tap"] }),
+    ).toBe(true);
+    expect(isRoundModuleMountInfo(null)).toBe(false);
+    expect(isRoundModuleMountInfo("a mount")).toBe(false);
+    expect(isRoundModuleMountInfo({ moduleId: 1, prefix: "DUP", phaseNames: ["DUP_Tap"] })).toBe(
+      false,
+    );
+    expect(
+      isRoundModuleMountInfo({ moduleId: "tap", prefix: "DUP", phaseNames: "not-an-array" }),
+    ).toBe(false);
+    expect(isRoundModuleMountInfo({ moduleId: "tap", prefix: "DUP", phaseNames: [1] })).toBe(false);
+  });
+
+  it("roundModuleMounts skips unrelated symbols and returns every mount", () => {
+    const junk = Symbol("junk");
+    const mounted = mountRoundModule(tapModule, {
+      prefix: "DUP",
+      slice: (state: HostState) => state.slice,
+      priv: (priv: HostPriv) => priv.mod,
+      params: { limit: 1 },
+      onDone: () => {},
+    }) as Record<symbol, unknown>;
+    const phases = { ...mounted, [junk]: "not-mount-info" };
+    const found = roundModuleMounts(phases as never);
+    expect(found).toHaveLength(1);
+    expect(found[0]?.[1].moduleId).toBe("tap");
+    expect(found[0]?.[1].prefix).toBe("DUP");
   });
 });
 

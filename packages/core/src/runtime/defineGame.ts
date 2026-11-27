@@ -8,6 +8,11 @@ import {
   SET_OPTIONS,
   START_GAME,
 } from "@openparty/shared";
+import {
+  isRoundModuleMountInfo,
+  type RoundModuleMountInfo,
+  roundModuleMounts,
+} from "./roundModuleMount.js";
 import { mergeCoreStrings } from "./strings.js";
 import type {
   ActionDefinition,
@@ -108,6 +113,47 @@ export function defineGame<
       else if (!ACTION_NAME_PATTERN.test(action))
         problems.push(`action name "${action}" is invalid`);
       problems.push(...rateLimitProblems(action, definition.rateLimit));
+    }
+  }
+  // Round-module overlaps: a prefix claimed by two mounts, or a claim shadowed by the game's
+  // own phase or by the spread losing the mount's wrapped phase.
+  const mounts = roundModuleMounts(spec.phases);
+  for (let i = 0; i < mounts.length; ++i) {
+    for (let j = i + 1; j < mounts.length; ++j) {
+      const [, a] = mounts[i] as [symbol, RoundModuleMountInfo];
+      const [, b] = mounts[j] as [symbol, RoundModuleMountInfo];
+      if (a.prefix === b.prefix) {
+        if (a.moduleId === b.moduleId) {
+          problems.push(`module "${a.moduleId}" is already mounted with prefix "${a.prefix}"`);
+        } else {
+          problems.push(
+            `modules "${a.moduleId}" and "${b.moduleId}" are mounted with the same prefix "${a.prefix}"`,
+          );
+        }
+      }
+    }
+  }
+  for (const [mountKey, mount] of mounts) {
+    for (const name of mount.phaseNames) {
+      const phase = spec.phases[name];
+      if (phase === undefined) {
+        problems.push(
+          `module "${mount.moduleId}" mounts phase "${name}" but the game declares no such phase`,
+        );
+        continue;
+      }
+      if (Object.getOwnPropertySymbols(phase).includes(mountKey)) continue;
+      // A phase at the claimed name that is neither this mount's nor another mount's is a game-
+      // declared phase shadowing the module's phase. A phase that is another mount's is the
+      // prefix collision already reported above.
+      const phaseMounts = Object.getOwnPropertySymbols(phase).filter((symbol) =>
+        isRoundModuleMountInfo((phase as Record<symbol, unknown>)[symbol]),
+      );
+      if (phaseMounts.length === 0) {
+        problems.push(
+          `module "${mount.moduleId}" mounts phase "${name}" but the game declares its own phase with that name`,
+        );
+      }
     }
   }
   const middleware: unknown = spec.middleware;
