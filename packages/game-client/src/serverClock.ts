@@ -53,13 +53,11 @@ export class ServerClock<TState extends BaseGameState = BaseGameState> {
 
   /**
    * Folds one `serverNow` reading into the offset, treating half `rttMs` as the one-way delay of
-   * the reading. A non-positive or repeated reading is ignored.
+   * the reading. A reading that is not newer is ignored, so the offset never moves backwards.
    */
-  observe(serverNow: number, rttMs = this.rttMs): void {
-    if (serverNow <= 0 || serverNow === this.lastObserved) return;
-    this.lastObserved = serverNow;
-    this.offsetMs = serverNow + rttMs / 2 - Date.now();
-    this.synced = true;
+  observe(serverNow: number): void {
+    if (serverNow <= 0 || serverNow <= this.lastObserved) return;
+    this.anchor(serverNow, this.rttMs);
   }
 
   /**
@@ -78,6 +76,14 @@ export class ServerClock<TState extends BaseGameState = BaseGameState> {
     this.observe(room.state.serverNow);
   }
 
+  /** Re-anchors the offset to one reading, folding half `rttMs` as its one-way delay. */
+  private anchor(serverNow: number, rttMs: number): void {
+    if (serverNow <= 0) return;
+    this.lastObserved = serverNow;
+    this.offsetMs = serverNow + rttMs / 2 - Date.now();
+    this.synced = true;
+  }
+
   private resample(): void {
     const room = this.room;
     if (room === undefined) return;
@@ -89,6 +95,9 @@ export class ServerClock<TState extends BaseGameState = BaseGameState> {
     this.lastPingAt = Date.now();
     room.ping((rttMs) => {
       this.rttMs = rttMs;
+      // Re-anchor with the measured round-trip time; the join-time anchor ran before the ping
+      // callback fired, so it never folded half-RTT, and observe() would ignore this repeat.
+      this.anchor(room.state.serverNow, rttMs);
     });
   }
 }

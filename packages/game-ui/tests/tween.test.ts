@@ -31,6 +31,17 @@ describe("Tween", () => {
     expect(tween.position).toEqual({ x: 10, y: 20 });
   });
 
+  it("returns fresh objects at the ends, not the spec's point objects", () => {
+    const time = fakeClock(0);
+    const from = { x: 0, y: 0 };
+    const to = { x: 10, y: 20 };
+    const tween = new Tween({ from, to, startedAt: 0, durationMs: 1_000 }, time.clock);
+    expect(tween.position).not.toBe(from);
+    time.set(2_000);
+    expect(tween.position).not.toBe(to);
+    expect(tween.position).toEqual({ x: 10, y: 20 });
+  });
+
   it("interpolates linearly between two points", () => {
     const time = fakeClock(0);
     const tween = new Tween(

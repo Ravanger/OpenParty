@@ -53,6 +53,20 @@ describe("ServerClock", () => {
     clock.detach();
   });
 
+  it("re-anchors with the measured round-trip time once the ping callback fires", () => {
+    // The join-time anchor runs before the async ping callback, so it folds no RTT; when the
+    // callback fires the offset must re-anchor with the measured round-trip time.
+    vi.useFakeTimers();
+    vi.setSystemTime(1_000_000);
+    const state = stateOf(1_000_000);
+    const room = new StubRoom(state);
+    room.pingRttMs = 100;
+    const clock = new ServerClock();
+    clock.attach(room);
+    expect(clock.now()).toBe(1_000_050);
+    clock.detach();
+  });
+
   it("converges when serverNow steps forward while the local clock lags", () => {
     vi.useFakeTimers();
     vi.setSystemTime(1_000_000);
@@ -78,13 +92,16 @@ describe("ServerClock", () => {
     clock.attach(room);
     expect(clock.now()).toBe(1_000_000);
 
+    // A reading that is not newer is ignored: the stale server time does not pull the
+    // estimate back, and the estimate keeps advancing with the local clock.
     vi.advanceTimersByTime(1_000);
     state.serverNow = 900_000;
     room.patch();
-    expect(clock.now()).toBe(1_000_000);
+    expect(clock.now()).toBe(1_001_000);
 
+    // A local clock that moves backwards never moves the estimate either.
     vi.setSystemTime(800_000);
-    expect(clock.now()).toBe(1_000_000);
+    expect(clock.now()).toBe(1_001_000);
     clock.detach();
   });
 

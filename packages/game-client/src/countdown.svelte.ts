@@ -19,7 +19,6 @@ export const isUrgent = isUrgentSeconds;
 
 /** Seconds left until a server-set deadline, corrected for client clock skew, with `isExpired` and `isUrgent` flags. */
 export class Countdown {
-  private readonly clock = new ServerClock();
   readonly isExpired: boolean = $derived(this.secondsLeft <= 0);
   readonly isUrgent: boolean = $derived(isUrgentSeconds(this.secondsLeft));
   private readonly track: () => void;
@@ -31,12 +30,15 @@ export class Countdown {
    * @param getPausedAt - Epoch ms at which the host paused the room, or 0 while it runs; when > 0
    * the countdown freezes at that instant, because the server shifts `phaseEndsAt` by the paused
    * time on resume.
+   * @param clock - The server clock to correct against; by default a fresh instance. Pass the
+   * manager's clock so the countdown and the sound/animation urgency share one estimate.
    */
   constructor(
     private readonly getEndsAt: () => number,
     private readonly getServerNowFn: () => number,
     tickMs = DEFAULT_TICK_MS,
     private readonly getPausedAt: () => number = () => 0,
+    private readonly clock: ServerClock = new ServerClock(),
   ) {
     this.sync();
     this.track = createSubscriber((update) => {

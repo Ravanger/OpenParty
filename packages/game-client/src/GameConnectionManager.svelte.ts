@@ -176,11 +176,13 @@ export class GameConnectionManager<
 
   /** A ticking countdown to the current phase's `phaseEndsAt`, corrected for client clock skew and frozen at `pausedAt` while the host has paused; it ticks only while read in a Svelte effect. */
   countdown(): Countdown {
+    // The manager's own clock: the countdown and the sound/animation urgency share one estimate.
     return new Countdown(
       () => this.state?.phaseEndsAt ?? 0,
       () => this.state?.serverNow ?? 0,
       undefined,
       () => this.state?.pausedAt ?? 0,
+      this.clock,
     );
   }
 

@@ -91,7 +91,7 @@ export class Tween {
     return this.progressAt();
   }
 
-  /** The interpolated position at the clock's current time. */
+  /** The interpolated position at the clock's current time; a fresh object on every read. */
   get position(): TweenPoint {
     this.track();
     return this.positionAt(this.progressAt());
@@ -105,8 +105,9 @@ export class Tween {
   }
 
   private positionAt(progress: number): TweenPoint {
-    if (progress <= 0) return this.first;
-    if (progress >= 1 || this.total <= 0) return this.last;
+    // Fresh copies: a caller must not be able to mutate the tween's start or end points.
+    if (progress <= 0) return { x: this.first.x, y: this.first.y };
+    if (progress >= 1 || this.total <= 0) return { x: this.last.x, y: this.last.y };
     const target = this.total * progress;
     let position = this.last;
     for (const segment of this.segments) {

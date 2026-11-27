@@ -1,6 +1,7 @@
 import { tick } from "svelte";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Countdown, isUrgent, URGENT_SECONDS } from "../src/countdown.svelte.js";
+import { ServerClock } from "../src/serverClock.js";
 import { observe } from "./observe.svelte.js";
 
 describe("Countdown", () => {
@@ -83,6 +84,21 @@ describe("Countdown", () => {
       () => 2_000_000,
     );
     expect(countdown.secondsLeft).toBe(30);
+  });
+
+  it("corrects against the shared clock it is given", () => {
+    vi.setSystemTime(1_000_000);
+    const clock = new ServerClock();
+    const countdown = new Countdown(
+      () => 1_060_000,
+      () => 1_000_000,
+      undefined,
+      () => 0,
+      clock,
+    );
+    // the shared clock — not a private instance — anchored the reading
+    expect(clock.isSynced).toBe(true);
+    expect(countdown.secondsLeft).toBe(60);
   });
 
   it("flags the last ten seconds as urgent", () => {
