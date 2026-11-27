@@ -34,7 +34,7 @@ export interface BotTurn<TState extends BaseGameState> {
   once(key: string, run: () => void): void;
   /** Runs `run` after a random delay; cancelled when the phase changes or the bot leaves. */
   later(delay: BotSpeed | DelayRange, run: () => void): void;
-  /** Runs `run` every `ms` while the phase is unchanged and the bot stays in the room; a throwing `run` stops the cadence. @experimental Reflex-round bot API; may change before 1.0. */
+  /** Runs `run` every `ms` — rescheduling after each run — while the phase is unchanged and the bot stays in the room; a throwing `run` is logged through `log` (when set) and stops the cadence, and a synchronously-fired scheduler ends the cadence after the first firing instead of recursing. @experimental Reflex-round bot API; may change before 1.0. */
   every(ms: number, run: () => void): void;
   /** Sends action `type`; the outcome goes to `onOutcome` and `log`. `note` describes it in the log. `type` overrides any `type` in `payload`. */
   act(type: string, payload?: object, note?: string): void;

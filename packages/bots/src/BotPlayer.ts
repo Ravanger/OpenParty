@@ -181,28 +181,40 @@ export class BotPlayer<TState extends BaseGameState> {
     const stop = (): void => {
       if (cancel !== undefined) this.cancels.delete(cancel);
     };
+    // Marks a synchronously-fired callback: a scheduler can invoke the callback inside the
+    // schedule() call, and the handle it returns is stale for a reschedule that already ran.
+    let synchronous = false;
+    let reentrant = false;
+    const scheduleOnce = (runOnce: () => void): void => {
+      synchronous = false;
+      cancel = this.schedule(() => {
+        synchronous = true;
+        runOnce();
+      }, ms);
+      // A scheduler that already ran the callback consumed it: do not track a stale handle.
+      if (!synchronous) this.cancels.add(cancel);
+    };
     const tick = (): void => {
-      stop();
-      const phase = this.phase;
+      // A synchronously-fired reschedule would recurse on this stack; end the cadence.
+      if (reentrant) return;
+      reentrant = true;
       try {
-        run();
-      } catch (error) {
-        this.options.log?.(`${this.name} every callback failed: ${String(error)}`);
-        return;
+        stop();
+        const phase = this.phase;
+        try {
+          run();
+        } catch (error) {
+          this.options.log?.(`${this.name} every callback failed: ${String(error)}`);
+          return;
+        }
+        // A phase change or leave during `run` already cleared the pending cadences.
+        if (this.left || this.phase !== phase) return;
+        scheduleOnce(tick);
+      } finally {
+        reentrant = false;
       }
-      // A phase change or leave during `run` already cleared the pending cadences.
-      if (this.left || this.phase !== phase) return;
-      cancel = this.schedule(tick, ms);
-      this.cancels.add(cancel);
     };
-    let fired = false;
-    const first = (): void => {
-      fired = true;
-      tick();
-    };
-    cancel = this.schedule(first, ms);
-    // A scheduler that already ran the callback consumed it: do not track a stale handle.
-    if (!fired) this.cancels.add(cancel);
+    scheduleOnce(tick);
   }
 
   private cancelPending(): void {

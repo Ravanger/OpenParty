@@ -1280,7 +1280,7 @@ once `canStart` holds and `host.expectedPlayers` seats are named). `turn` has:
 | `skill` | this bot's skill, 0..1 (default 0.5) — see below |
 | `once(key, run)` | runs `run` the first time `key` is seen in this phase |
 | `later(speed, run)` | runs `run` after a `"think"`, `"react"` or `[min, max]` ms delay; cancelled on phase change or leave |
-| `every(ms, run)` | runs `run` every `ms` while the phase is unchanged and the bot stays in the room; a throwing `run` stops the cadence (`@experimental`) |
+| `every(ms, run)` | runs `run` every `ms` — rescheduling after each run — while the phase is unchanged and the bot stays in the room; a throwing `run` is logged through `log` (when set) and stops the cadence; a synchronously-fired scheduler ends the cadence after the first firing instead of recursing (`@experimental`) |
 | `act(type, payload?, note?)` | sends an action; the result goes to `log` and `onOutcome` |
 | `pick(items)` | a random item, `undefined` for an empty list |
 

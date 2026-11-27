@@ -401,6 +401,35 @@ describe("BotPlayer", () => {
     expect(clock.queue).toEqual([]);
   });
 
+  it("ends a non-throwing every cadence after the first firing when the scheduler is synchronous", () => {
+    // A synchronous scheduler runs the callback inside schedule(); the reschedule must not
+    // recurse on the stack — the cadence simply ends after the first firing.
+    const room = new FakeRoom();
+    room.state.phase = "Play";
+    let runs = 0;
+    new BotPlayer(
+      room,
+      ME,
+      "Bot 1",
+      {
+        play: (turn) =>
+          turn.once("e", () =>
+            turn.every(10, () => {
+              runs += 1;
+            }),
+          ),
+      },
+      {
+        rng: () => 0,
+        schedule: (run) => {
+          run();
+          return () => undefined;
+        },
+      },
+    );
+    expect(runs).toBe(1);
+  });
+
   it("runs an every callback once when the scheduler invokes it synchronously", () => {
     const room = new FakeRoom();
     room.state.phase = "Play";
