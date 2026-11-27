@@ -1,4 +1,4 @@
-import { DemoTable } from "@openparty/bots";
+import { DemoTable, type DemoTableOptions } from "@openparty/bots";
 import { describe, expect, it } from "vitest";
 import { buildLaunchConfig, demoBotOptions, demoTableOptions } from "../src/launchConfig.js";
 import { TAP_ROOM, TapGame, TapState, tapKit } from "./fixtures/tapGame.js";
@@ -57,6 +57,26 @@ describe("buildLaunchConfig", () => {
     const config = buildLaunchConfig({ ...base, botKit: tapKit() }, { gameDir: "/game" });
     const table = config.demo?.create({ endpoint: "ws://127.0.0.1:1", apiPort: 2, bots: 2 });
     expect(table).toBeInstanceOf(DemoTable);
+  });
+
+  it("threads the merged skill into the DemoTable through the create path", () => {
+    // The connection-wins merge lives in `demoTableOptions`; the create path builds the
+    // DemoTable with that merged options object, not with the raw connection.
+    const config = buildLaunchConfig(
+      { ...base, botKit: tapKit(), demo: { bot: { skill: 0.2 } } },
+      { gameDir: "/game" },
+    );
+    const demo = config.demo;
+    if (demo === undefined) throw new Error("the demo section is missing");
+    const table = demo.create({
+      endpoint: "ws://x",
+      apiPort: 1,
+      bots: 1,
+      bot: { skill: 0.7 },
+    });
+    expect(table).toBeInstanceOf(DemoTable);
+    const options = Reflect.get(table, "options") as DemoTableOptions<TapState>;
+    expect(options.bot?.skill).toBe(0.7);
   });
 
   it("omits the bot and demo sections when no kit is declared", () => {
