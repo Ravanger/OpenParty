@@ -158,6 +158,21 @@ describe("TerminalPlayer", () => {
       expect(io.printed).toContain("Something went wrong: Error: sync boom");
     });
 
+    it("aborts the stage controller when the stage throws, so the keyboard listener restores", async () => {
+      const { room, io } = setup({
+        play: async (turn) => {
+          turn.onKey(() => undefined);
+          throw new Error("boom");
+        },
+      });
+      room.state.phase = "Bad";
+      room.patch();
+      await tick();
+      await tick();
+      expect(io.printed.some((line) => line.startsWith("Something went wrong"))).toBe(true);
+      expect(io.listening).toBe(false);
+    });
+
     it("reports a stage that throws, unless it was aborted", async () => {
       const { room, io } = setup({
         play: async (turn) => {

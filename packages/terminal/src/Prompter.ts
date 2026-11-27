@@ -37,7 +37,7 @@ export interface Prompter {
   frame(lines: readonly string[]): void;
 }
 
-/** How a key handler that throws is reported; that listener stops. */
+/** How a key handler that throws is reported; that listener stops. @experimental Real-time terminal input. */
 export const KEY_FAILURE = "Something went wrong";
 
 /** Said instead of reading keys when there is no interactive terminal. */
@@ -112,7 +112,7 @@ export class ReadlinePrompter implements Prompter {
     this.out.write(`\r\x1b[K${line}\n${this.pending}${this.pending ? this.lines.line : ""}`);
   }
 
-  /** Reads single keys in raw mode until `signal` aborts; says so and does nothing without a terminal. */
+  /** Reads single keys in raw mode until `signal` aborts; says so and does nothing without a terminal. @experimental Real-time terminal input. */
   onKey(handler: (key: KeyName) => void, signal: AbortSignal): void {
     const keys = keyStream(this.input);
     if (keys === undefined) {
@@ -126,7 +126,12 @@ export class ReadlinePrompter implements Prompter {
       signal.removeEventListener("abort", stop);
       this.input.removeListener("keypress", pressed);
       --this.sessions;
-      if (this.sessions === 0) this.stopKeys(keys);
+      if (this.sessions === 0) {
+        // The stage is over: the next stage's first frame draws from the current cursor,
+        // not from wherever the last stage finished.
+        this.height = 0;
+        this.stopKeys(keys);
+      }
     };
     const pressed = (text: string | undefined, key: Key): void => {
       const name = decodeKey(text, key);
@@ -159,7 +164,7 @@ export class ReadlinePrompter implements Prompter {
     keys.setRawMode(this.raw);
   }
 
-  /** Replaces the block the previous `frame` drew, from its first line, clearing what it left. */
+  /** Replaces the block the previous `frame` drew, from its first line, clearing what it left. @experimental Real-time terminal input. */
   frame(lines: readonly string[]): void {
     if (!isTerminal(this.out)) {
       for (const line of lines) this.print(line);

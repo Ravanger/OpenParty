@@ -62,7 +62,10 @@ export class TerminalPlayer<TState extends BaseGameState> {
     const controller = new AbortController();
     this.step = controller;
     this.play(state.phase, this.turn(controller.signal)).catch((error: unknown) => {
-      if (!controller.signal.aborted) this.io.print(`Something went wrong: ${String(error)}`);
+      if (controller.signal.aborted) return;
+      this.io.print(`Something went wrong: ${String(error)}`);
+      // The stage threw: abort so any onKey listener it registered restores the terminal mode.
+      controller.abort();
     });
   }
 

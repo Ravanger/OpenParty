@@ -1400,12 +1400,18 @@ Optional strategy members: `narrate(state)` returns lines to print on every stat
 `games/wit-clash/terminal/witClashTerminal.ts`.
 
 **Real-time stages** (`@experimental`). A game with a stage too fast for Enter reads keys with `onKey` and paints with
-`frame`: the key listener lives until the stage's `signal` aborts, so a phase change, a quit or a throwing handler ends it
-and puts back the terminal mode it found (raw mode is shared: registering again in the same stage releases it only when the
+`frame`: the key listener lives until the stage's `signal` aborts, so a phase change, a quit or a throwing handler ends it; the
+terminal mode is restored when the last listener is gone (raw mode is shared: registering again in the same stage releases it only when the
 last listener ends). `frame` keeps the block anchored — the next call moves the cursor to the block's first line and clears
 every line it drew — so a scoreboard does not scroll away. Both degrade instead of failing off a terminal: keys are refused
 with a printed line and frames become plain `print` calls, so a piped stdin (a test, a CI run) and redirected output still
 work while `ask` keeps its line-based behaviour.
+
+Two constraints to know. While a stage listens, the terminal is in raw mode and Ctrl+C is swallowed: raw mode generates no
+SIGINT and the decoder has no name for it, so a real-time stage whose phase never changes can only be left through a key
+the strategy handles itself — the convention is the quit word (`turn.quitWord`) or Escape, handled in the same `onKey` callback.
+And `ask` and `onKey` do not coexist: `onKey` removes readline's line-editing listener, so a question issued while a stage
+listens would not receive keys. Either use line questions (`ask`) in the stage, or real-time keys (`onKey` + `frame`), not both.
 
 ### All-bot demo run
 

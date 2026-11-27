@@ -133,6 +133,18 @@ describe("ReadlinePrompter single keys", () => {
     lines.close();
   });
 
+  it("decodes tab and escape", async () => {
+    const { abort, input, keys, lines, press, prompter } = keySetup();
+    prompter.onKey((key) => keys.push(key), abort.signal);
+    await press("\t");
+    // The terminal emits a bare Escape late (readline waits for more bytes), so give it time.
+    input.write("\x1b");
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    expect(keys).toEqual(["tab", "escape"]);
+    abort.abort();
+    lines.close();
+  });
+
   it("stops reading and restores the terminal when the handler throws", async () => {
     const { abort, keys, lines, press, prompter, raw, written } = keySetup();
     prompter.onKey(() => {
@@ -253,6 +265,19 @@ describe("ReadlinePrompter frames", () => {
     expect(written()).toBe("\r\x1b[Ka\n\r\x1b[Kb\n\x1b[2A\r\x1b[Kc\n\r\x1b[K\n");
     prompter.frame(["d", "e", "f"]);
     expect(written().endsWith("\x1b[2A\r\x1b[Kd\n\r\x1b[Ke\n\r\x1b[Kf\n")).toBe(true);
+    lines.close();
+  });
+
+  it("resets the frame height when the last listener of a stage ends", () => {
+    const { abort, lines, prompter, written } = keySetup();
+    prompter.onKey(() => undefined, abort.signal);
+    prompter.frame(["a", "b"]);
+    abort.abort();
+    const second = new AbortController();
+    prompter.onKey(() => undefined, second.signal);
+    prompter.frame(["x"]);
+    expect(written()).toBe("\r\x1b[Ka\n\r\x1b[Kb\n\r\x1b[Kx\n");
+    second.abort();
     lines.close();
   });
 
