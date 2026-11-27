@@ -899,7 +899,9 @@
           "default": "./dist/testing.js"
         },
         "symbols": {
-          "ScriptedIo": {}
+          "ScriptedIo": {
+            "experimental": true
+          }
         }
       }
     }

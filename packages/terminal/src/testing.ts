@@ -2,7 +2,7 @@ import { KEY_FAILURE, type KeyName, type Prompter } from "./Prompter.js";
 
 const tick = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
 
-/** A prompter that records what it was asked and waits for the test to answer. */
+/** A prompter that records what it was asked and waits for the test to answer. @experimental Real-time terminal input; may change before 1.0. */
 export class ScriptedIo implements Prompter {
   readonly asked: string[] = [];
   readonly printed: string[] = [];
