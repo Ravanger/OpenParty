@@ -13,9 +13,10 @@ export type Graph<NodeId extends string = string> = Readonly<Record<string, read
 /**
  * Every node a walk of `steps` edges from `from` can end on, plus the branch points it passes: nodes
  * with more than one outgoing edge, each listed once, in visit order. A node reached at `steps`
- * edges, or one with no outgoing edges, is an end. Each node is walked at most once, so cycles
- * terminate and a walk that only leads back into a cycle has no ends. `steps` of 0 returns `from`
- * itself. Neither input is mutated.
+ * edges, or one with no outgoing edges, is an end; each node is listed at most once. Each node is
+ * walked once per depth, so a node reached at two depths is walked twice — its outgoing edges
+ * re-checked from each walk and a walk through a cycle keeps going until `steps` is reached.
+ * `steps` of 0 returns `from` itself. Neither input is mutated.
  *
  * @experimental Phase kit API; may change before 1.0.
  * @throws {Error} when `from` is not a node — validate the content with {@link validateGraph} first.
@@ -29,20 +30,33 @@ export function reachable<NodeId extends string>(
   if (steps <= 0) return { ends: [from], branches: [] };
 
   const ends: NodeId[] = [];
+  const seenEnds = new Set<NodeId>();
   const branches: NodeId[] = [];
-  const visited = new Set<NodeId>([from]);
+  const seenBranches = new Set<NodeId>();
+  // A node is walked at most once per depth: a node reached at two depths by two walks is not
+  // re-walked, but each walk must end and branch on its own. A walk that only leads back into a
+  // cycle ends at the node its `steps`-th edge lands on.
+  const visited = new Map<NodeId, Set<number>>([[from, new Set([0])]]);
   const queue: Array<{ node: NodeId; depth: number }> = [{ node: from, depth: 0 }];
   for (let i = 0; i < queue.length; ++i) {
     const { node, depth } = required(queue[i], "graph walk entry");
     const outgoing = graph[node] ?? [];
     if (depth >= steps || outgoing.length === 0) {
-      ends.push(node);
+      if (!seenEnds.has(node)) {
+        seenEnds.add(node);
+        ends.push(node);
+      }
       continue;
     }
-    if (outgoing.length > 1) branches.push(node);
+    if (outgoing.length > 1 && !seenBranches.has(node)) {
+      seenBranches.add(node);
+      branches.push(node);
+    }
     for (const next of outgoing) {
-      if (visited.has(next)) continue;
-      visited.add(next);
+      const depths = visited.get(next);
+      if (depths?.has(depth + 1)) continue;
+      if (depths === undefined) visited.set(next, new Set([depth + 1]));
+      else depths.add(depth + 1);
       queue.push({ node: next, depth: depth + 1 });
     }
   }

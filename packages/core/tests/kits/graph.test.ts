@@ -34,14 +34,28 @@ describe("reachable", () => {
     expect(reachable(graph, "a", 3)).toEqual({ ends: ["z"], branches: ["a", "b"] });
   });
 
-  it("terminates on a cycle and reports no end", () => {
+  it("reports the node a cycle-only walk reaches at its step count", () => {
     const graph: Graph = { a: ["b"], b: ["c"], c: ["a"] };
-    expect(reachable(graph, "a", 100)).toEqual({ ends: [], branches: [] });
+    expect(reachable(graph, "a", 100)).toEqual({ ends: ["b"], branches: [] });
   });
 
-  it("reports a branch inside a cycle once", () => {
+  it("reports a branch inside a cycle once, and the node the walk reaches", () => {
     const graph: Graph = { a: ["b", "c"], b: ["a"], c: ["a"] };
-    expect(reachable(graph, "a", 50)).toEqual({ ends: [], branches: ["a"] });
+    expect(reachable(graph, "a", 50)).toEqual({ ends: ["a"], branches: ["a"] });
+  });
+
+  it("walks a node at two depths so a walk through a branch is not lost", () => {
+    const graph: Graph = { a: ["b", "c"], b: ["c"], c: ["d"], d: [] };
+    expect(reachable(graph, "a", 2)).toEqual({ ends: ["c", "d"], branches: ["a"] });
+  });
+
+  it("does not report a shared end twice", () => {
+    // "b" is reached as a sink at depth 1 and again at depth 2 (the steps limit): the walk must
+    // not push it twice.
+    const graph = { a: ["b", "c"], b: [], c: ["b"] } as const;
+    const { ends, branches } = reachable(graph, "a", 2);
+    expect(ends).toEqual(["b"]);
+    expect(branches).toEqual(["a"]);
   });
 
   it("treats an edge to a node without an entry as a sink", () => {
